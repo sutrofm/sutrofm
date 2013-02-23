@@ -1,0 +1,13 @@
+Django==1.4.5
+boto==2.8.0
+dj-database-url==0.2.1
+django-pylibmc-sasl==0.2.4
+-e git+git@github.com:dasevilla/django-social-auth.git@585db068b4a084716e47f8688e3bab569c14daa2#egg=django_social_auth-dev
+httplib2==0.7.7
+oauth2==1.5.211
+psycopg2==2.4.6
+pylibmc==1.2.3
+python-openid==2.2.5
+raven==3.1.15
+requests==1.1.0
+wsgiref==0.1.2
