@@ -7,8 +7,6 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-import requests
-from requests.auth import AuthBase
 
 def home(request):
     c = RequestContext(request, {
@@ -17,6 +15,20 @@ def home(request):
     return render_to_response('index.html', c)
 
 
+def party(request):
+
+    c = RequestContext(request, {
+        # Something good
+    })
+    return render_to_response('party.html', c)
+
+
 def sign_out(request):
     response = logout(request, next_page=reverse('index'))
     return HttpResponse(response)
+
+
+def player_helper(request):
+    return render_to_response('player-helper.html',
+                              {},
+                              context_instance=RequestContext(request))

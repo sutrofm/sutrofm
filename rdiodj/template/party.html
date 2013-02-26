@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="span4">
+    <h4>Now Playing</h4>
+    <div class="now-playing">Something by someone on something</div>
+    <h4>Queue</h4>
+    <ul id="queue">
+    </ul>
+    <div id="queue-stats"></div>
+  </div>
+  <div class="span8">
+
+    <form id="play-track-form">
+      <fieldset>
+      <legend>Play a track</legend>
+        <input type="text" id="track-key-input" placeholder="playlist, album, or track key">
+        <span class="help-block">Try adding a track key: <code>t12345</code></span>
+        <button type="submit" class="btn">Queue</button>
+      </fieldset>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+  {{ block.super }}
+
+  {% if user.is_authenticated %}
+  <script type='text/javascript' src="https://rdio.com/api/api.js?helper={% url player-helper %}&amp;client_id={{rdio.client_id}}"></script>
+  <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/underscore-min.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
+
+  <script type="text/template" id="track-template">
+    <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a> <br> by <em><%= track.artist %></em> <br> on <em><%= track.album %></em> <br>
+    Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a> <br>
+    <div class="btn-group">
+      <button class="up-vote btn btn-small" type="button"><i class="icon-thumbs-up"></i></button>
+      <button class="down-vote btn btn-small" type="button"><i class="icon-thumbs-down"></i></button>
+      <button class="btn btn-small disabled" type="button"><%= votes %></button>
+    </div>
+  </script>
+
+  <script type="text/template" id="stats-template">
+    <p>Queue size is <%= queueSize %></p>
+  </script>
+
+  <script type="text/javascript">
+  var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
+  var rdioUserKey = '{{ rdio.id }}';
+  var firebaseToken = '{{ rdio.firebase_token }}';
+  </script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/rdiodj.js"></script>
+  {% endif %}
+
+{% endblock%}

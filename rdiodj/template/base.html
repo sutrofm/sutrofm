@@ -30,6 +30,11 @@
                 <li class="{% activelink 'index' %}">
                   <a href="{% url index %}">Home</a>
                 </li>
+                {% if user.is_authenticated %}
+                <li class="{% activelink 'party' %}">
+                  <a href="{% url party %}">Party</a>
+                </li>
+                {% endif %}
               </ul>
               <ul class="nav pull-right">
                 {% if user.is_superuser %}

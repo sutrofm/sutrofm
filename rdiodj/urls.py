@@ -8,8 +8,11 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^$', 'rdiodj.views.home', name='index'),
+    url(r'^party/$', 'rdiodj.views.party', name='party'),
 
     url(r'^sign-out/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='sign-out'),
+
+    url(r'^player/helper/', 'rdiodj.views.player_helper', name='player-helper'),
 
     url(r'^auth/', include('social_auth.urls')),
 

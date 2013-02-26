@@ -140,6 +140,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.contrib.messages.context_processors.messages',
     'social_auth.context_processors.social_auth_by_name_backends',
+    'rdiodj.context_processors.rdio',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -208,3 +209,4 @@ CACHES = {
 }
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
+FIREBASE_TOKEN = os.environ.get('FIREBASE_TOKEN')
