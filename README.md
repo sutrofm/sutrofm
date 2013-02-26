@@ -1,6 +1,6 @@
 # Rdio DJ
 
-Shared listening rooms with via Rdio.
+Shared listening rooms powered by [Rdio](http://www.rdio.com/).
 
 ## Develop
 
@@ -10,8 +10,11 @@ Create a `.env` file with the following defined:
     AWS_SECRET_ACCESS_KEY=
     DJANGO_DEBUG=true
     DJANGO_SECRET_KEY=
+    FIREBASE_TOKEN=
     RDIO_OAUTH2_KEY=
     RDIO_OAUTH2_SECRET=
+    SENTRY_DSN=
+    TEST_DB=
 
 Setup and run locally:
 
