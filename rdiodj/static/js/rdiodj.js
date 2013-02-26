@@ -55,6 +55,47 @@ app.TrackList = Backbone.Firebase.Collection.extend({
 
 app.queue = new app.TrackList();
 
+app.NowPlayingView = Backbone.View.extend({
+  el: '#now-playing',
+
+  template: _.template($('#now-playing-template').html()),
+
+  events: {
+    'click #player-play': 'beginPlaying'
+  },
+
+  initialize: function() {
+    var self = this;
+    this.rdioTrack = null;
+    this.rdioUser = null;
+
+    R.player.on("change:playingTrack", function(newValue) {
+      console.log("Now playing track ", newValue);
+      self.rdioTrack = newValue.attributes;
+      self.render();
+    });
+
+  },
+
+  render: function() {
+    if (this.rdioTrack) {
+      var data = _.extend({
+        'track': this.rdioTrack
+      });
+      this.$el.html(this.template(data));
+      this.$el.show();
+    } else {
+      this.$el.hide();
+    }
+    return this;
+  },
+
+  beginPlaying: function() {
+    R.player.queue.play(0);
+  }
+
+});
+
 app.TrackView = Backbone.View.extend({
   tagName: 'li',
 
@@ -69,6 +110,7 @@ app.TrackView = Backbone.View.extend({
     this.listenTo(this.model, 'change', this.render);
     this.listenTo(this.model, 'remove', this.remove);
     this.rdioTrack = null;
+    this.rdioUser = null;
 
     var self = this;
     R.request({
@@ -144,8 +186,14 @@ app.queueView = Backbone.View.extend({
 
   addAll: function (collection, options) {
     console.log('addAll', collection, options);
+
+    // Render the queue
     this.$el.empty();
     collection.each(this.addOne, this);
+
+    // Update play queue
+    R.player.queue.clear();
+    _.each(collection.pluck('trackKey'), R.player.queue.add);
   }
 });
 
@@ -158,6 +206,7 @@ R.ready(function() {
       console.log('Login Succeeded!');
 
       var queueView = new app.queueView();
+      var nowPlayingView = new app.NowPlayingView();
 
       // Queue a new track
       $('#play-track-form').submit(function(event) {

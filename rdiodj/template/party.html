@@ -6,7 +6,9 @@
 <div class="row">
   <div class="span4">
     <h4>Now Playing</h4>
-    <div class="now-playing">Something by someone on something</div>
+    <div id="now-playing">
+      <button id="player-play" class="btn btn-large" type="button"><i class="icon-play"></i></button>
+    </div>
     <h4>Queue</h4>
     <ul id="queue">
     </ul>
@@ -50,6 +52,10 @@
 
   <script type="text/template" id="stats-template">
     <p>Queue size is <%= queueSize %></p>
+  </script>
+
+  <script type="text/template" id="now-playing-template">
+    <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a> <br> by <em><%= track.artist %></em> <br> on <em><%= track.album %></em> <br>
   </script>
 
   <script type="text/javascript">
