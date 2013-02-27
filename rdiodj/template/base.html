@@ -53,9 +53,9 @@
                     <li class="nav-header">Social Auth</li>
                     <li>
                       {% if social_auth.rdio_oauth2 %}
-                      <a href="{% url socialauth_disconnect backend='rdio_oauth2' %}">Remove Rdio 2.0</a>
+                      <a href="{% url socialauth_disconnect backend='rdio-oauth2' %}">Remove Rdio 2.0</a>
                       {% else %}
-                      <a href="{% url socialauth_begin backend='rdio_oauth2' %}">Add Rdio 2.0</a>
+                      <a href="{% url socialauth_begin backend='rdio-oauth2' %}">Add Rdio 2.0</a>
                       {% endif %}
                     </li>
                   </ul>
@@ -64,7 +64,7 @@
                 {% if user.is_authenticated %}
                 <li><a href="{% url sign-out %}">Sign Out</a></li>
                 {% else %}
-                <li><a href="{% url socialauth_begin backend='rdio_oauth2' %}">Sign In</a></li>
+                <li><a href="{% url socialauth_begin backend='rdio-oauth2' %}">Sign In</a></li>
                 {% endif %}
               </ul>
             </div>
