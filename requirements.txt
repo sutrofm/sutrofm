@@ -1,14 +1,12 @@
 Django==1.4.5
 boto==2.8.0
 dj-database-url==0.2.1
-django-pylibmc-sasl==0.2.4
 git+git://github.com/omab/django-social-auth.git
 django-storages==1.1.6
 firebase-token-generator==1.2
 httplib2==0.7.7
 oauth2==1.5.211
 psycopg2==2.4.6
-pylibmc==1.2.3
 python-openid==2.2.5
 raven==3.1.15
 requests==1.1.0

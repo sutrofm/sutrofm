@@ -202,11 +202,5 @@ RDIO2_PERMISSIONS = []
 
 LOGIN_REDIRECT_URL = '/'
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_pylibmc.memcached.PyLibMCCache',
-    }
-}
-
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
 FIREBASE_TOKEN = os.environ.get('FIREBASE_TOKEN')
