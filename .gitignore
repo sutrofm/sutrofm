@@ -35,4 +35,4 @@ nosetests.xml
 
 test.db
 .env
-followswap.sublime-workspace
+rdiodj.sublime-workspace
