@@ -28,10 +28,12 @@ Before first deploy:
 
     $ heroku apps:create <app_name>
     $ heroku addons:add heroku-postgresql:dev
+    $ heroku addons:add sentry:developer
     $ heroku config:set <contents of .env>
 
 First deploy:
 
+    $ foreman run python manage.py collectstatic
     $ git push heroku master
     $ heroku run python manage.py syncdb
     $ heroku ps:scale web=1
