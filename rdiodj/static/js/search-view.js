@@ -3,7 +3,7 @@
 (function() {
 
   app.SearchView = Backbone.View.extend({
-    el: '#play-track-form',
+    el: '.track-input',
     resultTemplate: _.template($('#search-result-template').html()),
 
     initialize: function() {
