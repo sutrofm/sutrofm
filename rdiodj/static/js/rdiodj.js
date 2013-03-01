@@ -1,41 +1,61 @@
-var app = app || {};
+/*globals app, console, R, Backbone, Firebase, rdioUserKey, firebaseToken */
+
+window.app = window.app || {};
+
+app.currentUserKey = rdioUserKey;
 
 app.Track = Backbone.Model.extend({
+  LIKE: 'like',
+  DISLIKE: 'dislike',
+
+  defaults: {
+    "trackKey": null,
+    "userKey": null,
+    "votes": {},
+    "upVotes": 0,
+    "downVotes": 0
+  },
+
   getVoteRef: function() {
     return this.collection.firebase.child(this.get('id')).child('votes');
   },
 
+  vote: function(newVote) {
+    console.info('Voting', newVote, 'for', this.get('trackKey'));
+    this.getVoteRef().child(app.currentUserKey).set(newVote);
+    this.updateVoteCounts();
+  },
+
   upVote: function() {
-    var self = this;
-    console.log('Up-voting', this.get('trackKey'));
-
-    var voteRef = this.getVoteRef();
-    voteRef.transaction(function(currentValue) {
-      return currentValue + 1;
-    }, function(error, committed, snapshot) {
-      // TODO: Handle this error
-      console.log('Was there an error? ' + error);
-      console.log('Did we commit the transaction? ' + committed);
-      console.log('The final value is: ' + snapshot.val());
-
-      self.collection.sort();
-    });
+    this.vote(this.LIKE);
   },
 
   downVote: function() {
+    this.vote(this.DISLIKE);
+  },
+
+  getVoteCount: function(votes, voteType) {
     var self = this;
-    console.log('Down-voting', this.get('trackKey'));
+    var count = _.reduce(votes, function(num, vote) {
+      if (vote === voteType) {
+        return num + 1;
+      } else {
+        return num;
+      }
+    }, 0);
+    return count;
+  },
 
-    var voteRef = this.getVoteRef();
-    voteRef.transaction(function(currentValue) {
-      return currentValue - 1;
-    }, function(error, committed, snapshot) {
-      // TODO: Handle this error
-      console.log('Was there an error? ' + error);
-      console.log('Did we commit the transaction? ' + committed);
-      console.log('The final value is: ' + snapshot.val());
+  updateVoteCounts: function() {
+    var votes = _.values(this.get('votes'));
+    var likeCount = this.getVoteCount(votes, this.LIKE);
+    var dislikeCount = this.getVoteCount(votes, this.DISLIKE);
 
-      self.collection.sort();
+    console.log('Updated vote count', 'like', likeCount, 'dislike', dislikeCount);
+
+    this.set({
+      upVotes: likeCount,
+      downVotes: dislikeCount
     });
   }
 
@@ -48,7 +68,7 @@ app.TrackList = Backbone.Firebase.Collection.extend({
   firebase: 'https://rdiodj.firebaseio.com/room/queue',
 
   comparator: function(track) {
-    return track.get('votes') * -1;
+    return (track.get('upVotes') - track.get('downVotes')) * -1;
   }
 
 });
@@ -61,7 +81,7 @@ app.NowPlayingView = Backbone.View.extend({
   template: _.template($('#now-playing-template').html()),
 
   events: {
-    'click #player-play': 'beginPlaying'
+    'click #player-play': 'playNext'
   },
 
   initialize: function() {
@@ -70,9 +90,16 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioUser = null;
 
     R.player.on("change:playingTrack", function(newValue) {
-      console.log("Now playing track ", newValue);
-      self.rdioTrack = newValue.attributes;
-      self.render();
+      if (newValue !== null) {
+        self.rdioTrack = newValue;
+        self.render();
+      }
+    });
+
+    R.player.on("change:playState", function(newValue) {
+      if (newValue === R.player.PLAYSTATE_STOPPED) {
+        self.playNext();
+      }
     });
 
   },
@@ -80,7 +107,7 @@ app.NowPlayingView = Backbone.View.extend({
   render: function() {
     if (this.rdioTrack) {
       var data = _.extend({
-        'track': this.rdioTrack
+        'track': this.rdioTrack.attributes
       });
       this.$el.html(this.template(data));
       this.$el.show();
@@ -90,8 +117,19 @@ app.NowPlayingView = Backbone.View.extend({
     return this;
   },
 
-  beginPlaying: function() {
-    R.player.queue.play(0);
+  playNext: function() {
+    var queueItem = app.queue.shift();
+    console.log('Playing next track', queueItem);
+
+    this.addToHistory(queueItem);
+
+    R.player.play({
+      source: queueItem.get('trackKey')
+    });
+  },
+
+  addToHistory: function(queueItem) {
+    console.log('Adding to history', queueItem);
   }
 
 });
@@ -135,7 +173,7 @@ app.TrackView = Backbone.View.extend({
     if (this.rdioTrack && this.rdioUser) {
       var data = _.extend({
         'track': this.rdioTrack,
-        'user': this.rdioUser,
+        'user': this.rdioUser
       }, this.model.toJSON());
       this.$el.html(this.template(data));
       this.$el.show();
@@ -190,10 +228,6 @@ app.queueView = Backbone.View.extend({
     // Render the queue
     this.$el.empty();
     collection.each(this.addOne, this);
-
-    // Update play queue
-    R.player.queue.clear();
-    _.each(collection.pluck('trackKey'), R.player.queue.add);
   }
 });
 
