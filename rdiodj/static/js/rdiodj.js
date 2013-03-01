@@ -118,6 +118,10 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   playNext: function() {
+    if (!app.queue.length) {
+      return;
+    }
+
     var queueItem = app.queue.shift();
     console.log('Playing next track', queueItem);
 
@@ -232,7 +236,6 @@ app.queueView = Backbone.View.extend({
 });
 
 R.ready(function() {
-  var firebaseRef = new Firebase('https://rdiodj.firebaseio.com/');
   firebaseRef.auth(firebaseToken, function(error) {
     if (error) {
       console.log('Login Failed!', error);

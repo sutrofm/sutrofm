@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="row">
-  <div class="span4">
+  <div class="span3">
     <h4>Now Playing</h4>
     <div id="now-playing">
       <button id="player-play" class="btn btn-large" type="button"><i class="icon-play"></i></button>
@@ -14,8 +14,8 @@
     </ul>
     <div id="queue-stats"></div>
   </div>
-  <div class="span8">
 
+  <div class="span7">
     <form id="play-track-form">
       <fieldset>
       <legend>Play a track</legend>
@@ -28,8 +28,15 @@
         <button type="submit" class="btn">Queue</button>
       </fieldset>
     </form>
-
   </div>
+
+  <div class="span2">
+    <h4>Who's Here</h4>
+    <ul id="user-list">
+    </ul>
+    <div id="presence-stats"></div>
+  </div>
+
 </div>
 {% endblock %}
 
@@ -53,6 +60,10 @@
       <button class="down-vote btn btn-small" type="button"><i class="icon-thumbs-down"></i></button>
       <button class="btn btn-small disabled" type="button"><%= downVotes %></button>
     </div>
+  </script>
+
+  <script type="text/template" id="user-presence-template">
+    <li><img src="<%= iconSrc %>" width="50px" ><%= name %></li>
   </script>
 
   <script type="text/template" id="stats-template">
@@ -84,7 +95,10 @@
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
   var rdioUserKey = '{{ rdio.id }}';
   var firebaseToken = '{{ rdio.firebase_token }}';
+  var firebaseRootUrl = 'https://rdiodj.firebaseio.com';
+  var firebaseRef = new Firebase(firebaseRootUrl);
   </script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/chat.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/rdiodj.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/search-view.js"></script>
   {% endif %}
