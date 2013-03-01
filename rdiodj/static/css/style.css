@@ -39,5 +39,14 @@ body {
 
 /* Search View */
 .dropdown img {
-  width: 30px;
+  margin-right: 10px;
+  width: 50px;
+}
+
+.dropdown .name {
+  font-weight: bold;
+}
+
+.dropdown .artist {
+  font-size: 12px;
 }

@@ -17,6 +17,8 @@
             trackKey: $target.data('rdio-key'),
             userKey: app.currentUserKey
           });
+
+          self.close();
         });
 
       var $input = $('#track-key-input')
@@ -54,7 +56,7 @@
       }
 
       this.request = R.request({
-        method: 'search', 
+        method: 'search',
         content: {
           query: query,
           types: 'Track',
@@ -63,7 +65,7 @@
         },
         success: function(data) {
           self.request = null;
-          
+
           self.$menu
             .empty()
             .show();

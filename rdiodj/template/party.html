@@ -64,7 +64,20 @@
   </script>
 
   <script type="text/template" id="search-result-template">
-    <li><a href="#" data-rdio-key="<%= key %>"><img src="<%= icon %>"><%= name %> by <%= artist %></a></li>
+    <li>
+      <a href="#" data-rdio-key="<%= key %>">
+        <table>
+          <tr>
+            <td>
+              <img src="<%= icon %>">
+            </td>
+            <td>
+              <div class="name"><%= name %></div>
+              <div class="artist"><%= artist %></div>
+            </td>
+          </tr>
+      </a>
+    </li>
   </script>
 
   <script type="text/javascript">
