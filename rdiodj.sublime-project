@@ -4,5 +4,15 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings":
+    {
+        "SublimeLinter":
+        {
+    	    "csslint_options":
+		    {
+    	        "ids": false
+		  	}
+        }
+    }
 }
