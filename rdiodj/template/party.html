@@ -44,9 +44,10 @@
     <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a> <br> by <em><%= track.artist %></em> <br> on <em><%= track.album %></em> <br>
     Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a> <br>
     <div class="btn-group">
+      <button class="btn btn-small disabled" type="button"><%= upVotes %></button>
       <button class="up-vote btn btn-small" type="button"><i class="icon-thumbs-up"></i></button>
       <button class="down-vote btn btn-small" type="button"><i class="icon-thumbs-down"></i></button>
-      <button class="btn btn-small disabled" type="button"><%= votes %></button>
+      <button class="btn btn-small disabled" type="button"><%= downVotes %></button>
     </div>
   </script>
 
