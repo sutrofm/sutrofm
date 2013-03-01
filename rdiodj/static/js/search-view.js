@@ -12,7 +12,7 @@
       this.$menu = this.$('.dropdown-menu')
         .on('click', 'a', function(event) {
           event.preventDefault();
-          var $target = $(event.target);
+          var $target = $(event.currentTarget);
           app.queue.add({
             trackKey: $target.data('rdio-key'),
             userKey: app.currentUserKey
