@@ -236,7 +236,6 @@ app.queueView = Backbone.View.extend({
 });
 
 R.ready(function() {
-  var firebaseRef = new Firebase('https://rdiodj.firebaseio.com/');
   firebaseRef.auth(firebaseToken, function(error) {
     if (error) {
       console.log('Login Failed!', error);
