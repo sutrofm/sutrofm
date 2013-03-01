@@ -61,7 +61,7 @@ app.NowPlayingView = Backbone.View.extend({
   template: _.template($('#now-playing-template').html()),
 
   events: {
-    'click #player-play': 'beginPlaying'
+    'click #player-play': 'playNext'
   },
 
   initialize: function() {
@@ -70,9 +70,16 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioUser = null;
 
     R.player.on("change:playingTrack", function(newValue) {
-      console.log("Now playing track ", newValue);
-      self.rdioTrack = newValue.attributes;
-      self.render();
+      if (newValue !== null) {
+        self.rdioTrack = newValue;
+        self.render();
+      }
+    });
+
+    R.player.on("change:playState", function(newValue) {
+      if (newValue === R.player.PLAYSTATE_STOPPED) {
+        self.playNext();
+      }
     });
 
   },
@@ -80,7 +87,7 @@ app.NowPlayingView = Backbone.View.extend({
   render: function() {
     if (this.rdioTrack) {
       var data = _.extend({
-        'track': this.rdioTrack
+        'track': this.rdioTrack.attributes
       });
       this.$el.html(this.template(data));
       this.$el.show();
@@ -90,8 +97,19 @@ app.NowPlayingView = Backbone.View.extend({
     return this;
   },
 
-  beginPlaying: function() {
-    R.player.queue.play(0);
+  playNext: function() {
+    var queueItem = app.queue.shift();
+    console.log('Playing next track', queueItem);
+
+    this.addToHistory(queueItem);
+
+    R.player.play({
+      source: queueItem.get('trackKey'),
+    });
+  },
+
+  addToHistory: function(queueItem) {
+    console.log('Adding to history', queueItem);
   }
 
 });
@@ -190,10 +208,6 @@ app.queueView = Backbone.View.extend({
     // Render the queue
     this.$el.empty();
     collection.each(this.addOne, this);
-
-    // Update play queue
-    R.player.queue.clear();
-    _.each(collection.pluck('trackKey'), R.player.queue.add);
   }
 });
 
