@@ -221,15 +221,11 @@ app.queueView = Backbone.View.extend({
   },
 
   addOne: function (model, collection, options) {
-    console.log('addOne', model, collection, options);
     var view = new app.TrackView({ model: model });
     this.$el.append(view.render().el);
   },
 
   addAll: function (collection, options) {
-    console.log('addAll', collection, options);
-
-    // Render the queue
     this.$el.empty();
     collection.each(this.addOne, this);
   }
