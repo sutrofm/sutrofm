@@ -36,3 +36,8 @@ body {
 .container .credit {
   margin: 20px 0;
 }
+
+/* Search View */
+.dropdown img {
+  width: 30px;
+}

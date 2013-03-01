@@ -1,41 +1,61 @@
-var app = app || {};
+/*globals app, console, R, Backbone, Firebase, rdioUserKey, firebaseToken */
+
+window.app = window.app || {};
+
+app.currentUserKey = rdioUserKey;
 
 app.Track = Backbone.Model.extend({
+  LIKE: 'like',
+  DISLIKE: 'dislike',
+
+  defaults: {
+    "trackKey": null,
+    "userKey": null,
+    "votes": {},
+    "upVotes": 0,
+    "downVotes": 0
+  },
+
   getVoteRef: function() {
     return this.collection.firebase.child(this.get('id')).child('votes');
   },
 
+  vote: function(newVote) {
+    console.info('Voting', newVote, 'for', this.get('trackKey'));
+    this.getVoteRef().child(app.currentUserKey).set(newVote);
+    this.updateVoteCounts();
+  },
+
   upVote: function() {
-    var self = this;
-    console.log('Up-voting', this.get('trackKey'));
-
-    var voteRef = this.getVoteRef();
-    voteRef.transaction(function(currentValue) {
-      return currentValue + 1;
-    }, function(error, committed, snapshot) {
-      // TODO: Handle this error
-      console.log('Was there an error? ' + error);
-      console.log('Did we commit the transaction? ' + committed);
-      console.log('The final value is: ' + snapshot.val());
-
-      self.collection.sort();
-    });
+    this.vote(this.LIKE);
   },
 
   downVote: function() {
+    this.vote(this.DISLIKE);
+  },
+
+  getVoteCount: function(votes, voteType) {
     var self = this;
-    console.log('Down-voting', this.get('trackKey'));
+    var count = _.reduce(votes, function(num, vote) {
+      if (vote === voteType) {
+        return num + 1;
+      } else {
+        return num;
+      }
+    }, 0);
+    return count;
+  },
 
-    var voteRef = this.getVoteRef();
-    voteRef.transaction(function(currentValue) {
-      return currentValue - 1;
-    }, function(error, committed, snapshot) {
-      // TODO: Handle this error
-      console.log('Was there an error? ' + error);
-      console.log('Did we commit the transaction? ' + committed);
-      console.log('The final value is: ' + snapshot.val());
+  updateVoteCounts: function() {
+    var votes = _.values(this.get('votes'));
+    var likeCount = this.getVoteCount(votes, this.LIKE);
+    var dislikeCount = this.getVoteCount(votes, this.DISLIKE);
 
-      self.collection.sort();
+    console.log('Updated vote count', 'like', likeCount, 'dislike', dislikeCount);
+
+    this.set({
+      upVotes: likeCount,
+      downVotes: dislikeCount
     });
   }
 
@@ -48,7 +68,7 @@ app.TrackList = Backbone.Firebase.Collection.extend({
   firebase: 'https://rdiodj.firebaseio.com/room/queue',
 
   comparator: function(track) {
-    return track.get('votes') * -1;
+    return (track.get('upVotes') - track.get('downVotes')) * -1;
   }
 
 });
@@ -104,7 +124,7 @@ app.NowPlayingView = Backbone.View.extend({
     this.addToHistory(queueItem);
 
     R.player.play({
-      source: queueItem.get('trackKey'),
+      source: queueItem.get('trackKey')
     });
   },
 
@@ -153,7 +173,7 @@ app.TrackView = Backbone.View.extend({
     if (this.rdioTrack && this.rdioUser) {
       var data = _.extend({
         'track': this.rdioTrack,
-        'user': this.rdioUser,
+        'user': this.rdioUser
       }, this.model.toJSON());
       this.$el.html(this.template(data));
       this.$el.show();
@@ -220,18 +240,7 @@ R.ready(function() {
 
       var queueView = new app.queueView();
       var nowPlayingView = new app.NowPlayingView();
-
-      // Queue a new track
-      $('#play-track-form').submit(function(event) {
-        event.preventDefault();
-        app.queue.add({
-          trackKey: $('#track-key-input').val(),
-          userKey: rdioUserKey,
-          votes: 1
-        });
-        console.log(app.queue);
-        return false;
-      });
+      var searchView = new app.SearchView();
     }
   });
 });
