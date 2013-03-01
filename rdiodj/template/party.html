@@ -62,6 +62,7 @@
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
   var rdioUserKey = '{{ rdio.id }}';
   var firebaseToken = '{{ rdio.firebase_token }}';
+  var firebaseRef = new Firebase('https://rdiodj.firebaseio.com/');
   </script>
   <script type="text/javascript" src="{{STATIC_URL}}js/rdiodj.js"></script>
   {% endif %}
