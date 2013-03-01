@@ -207,18 +207,7 @@ R.ready(function() {
 
       var queueView = new app.queueView();
       var nowPlayingView = new app.NowPlayingView();
-
-      // Queue a new track
-      $('#play-track-form').submit(function(event) {
-        event.preventDefault();
-        app.queue.add({
-          trackKey: $('#track-key-input').val(),
-          userKey: rdioUserKey,
-          votes: 1
-        });
-        console.log(app.queue);
-        return false;
-      });
+      var searchView = new app.SearchView();
     }
   });
 });
