@@ -1,5 +1,11 @@
 /*globals app, Backbone, R */
 
+// TODO: 
+//
+// * Keyboard navigation for menu (arrows select, return chooses, escape dismisses)
+// * Perhaps when you click away it should leave the search string in the box, and if you
+//   click back, it should open the menu again
+
 (function() {
 
   app.SearchView = Backbone.View.extend({
@@ -21,11 +27,11 @@
           self.close();
         });
 
-      var $input = $('#track-key-input')
+      this.$input = $('#track-key-input')
         .val('')
         .keypress(function() {
           _.delay(function() {
-            var val = $input.val();
+            var val = self.$input.val();
             if (val) {
               self.search(val);
             } else {
@@ -42,6 +48,7 @@
       if (this.request) {
         this.request.abort();
         this.request = null;
+        this.query = null;
       }
 
       this.$menu.hide();
@@ -55,6 +62,7 @@
         this.request = null;
       }
 
+      this.query = query;
       this.request = R.request({
         method: 'search',
         content: {
@@ -64,10 +72,20 @@
           count: 10
         },
         success: function(data) {
+          if (self.query != query) {
+            return;
+          }
+
           self.request = null;
+          self.query = null;
 
           self.$menu
             .empty()
+            .unbind('clickoutside')
+            .bind('clickoutside', function() {
+              self.close();
+              self.$input.val('');
+            })
             .show();
 
           _.each(data.result.results, function(v, i) {
