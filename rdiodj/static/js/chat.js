@@ -21,11 +21,22 @@ chat.UserView = Backbone.View.extend({
     this.listenTo(this.model, 'change', this.render);
     this.listenTo(this.model, 'remove', this.remove);
 
+  },
+
+  render: function() {
+    console.log("rendering user with icon at ", this.model.get('iconSrc'));
+    var data = _.extend({
+      'name': this.model.get('vanityName'),
+      'iconSrc': this.model.get('iconSrc')
+    });
+    this.$el.html(this.template(data));
+    this.$el.show();
+    return this;
   }
 });
 
 
-chat.OnlineUsersView = Backbone.View.extend({
+chat.UserListView = Backbone.View.extend({
   el: '#user-list',
 
   initialize: function() {
@@ -55,6 +66,8 @@ var connectedRef = new Firebase(firebaseRootUrl + '/.info/connected');
 R.ready(function() {
   var userName = R.currentUser.get('vanityName');
   var userIcon= R.currentUser.get('icon');
+
+  var userListView = new chat.UserListView();
 
   connectedRef.on('value', function(isOnline) {
     if (isOnline.val()) {
