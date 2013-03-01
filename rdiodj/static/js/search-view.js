@@ -1,4 +1,4 @@
-/*globals app, Backbone, rdioUserKey, R */
+/*globals app, Backbone, R */
 
 (function() {
 
@@ -13,15 +13,14 @@
         .on('click', 'a', function(event) {
           event.preventDefault();
           var $target = $(event.target);
-          debugger;
           app.queue.add({
             trackKey: $target.data('rdio-key'),
-            userKey: rdioUserKey,
-            votes: 1
+            userKey: app.currentUserKey
           });
         });
 
       var $input = $('#track-key-input')
+        .val('')
         .keypress(function() {
           _.delay(function() {
             var val = $input.val();
@@ -59,6 +58,7 @@
         content: {
           query: query,
           types: 'Track',
+          extras: '-*,key,icon,name,artist',
           count: 10
         },
         success: function(data) {
