@@ -4,6 +4,25 @@ window.app = window.app || {};
 
 app.currentUserKey = rdioUserKey;
 
+app.roomUrl = 'https://rdiodj.firebaseio.com/room';
+
+app.Player = Backbone.Firebase.Model.extend({
+
+  defaults: {
+    'masterUserKey': null,
+    'playingTrack': null,
+    'playState': null,
+    'position': 0
+  },
+
+  isMaster: function () {
+    return this.get('masterUserKey') === app.currentUserKey;
+  },
+
+  firebase: app.roomUrl + '/player'
+
+});
+
 app.Track = Backbone.Model.extend({
   LIKE: 'like',
   DISLIKE: 'dislike',
@@ -65,7 +84,7 @@ app.Track = Backbone.Model.extend({
 app.TrackList = Backbone.Firebase.Collection.extend({
   model: app.Track,
 
-  firebase: 'https://rdiodj.firebaseio.com/room/queue',
+  firebase: app.roomUrl + '/queue',
 
   comparator: function(track) {
     return (track.get('upVotes') - track.get('downVotes')) * -1;
@@ -74,6 +93,7 @@ app.TrackList = Backbone.Firebase.Collection.extend({
 });
 
 app.queue = new app.TrackList();
+app.playState = new app.Player();
 
 app.NowPlayingView = Backbone.View.extend({
   el: '#now-playing',
@@ -89,18 +109,50 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioTrack = null;
     this.rdioUser = null;
 
-    R.player.on("change:playingTrack", function(newValue) {
+    if (!app.playState.get('masterUserKey')) {
+      app.playState.set({
+        'masterUserKey': app.currentUserKey
+      });
+    }
+
+    R.player.on('change:playingTrack', function(newValue) {
       if (newValue !== null) {
         self.rdioTrack = newValue;
         self.render();
       }
     });
 
-    R.player.on("change:playState", function(newValue) {
-      if (newValue === R.player.PLAYSTATE_STOPPED) {
-        self.playNext();
+    if (app.playState.isMaster()) {
+      // Master listener should remove the next item from the queue
+      self.playNext();
+
+      R.player.on('change:playingTrack', function(newValue) {
+        if (newValue === null) {
+          self.playNext();
+        }
+      });
+
+      R.player.on('change:playState', function(newValue) {
+        app.playState.set({
+          'playState': newValue
+        });
+
+      });
+    } else {
+      // Slave listener, should listen to app.playState changes
+      if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
+        R.player.play({
+          source: app.playState.get('playingTrack').trackKey
+        });
       }
-    });
+
+      app.playState.on('change:playingTrack', function(model, value, options) {
+        console.log('change:playingTrack', model, value, options);
+        R.player.play({
+          source: value.trackKey
+        });
+      });
+    }
 
   },
 
@@ -118,14 +170,18 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   playNext: function() {
+    console.log('current play status:', R.player.playState());
     if (!app.queue.length) {
       return;
     }
 
     var queueItem = app.queue.shift();
     console.log('Playing next track', queueItem);
-
     this.addToHistory(queueItem);
+
+    app.playState.set({
+      'playingTrack': queueItem.toJSON()
+    });
 
     R.player.play({
       source: queueItem.get('trackKey')
@@ -221,15 +277,11 @@ app.queueView = Backbone.View.extend({
   },
 
   addOne: function (model, collection, options) {
-    console.log('addOne', model, collection, options);
     var view = new app.TrackView({ model: model });
     this.$el.append(view.render().el);
   },
 
   addAll: function (collection, options) {
-    console.log('addAll', collection, options);
-
-    // Render the queue
     this.$el.empty();
     collection.each(this.addOne, this);
   }
