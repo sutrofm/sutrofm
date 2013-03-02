@@ -95,7 +95,7 @@
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
   var rdioUserKey = '{{ rdio.id }}';
   var firebaseToken = '{{ rdio.firebase_token }}';
-  var firebaseRootUrl = 'https://rdiodj.firebaseio.com';
+  var firebaseRootUrl = '{{ firebase_url }}';
   var firebaseRef = new Firebase(firebaseRootUrl);
   </script>
   <script type="text/javascript" src="{{STATIC_URL}}js/chat.js"></script>

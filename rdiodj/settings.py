@@ -205,3 +205,5 @@ LOGIN_REDIRECT_URL = '/party'
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
 FIREBASE_TOKEN = os.environ.get('FIREBASE_TOKEN')
+
+FIREBASE_URL = 'https://rdiodj.firebaseio.com'

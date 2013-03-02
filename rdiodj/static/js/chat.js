@@ -4,7 +4,7 @@ chat.User = Backbone.Model.extend({
 
 });
 
-chat.firebaseRef = new Firebase(firebaseRootUrl + '/room/people');
+chat.firebaseRef = new Firebase(firebaseRootUrl + '/people');
 
 chat.UserList = Backbone.Firebase.Collection.extend({
   model: chat.User,

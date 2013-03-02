@@ -4,7 +4,7 @@ window.app = window.app || {};
 
 app.currentUserKey = rdioUserKey;
 
-app.roomUrl = 'https://rdiodj.firebaseio.com/room';
+app.roomUrl = firebaseRootUrl;
 
 app.Player = Backbone.Firebase.Model.extend({
 

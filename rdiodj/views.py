@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
@@ -14,10 +15,12 @@ def home(request):
 
 
 @login_required
-def party(request):
+def party(request, room_name):
+    if room_name is None:
+        room_name = 'room'
 
     c = RequestContext(request, {
-        # Something good
+        'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name)
     })
     return render_to_response('party.html', c)
 
