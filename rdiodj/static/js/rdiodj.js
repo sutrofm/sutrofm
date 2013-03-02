@@ -20,14 +20,6 @@ app.Track = Backbone.Model.extend({
   LIKE: 'like',
   DISLIKE: 'dislike',
 
-  defaults: {
-    "trackKey": null,
-    "userKey": null,
-    "votes": {},
-    "upVotes": 0,
-    "downVotes": 0
-  },
-
   getVoteRef: function() {
     return this.collection.firebase.child(this.get('id')).child('votes');
   },
