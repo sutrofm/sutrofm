@@ -8,13 +8,6 @@ app.roomUrl = 'https://rdiodj.firebaseio.com/room';
 
 app.Player = Backbone.Firebase.Model.extend({
 
-  defaults: {
-    'masterUserKey': null,
-    'playingTrack': null,
-    'playState': null,
-    'position': 0
-  },
-
   isMaster: function () {
     return this.get('masterUserKey') === app.currentUserKey;
   },
@@ -109,7 +102,7 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioTrack = null;
     this.rdioUser = null;
 
-    if (!app.playState.get('masterUserKey')) {
+    if (app.playState.get('masterUserKey') === undefined) {
       app.playState.set({
         'masterUserKey': app.currentUserKey
       });
