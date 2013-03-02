@@ -21,9 +21,7 @@
           var $target = $(event.currentTarget);
           app.queue.add({
             trackKey: $target.data('rdio-key'),
-            userKey: app.currentUserKey,
-            upVotes: 0,
-            downVotes: 0
+            userKey: app.currentUserKey
           });
 
           self.close();

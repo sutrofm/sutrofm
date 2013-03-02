@@ -27,7 +27,6 @@ app.Track = Backbone.Model.extend({
   vote: function(newVote) {
     console.info('Voting', newVote, 'for', this.get('trackKey'));
     this.getVoteRef().child(app.currentUserKey).set(newVote);
-    this.updateVoteCounts();
   },
 
   upVote: function() {
@@ -36,31 +35,6 @@ app.Track = Backbone.Model.extend({
 
   downVote: function() {
     this.vote(this.DISLIKE);
-  },
-
-  getVoteCount: function(votes, voteType) {
-    var self = this;
-    var count = _.reduce(votes, function(num, vote) {
-      if (vote === voteType) {
-        return num + 1;
-      } else {
-        return num;
-      }
-    }, 0);
-    return count;
-  },
-
-  updateVoteCounts: function() {
-    var votes = _.values(this.get('votes'));
-    var likeCount = this.getVoteCount(votes, this.LIKE);
-    var dislikeCount = this.getVoteCount(votes, this.DISLIKE);
-
-    console.log('Updated vote count', 'like', likeCount, 'dislike', dislikeCount);
-
-    this.set({
-      upVotes: likeCount,
-      downVotes: dislikeCount
-    });
   }
 
 });
@@ -234,7 +208,7 @@ app.TrackView = Backbone.View.extend({
       var data = _.extend({
         'track': this.rdioTrack,
         'user': this.rdioUser
-      }, this.model.toJSON());
+      }, this.model.toJSON(), this.getVoteCounts());
       this.$el.html(this.template(data));
       this.$el.show();
     } else {
@@ -249,6 +223,29 @@ app.TrackView = Backbone.View.extend({
 
   downVote: function() {
     this.model.downVote();
+  },
+
+  getVoteCount: function(votes, voteType) {
+    var count = _.reduce(votes, function(num, vote) {
+      if (vote === voteType) {
+        return num + 1;
+      } else {
+        return num;
+      }
+    }, 0);
+    return count;
+  },
+
+  getVoteCounts: function() {
+    var votes = _.values(this.model.get('votes'));
+    var likeCount = this.getVoteCount(votes, this.model.LIKE);
+    var dislikeCount = this.getVoteCount(votes, this.model.DISLIKE);
+
+    console.log('Updated vote count', votes, 'like', likeCount, 'dislike', dislikeCount);
+    return {
+      upVotes: likeCount,
+      downVotes: dislikeCount
+    };
   }
 
 });
