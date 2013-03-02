@@ -9,17 +9,7 @@ chat.firebaseRef = new Firebase(firebaseRootUrl + '/room/people');
 chat.UserList = Backbone.Firebase.Collection.extend({
   model: chat.User,
 
-  firebase: chat.firebaseRef, // pass the ref here instead of string so we can listen for disconnect.
-
-  listUpdated: function(updated) {
-    if (updated.get('presenceStatus') == 'online') {
-      var userView = new chat.UserView({ mode: updated });
-
-    } else { // assume offline
-      updated.remove();
-    }
-  }
-
+  firebase: chat.firebaseRef // pass the ref here instead of string so we can listen for disconnect.
 });
 
 chat.presenceList = new chat.UserList();
@@ -35,17 +25,13 @@ chat.UserView = Backbone.View.extend({
   },
 
   render: function() {
-    if (this.model.get('presenceStatus') == 'online') {
-      console.log("rendering user with icon at ", this.model.get('iconSrc'));
-      var data = _.extend({
-        'name': this.model.get('vanityName'),
-        'iconSrc': this.model.get('iconSrc')
-      });
-      this.$el.html(this.template(data));
-      this.$el.show();
-    } else {
-      this.$el.hide();
-    }
+    console.log("rendering user with icon at ", this.model.get('iconSrc'));
+    var data = _.extend({
+      'name': this.model.get('vanityName'),
+      'iconSrc': this.model.get('iconSrc')
+    });
+    this.$el.html(this.template(data));
+    this.$el.show();
     return this;
   }
 });
@@ -57,7 +43,7 @@ chat.UserListView = Backbone.View.extend({
   initialize: function() {
     this.presenceStats = $('#presence-stats');
 
-    this.listenTo(chat.presenceList, 'change', this.redraw);
+    this.listenTo(chat.presenceList, 'change', this.onListChanged);
     this.listenTo(chat.presenceList, 'all', this.render);
 
     //probably should render the presenceList on init so we have a starting point too.
@@ -65,19 +51,22 @@ chat.UserListView = Backbone.View.extend({
     this.redraw(chat.presenceList, {});
   },
 
-  listChanged: function(newItem) {
-    console.log("list changed from the context of list view: ", newItem);
-    console.log(arguments);
-  },
-
   drawUser: function(model, collection, options) {
-    var view = new chat.UserView({ model: model });
-    this.$el.append(view.render().el);
+    if (model.get('presenceStatus') != 'offline') {
+      var view = new chat.UserView({ model: model });
+      this.$el.append(view.render().el);
+    }
   },
 
   redraw: function(collection, options) {
     this.$el.empty();
     collection.each(this.drawUser, this);
+  },
+
+  onListChanged: function(model, options) {
+    console.log("list changed with model: ", model);
+    // this is inefficient, but we don't have another hook to the dom element.
+    this.redraw(chat.presenceList, {});
   }
 
 });
