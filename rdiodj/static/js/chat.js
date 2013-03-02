@@ -72,8 +72,6 @@ chat.UserListView = Backbone.View.extend({
 });
 
 
-var connectedRef = new Firebase(firebaseRootUrl + '/info/connected');
-
 R.ready(function() {
   var userName = R.currentUser.get('vanityName');
   var userIcon = R.currentUser.get('icon');
@@ -83,11 +81,8 @@ R.ready(function() {
 
 
   // add current user to chat list, if they're not already
-  //
-  var exists = chat.presenceList.any(function(user) {
-    return user.get('id') == userKey;
-  });
-  if (!exists) {
+  var user = chat.presenceList.get(userKey);
+  if (user === undefined) {
     chat.presenceList.add({
       id: userKey,
       vanityName: userName,
@@ -96,24 +91,13 @@ R.ready(function() {
     });
   }
 
-  connectedRef.on('value', function(isOnline) {
-    var user = chat.presenceList.find(function(user) {
-      return user.get('id') == userKey;
-    });
+  var presenceRef = chat.presenceList.firebase.child(userKey).child('presenceStatus');
 
-    if (isOnline.val()) {
-      user.set('presenceStatus', 'online');
-    } else {
-      user.set('presenceStatus', 'offline');
-    }
+  presenceRef.onDisconnect(function() {
+    presenceRef.set('presenceStatus', 'offline');
   });
 
-  chat.firebaseRef.onDisconnect(function() {
-    var user = chat.presenceList.find(function(user) {
-      return user.get('id') == userKey;
-    });
+  // Mark yourself as online
+  presenceRef.set('presenceStatus', 'online');
 
-    user.set('presenceStatus', 'offline');
-  });
 });
-
