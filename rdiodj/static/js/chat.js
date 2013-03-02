@@ -11,8 +11,15 @@ chat.UserList = Backbone.Firebase.Collection.extend({
 
   firebase: chat.firebaseRef, // pass the ref here instead of string so we can listen for disconnect.
 
-  initialize: function() {
+  listUpdated: function(updated) {
+    if (updated.get('presenceStatus') == 'online') {
+      var userView = new chat.UserView({ mode: updated });
+
+    } else { // assume offline
+      updated.remove();
+    }
   }
+
 });
 
 chat.presenceList = new chat.UserList();
@@ -50,7 +57,15 @@ chat.UserListView = Backbone.View.extend({
   initialize: function() {
     this.presenceStats = $('#presence-stats');
 
+    this.listenTo(chat.presenceList, 'change', this.listChanged);
     this.listenTo(chat.presenceList, 'all', this.render);
+
+    //probably should render the presenceList on init so we have a starting point too.
+    console.log("render all the users here?");
+  },
+
+  listChanged: function(newItem) {
+    console.log("list changed from the context of list view: ", newItem);
   }
 
 });
@@ -60,7 +75,8 @@ var connectedRef = new Firebase(firebaseRootUrl + '/.info/connected');
 
 R.ready(function() {
   var userName = R.currentUser.get('vanityName');
-  var userIcon= R.currentUser.get('icon');
+  var userIcon = R.currentUser.get('icon');
+  var userKey = R.currentUser.get('key');
 
   var userListView = new chat.UserListView();
 
@@ -68,11 +84,11 @@ R.ready(function() {
   // add current user to chat list, if they're not already
   //
   var exists = chat.presenceList.any(function(user) {
-    return user.get('vanityName') == userName;
+    return user.get('id') == userKey;
   });
-  console.log('user has been here before? ', exists);
   if (!exists) {
     chat.presenceList.add({
+      id: userKey,
       vanityName: userName,
       iconSrc: userIcon,
       presenceStatus: 'offline'
@@ -81,13 +97,10 @@ R.ready(function() {
 
   connectedRef.on('value', function(isOnline) {
     var user = chat.presenceList.find(function(user) {
-      return user.get('vanityName') == userName;
+      return user.get('id') == userKey;
     });
 
-    console.log('user changed... ', user);
-
     if (isOnline.val()) {
-      console.log(userName + " is online!");
       user.set('presenceStatus', 'online');
     } else {
       user.set('presenceStatus', 'offline');
@@ -96,7 +109,7 @@ R.ready(function() {
 
   chat.firebaseRef.onDisconnect(function() {
     var user = chat.presenceList.find(function(user) {
-      return user.get('vanityName') == userName;
+      return user.get('id') == userKey;
     });
 
     user.set('presenceStatus', 'offline');
