@@ -72,7 +72,7 @@ chat.UserListView = Backbone.View.extend({
 });
 
 
-var connectedRef = new Firebase(firebaseRootUrl + '/.info/connected');
+var connectedRef = new Firebase(firebaseRootUrl + '/info/connected');
 
 R.ready(function() {
   var userName = R.currentUser.get('vanityName');
