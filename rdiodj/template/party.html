@@ -15,8 +15,7 @@
       <button id="player-play" class="btn btn-large" type="button"><i class="icon-play"></i></button>
     </div>
     <h4>Who's Here</h4>
-    <ul id="user-list">
-    </ul>
+    <ul id="user-list" class="thumbnails"></ul>
     <div id="presence-stats"></div>
   </div>
 
@@ -63,7 +62,11 @@
   </script>
 
   <script type="text/template" id="user-presence-template">
-    <li><img src="<%= iconSrc %>" width="50px" ><%= name %></li>
+    <li class="span1">
+      <div class="thumbnail">
+        <a href="http://www.rdio.com/people/<%= name %>/" target="_blank" title="<%= name %>"><img src="<%= iconSrc %>" width="50" height="50"></a>
+      </div>
+    </li>
   </script>
 
   <script type="text/template" id="stats-template">
