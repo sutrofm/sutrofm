@@ -109,7 +109,7 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioTrack = null;
     this.rdioUser = null;
 
-    if (app.playState.get('masterUserKey') === null) {
+    if (!app.playState.get('masterUserKey')) {
       app.playState.set({
         'masterUserKey': app.currentUserKey
       });
