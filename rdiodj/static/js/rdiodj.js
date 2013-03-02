@@ -89,7 +89,7 @@ app.NowPlayingView = Backbone.View.extend({
 
   initialize: function() {
     var self = this;
-    this.rdioTrack = null;
+    this.rdioTrackKey = null;
     this.rdioUser = null;
 
     if (app.playState.get('masterUserKey') === undefined) {
@@ -100,7 +100,7 @@ app.NowPlayingView = Backbone.View.extend({
 
     R.player.on('change:playingTrack', function(newValue) {
       if (newValue !== null) {
-        self.rdioTrack = newValue;
+        self.rdioTrackKey = newValue.get('key');
         self.render();
       }
     });
@@ -155,12 +155,28 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   render: function() {
-    if (this.rdioTrack) {
-      var data = _.extend({
-        'track': this.rdioTrack.attributes
+    var self = this;
+
+    if (this.rdioTrackKey) {
+      R.request({
+        method: 'get',
+        content: {
+          keys: this.rdioTrackKey,
+          extras: 'streamRegions,shortUrl,bigIcon'
+        },
+        success: function(response) {
+          var data = _.extend({
+            'track': response.result[self.rdioTrackKey]
+          });
+
+          self.$el.html(self.template(data));
+          self.$el.show();
+        },
+        error: function(response) {
+          console.log('Unable to get tack information for', self.rdioTrackKey);
+        }
       });
-      this.$el.html(this.template(data));
-      this.$el.show();
+
     } else {
       this.$el.hide();
     }
@@ -213,7 +229,7 @@ app.TrackView = Backbone.View.extend({
       method: 'get',
       content: {
         keys: self.model.get('trackKey') + ',' + self.model.get('userKey'),
-        extras: 'streamRegions,shortUrl'
+        extras: 'streamRegions,shortUrl,bigIcon'
       },
       success: function(response) {
         self.rdioTrack = response.result[self.model.get('trackKey')];
