@@ -4,37 +4,36 @@
 
 {% block content %}
 <div class="row">
-  <div class="span3">
+
+  <div class="span4">
+    <h4>Activity</h4>
+  </div>
+
+  <div class="span4">
     <h4>Now Playing</h4>
     <div id="now-playing">
       <button id="player-play" class="btn btn-large" type="button"><i class="icon-play"></i></button>
     </div>
-    <h4>Queue</h4>
-    <ul id="queue">
-    </ul>
-    <div id="queue-stats"></div>
-  </div>
-
-  <div class="span7">
-    <form id="play-track-form">
-      <fieldset>
-      <legend>Play a track</legend>
-        <input type="text" id="track-key-input" placeholder="playlist, album, or track key">
-        <div class="dropdown">
-          <ul class="dropdown-menu">
-          </ul>
-        </div>
-        <span class="help-block">Try adding a track key: <code>t12345</code></span>
-        <button type="submit" class="btn">Queue</button>
-      </fieldset>
-    </form>
-  </div>
-
-  <div class="span2">
     <h4>Who's Here</h4>
     <ul id="user-list">
     </ul>
     <div id="presence-stats"></div>
+  </div>
+
+  <div class="span4">
+    <h4>Up Next</h4>
+    <div class="track-input">
+      <fieldset>
+        <input type="text" id="track-key-input" placeholder="Find a song to add to the party">
+        <div class="dropdown">
+          <ul class="dropdown-menu">
+          </ul>
+        </div>
+      </fieldset>
+    </div>
+    <ul id="queue">
+    </ul>
+    <div id="queue-stats"></div>
   </div>
 
 </div>
@@ -50,6 +49,7 @@
   <script type="text/javascript" src="{{STATIC_URL}}js/underscore-min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
 
   <script type="text/template" id="track-template">
     <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a> <br> by <em><%= track.artist %></em> <br> on <em><%= track.album %></em> <br>
@@ -75,7 +75,20 @@
   </script>
 
   <script type="text/template" id="search-result-template">
-    <li><a href="#" data-rdio-key="<%= key %>"><img src="<%= icon %>"><%= name %> by <%= artist %></a></li>
+    <li>
+      <a href="#" data-rdio-key="<%= key %>">
+        <table>
+          <tr>
+            <td>
+              <img src="<%= icon %>">
+            </td>
+            <td>
+              <div class="name"><%= name %></div>
+              <div class="artist"><%= artist %></div>
+            </td>
+          </tr>
+      </a>
+    </li>
   </script>
 
   <script type="text/javascript">
