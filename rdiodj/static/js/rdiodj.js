@@ -145,6 +145,15 @@ app.NowPlayingView = Backbone.View.extend({
           source: value.trackKey
         });
       });
+      app.playState.on('change:playState', function(model, value, options) {
+        console.log('change:playState', model, value, options);
+        switch (value) {
+          case R.player.PLAYSTATE_PAUSED:
+          case R.player.PLAYSTATE_STOPPED:
+            R.player.pause();
+            break;
+        }
+      });
     }
 
   },
