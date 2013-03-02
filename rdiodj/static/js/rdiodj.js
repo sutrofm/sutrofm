@@ -35,6 +35,29 @@ app.Track = Backbone.Model.extend({
 
   downVote: function() {
     this.vote(this.DISLIKE);
+  },
+
+  getVoteCount: function(voteType) {
+    var votes = _.values(this.get('votes'));
+    var count = _.reduce(votes, function(num, vote) {
+      if (vote === voteType) {
+        return num + 1;
+      } else {
+        return num;
+      }
+    }, 0);
+    return count;
+  },
+
+  getVoteCounts: function() {
+    var likeCount = this.getVoteCount(this.LIKE);
+    var dislikeCount = this.getVoteCount(this.DISLIKE);
+
+    console.log('Did vote count:', 'like', likeCount, 'dislike', dislikeCount);
+    return {
+      upVotes: likeCount,
+      downVotes: dislikeCount
+    };
   }
 
 });
@@ -46,7 +69,8 @@ app.TrackList = Backbone.Firebase.Collection.extend({
   firebase: app.roomUrl + '/queue',
 
   comparator: function(track) {
-    return (track.get('upVotes') - track.get('downVotes')) * -1;
+    var counts = track.getVoteCounts();
+    return (counts.upVotes - counts.downVotes) * -1;
   }
 
 });
@@ -208,7 +232,7 @@ app.TrackView = Backbone.View.extend({
       var data = _.extend({
         'track': this.rdioTrack,
         'user': this.rdioUser
-      }, this.model.toJSON(), this.getVoteCounts());
+      }, this.model.toJSON(), this.model.getVoteCounts());
       this.$el.html(this.template(data));
       this.$el.show();
     } else {
@@ -223,29 +247,6 @@ app.TrackView = Backbone.View.extend({
 
   downVote: function() {
     this.model.downVote();
-  },
-
-  getVoteCount: function(votes, voteType) {
-    var count = _.reduce(votes, function(num, vote) {
-      if (vote === voteType) {
-        return num + 1;
-      } else {
-        return num;
-      }
-    }, 0);
-    return count;
-  },
-
-  getVoteCounts: function() {
-    var votes = _.values(this.model.get('votes'));
-    var likeCount = this.getVoteCount(votes, this.model.LIKE);
-    var dislikeCount = this.getVoteCount(votes, this.model.DISLIKE);
-
-    console.log('Updated vote count', votes, 'like', likeCount, 'dislike', dislikeCount);
-    return {
-      upVotes: likeCount,
-      downVotes: dislikeCount
-    };
   }
 
 });
