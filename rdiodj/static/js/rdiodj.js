@@ -243,10 +243,12 @@ app.TrackView = Backbone.View.extend({
 
   upVote: function() {
     this.model.upVote();
+    app.queue.sort();
   },
 
   downVote: function() {
     this.model.downVote();
+    app.queue.sort();
   }
 
 });
@@ -260,7 +262,7 @@ app.queueView = Backbone.View.extend({
     this.queueStats = $('#queue-stats');
 
     this.listenTo(app.queue, 'add', this.addOne);
-    this.listenTo(app.queue, 'sort', this.addAll);
+    // this.listenTo(app.queue, 'sort', this.addAll);
     this.listenTo(app.queue, 'all', this.render);
     this.addAll(app.queue, {});
   },
