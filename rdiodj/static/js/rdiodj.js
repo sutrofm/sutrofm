@@ -129,13 +129,19 @@ app.NowPlayingView = Backbone.View.extend({
         app.playState.set({
           'playState': newValue
         });
+      });
 
+      R.player.on('change:position', function(newValue) {
+        app.playState.set({
+          'position': newValue
+        });
       });
     } else {
       // Slave listener, should listen to app.playState changes
       if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
         R.player.play({
-          source: app.playState.get('playingTrack').trackKey
+          source: app.playState.get('playingTrack').trackKey,
+          initialPosition: app.playState.get('position')
         });
       }
 
