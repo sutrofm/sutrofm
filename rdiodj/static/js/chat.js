@@ -57,15 +57,27 @@ chat.UserListView = Backbone.View.extend({
   initialize: function() {
     this.presenceStats = $('#presence-stats');
 
-    this.listenTo(chat.presenceList, 'change', this.listChanged);
+    this.listenTo(chat.presenceList, 'change', this.redraw);
     this.listenTo(chat.presenceList, 'all', this.render);
 
     //probably should render the presenceList on init so we have a starting point too.
     console.log("render all the users here?");
+    this.redraw(chat.presenceList, {});
   },
 
   listChanged: function(newItem) {
     console.log("list changed from the context of list view: ", newItem);
+    console.log(arguments);
+  },
+
+  drawUser: function(model, collection, options) {
+    var view = new chat.UserView({ model: model });
+    this.$el.append(view.render().el);
+  },
+
+  redraw: function(collection, options) {
+    this.$el.empty();
+    collection.each(this.drawUser, this);
   }
 
 });
