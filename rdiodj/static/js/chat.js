@@ -92,12 +92,14 @@ R.ready(function() {
   }
 
   var presenceRef = chat.presenceList.firebase.child(userKey).child('presenceStatus');
+  console.log('online presence:', presenceRef.toString());
 
+  // Mark yourself as offline on disconnect
   presenceRef.onDisconnect(function() {
-    presenceRef.set('presenceStatus', 'offline');
+    presenceRef.set('offline');
   });
 
   // Mark yourself as online
-  presenceRef.set('presenceStatus', 'online');
+  presenceRef.set('online');
 
 });
