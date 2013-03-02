@@ -8,13 +8,6 @@ app.roomUrl = 'https://rdiodj.firebaseio.com/room';
 
 app.Player = Backbone.Firebase.Model.extend({
 
-  defaults: {
-    'masterUserKey': null,
-    'playingTrack': null,
-    'playState': null,
-    'position': 0
-  },
-
   isMaster: function () {
     return this.get('masterUserKey') === app.currentUserKey;
   },
@@ -109,7 +102,7 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioTrack = null;
     this.rdioUser = null;
 
-    if (!app.playState.get('masterUserKey')) {
+    if (app.playState.get('masterUserKey') === undefined) {
       app.playState.set({
         'masterUserKey': app.currentUserKey
       });
@@ -136,13 +129,19 @@ app.NowPlayingView = Backbone.View.extend({
         app.playState.set({
           'playState': newValue
         });
+      });
 
+      R.player.on('change:position', function(newValue) {
+        app.playState.set({
+          'position': newValue
+        });
       });
     } else {
       // Slave listener, should listen to app.playState changes
       if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
         R.player.play({
-          source: app.playState.get('playingTrack').trackKey
+          source: app.playState.get('playingTrack').trackKey,
+          initialPosition: app.playState.get('position')
         });
       }
 
@@ -151,6 +150,15 @@ app.NowPlayingView = Backbone.View.extend({
         R.player.play({
           source: value.trackKey
         });
+      });
+      app.playState.on('change:playState', function(model, value, options) {
+        console.log('change:playState', model, value, options);
+        switch (value) {
+          case R.player.PLAYSTATE_PAUSED:
+          case R.player.PLAYSTATE_STOPPED:
+            R.player.pause();
+            break;
+        }
       });
     }
 
