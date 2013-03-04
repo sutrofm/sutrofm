@@ -25,6 +25,7 @@
           });
 
           self.close();
+          self.$input.val('');
         });
 
       this.$input = $('#track-key-input')
