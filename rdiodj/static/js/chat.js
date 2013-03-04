@@ -25,13 +25,27 @@ chat.UserView = Backbone.View.extend({
   },
 
   render: function() {
+    var self = this;
     console.log("rendering user with icon at ", this.model.get('iconSrc'));
-    var data = _.extend({
-      'name': this.model.get('vanityName'),
-      'iconSrc': this.model.get('iconSrc')
+
+    R.request({
+      method: 'get',
+      content: {
+        keys: this.model.get('id'),
+        extras: 'shortUrl'
+      },
+      success: function(response) {
+        var data = _.extend({
+          'user': response.result[self.model.get('id')]
+        });
+        self.$el.html(self.template(data));
+        self.$el.show();
+      },
+      error: function(response) {
+        console.log('Unable to get user information for', self.model.get('id'));
+      }
     });
-    this.$el.html(this.template(data));
-    this.$el.show();
+
     return this;
   }
 });
@@ -73,20 +87,14 @@ chat.UserListView = Backbone.View.extend({
 
 
 R.ready(function() {
-  var userName = R.currentUser.get('vanityName');
-  var userIcon = R.currentUser.get('icon');
   var userKey = R.currentUser.get('key');
-
   var userListView = new chat.UserListView();
-
 
   // add current user to chat list, if they're not already
   var user = chat.presenceList.get(userKey);
   if (user === undefined) {
     chat.presenceList.add({
       id: userKey,
-      vanityName: userName,
-      iconSrc: userIcon,
       isOnline: false
     });
   }
