@@ -90,13 +90,19 @@ app.NowPlayingView = Backbone.View.extend({
   initialize: function() {
     var self = this;
     this.rdioTrackKey = null;
-    this.rdioUser = null;
+    this.activeUsers = chat.activeUsers;
+    this.playState = app.playState;
 
-    if (app.playState.get('masterUserKey') === undefined) {
-      app.playState.set({
-        'masterUserKey': app.currentUserKey
-      });
-    }
+    this.listenTo(this.playState, 'change', function(model, newValue, options) {
+      console.log('change:masterUserKey', model, newValue, options);
+    });
+
+    this.listenTo(this.playState, 'change:masterUserKey', function(model, newValue, options) {
+      console.log('change:masterUserKey', model, newValue, options);
+      if (newValue === undefined) {
+        self.findNewMasterKey();
+      }
+    });
 
     R.player.on('change:playingTrack', function(newValue) {
       if (newValue !== null) {
@@ -105,53 +111,15 @@ app.NowPlayingView = Backbone.View.extend({
       }
     });
 
-    if (app.playState.isMaster()) {
-      // Master listener should remove the next item from the queue
-      self.playNext();
-
-      R.player.on('change:playingTrack', function(newValue) {
-        if (newValue === null) {
-          self.playNext();
-        }
-      });
-
-      R.player.on('change:playState', function(newValue) {
-        app.playState.set({
-          'playState': newValue
-        });
-      });
-
-      R.player.on('change:position', function(newValue) {
-        app.playState.set({
-          'position': newValue
-        });
-      });
-    } else {
-      // Slave listener, should listen to app.playState changes
-      if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
-        R.player.play({
-          source: app.playState.get('playingTrack').trackKey,
-          initialPosition: app.playState.get('position')
-        });
-      }
-
-      app.playState.on('change:playingTrack', function(model, value, options) {
-        console.log('change:playingTrack', model, value, options);
-        R.player.play({
-          source: value.trackKey
-        });
-      });
-      app.playState.on('change:playState', function(model, value, options) {
-        console.log('change:playState', model, value, options);
-        switch (value) {
-          case R.player.PLAYSTATE_PAUSED:
-          case R.player.PLAYSTATE_STOPPED:
-            R.player.pause();
-            break;
-        }
-      });
+    if (this.playState.get('masterUserKey') === undefined) {
+      this.findNewMasterKey();
     }
 
+    if (this.playState.isMaster()) {
+      this.initMasterStatus();
+    } else {
+      this.initSlaveStatus();
+    }
   },
 
   render: function() {
@@ -193,7 +161,7 @@ app.NowPlayingView = Backbone.View.extend({
     console.log('Playing next track', queueItem);
     this.addToHistory(queueItem);
 
-    app.playState.set({
+    this.playState.set({
       'playingTrack': queueItem.toJSON()
     });
 
@@ -204,6 +172,74 @@ app.NowPlayingView = Backbone.View.extend({
 
   addToHistory: function(queueItem) {
     console.log('Adding to history', queueItem);
+  },
+
+  findNewMasterKey: function() {
+    var onlineUsers = this.activeUsers.where({isOnline:true});
+    this.playState.set({
+      'masterUserKey': onlineUsers[0].get('id')
+    });
+  },
+
+  /**
+   * Called when this client assumes control of the player
+   **/
+  initMasterStatus: function() {
+    var self = this;
+
+    // Delete user key reference on reference, will trigger search for new master
+    var masterUserKeyRef = this.playState.firebase.child('masterUserKey');
+    masterUserKeyRef.onDisconnect().set(null);
+
+    R.player.on('change:playingTrack', function(newValue) {
+      if (newValue === null) {
+        self.playNext();
+      }
+    });
+
+    R.player.on('change:playState', function(newValue) {
+      self.playState.set({
+        'playState': newValue
+      });
+    });
+
+    R.player.on('change:position', function(newValue) {
+      self.playState.set({
+        'position': newValue
+      });
+    });
+  },
+
+  /**
+   * Called when the client should listen to a remote player
+   **/
+  initSlaveStatus: function() {
+
+    // TODO: Should pick-up where it left off
+    this.playNext();
+
+    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
+      R.player.play({
+        source: app.playState.get('playingTrack').trackKey,
+        initialPosition: app.playState.get('position')
+      });
+    }
+
+    app.playState.on('change:playingTrack', function(model, value, options) {
+      console.log('change:playingTrack', model, value, options);
+      R.player.play({
+        source: value.trackKey
+      });
+    });
+    app.playState.on('change:playState', function(model, value, options) {
+      console.log('change:playState', model, value, options);
+      switch (value) {
+        case R.player.PLAYSTATE_PAUSED:
+        case R.player.PLAYSTATE_STOPPED:
+          R.player.pause();
+          break;
+      }
+    });
   }
 
 });
