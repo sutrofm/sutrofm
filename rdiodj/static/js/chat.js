@@ -209,25 +209,7 @@ R.ready(function() {
     }
   });
 
-  // track change track entry.
-  R.player.on('change:playingTrack', function(newVal) {
-    // even though we are, we can't just add to messageHistory here,
-    // since a new track entry will be added for every new user that
-    // enters during a track.
-    //
-    // for now oh well, fix in the morning by only doing this if I'm master.
-    if (newVal) {
-      var trackData = {
-        type: 'NewTrack',
-        title: newVal.get('name'),
-        artist: newVal.get('artist'),
-        iconUrl: newVal.get('icon'),
-        timestamp: (new Date()).toISOString()
-      };
-
-      chat.messageHistory.add(trackData);
-    }
-  });
+  // we set up track change messages in rdiodj.js
 
   var chatView = new chat.MessagesView();
 });
