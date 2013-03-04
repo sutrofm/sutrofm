@@ -13,7 +13,7 @@ class RdioTokens(object):
         }
         options = {
             'admin': True,
-            'debug': True,
+            'debug': settings.DEBUG,
         }
         firebase_token = create_token(settings.FIREBASE_TOKEN, custom_data, options)
 
