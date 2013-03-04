@@ -114,9 +114,7 @@ app.NowPlayingView = Backbone.View.extend({
       this.findNewMasterKey();
     }
 
-    if (this.playState.isMaster()) {
-      this.initMasterStatus();
-    } else {
+    if (!this.playState.isMaster()) {
       this.initSlaveStatus();
     }
   },
@@ -246,7 +244,7 @@ app.NowPlayingView = Backbone.View.extend({
 
     // When something is added to the queue and we aren't playing, play it
     this.listenTo(app.queue, 'add', function(model, collection, options) {
-      if (app.playState.get('playingTrack') === undefined) {
+      if (app.playState.get('playingTrack') === null) {
         self.playNext();
       }
     });
