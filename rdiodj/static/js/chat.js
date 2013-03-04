@@ -200,7 +200,7 @@ R.ready(function() {
         fullName: fullName,
         userKey: chat.currentUser.get('key'),
         message: message,
-        time: (new Date()).toISOString()
+        timestamp: (new Date()).toISOString()
       };
 
       chat.messageHistory.add(messageData);
@@ -221,7 +221,8 @@ R.ready(function() {
         type: 'NewTrack',
         title: newVal.get('name'),
         artist: newVal.get('artist'),
-        iconUrl: newVal.get('icon')
+        iconUrl: newVal.get('icon'),
+        timestamp: (new Date()).toISOString()
       };
 
       chat.messageHistory.add(trackData);
