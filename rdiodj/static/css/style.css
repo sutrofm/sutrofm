@@ -50,3 +50,7 @@ body {
 .dropdown .artist {
   font-size: 12px;
 }
+
+.presence {
+  margin-top: 20px;
+}
