@@ -100,10 +100,10 @@
   </script>
 
   <script type="text/template" id="user-presence-template">
-    <li class="span1">
-        <a class="thumbnail" href="<%= user.shortUrl %>/" target="_blank"
+    <li class="">
+        <a class="" href="<%= user.shortUrl %>/" target="_blank"
             title="<%= user.firstName %> <%= user.lastName %>">
-          <img src="<%= user.icon %>" width="50" height="50">
+          <img class="user-presence" src="<%= user.icon %>" width="50" height="50">
         </a>
     </li>
   </script>
@@ -113,10 +113,17 @@
   </script>
 
   <script type="text/template" id="now-playing-template">
-    <div>
+    <div class="now-playing-album">
       <img src="<%= track.bigIcon %>" width="600" height="600">
+      <div class="album-info">
+        <div class="title">
+          <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a>
+        </div>
+        <div class="credits">
+          <%= track.artist %> - <%= track.album %>
+        </div>
+      </div>
     </div>
-    <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a> <br> by <em><%= track.artist %></em> <br> on <em><%= track.album %></em> <br>
   </script>
 
   <script type="text/template" id="search-result-template">
@@ -144,7 +151,16 @@
 
   <script type="text/template" id="chat-new-track-template">
     <li class="chat-message-track">
-      <img src="<%= iconUrl %>" width="50" class="chat-track-icon"/><%= title %> - <%= artist %>
+      <table>
+        <tr>
+          <td>
+            <img src="<%= iconUrl %>" width="50" class="chat-track-icon"/>
+          </td>
+          <td class="main">
+            <div class="track-info"><%= title %> - <%= artist %></div>
+          </td>
+        </tr>
+      </table>
     </li>
   </script>
 
