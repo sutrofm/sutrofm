@@ -187,6 +187,15 @@ app.NowPlayingView = Backbone.View.extend({
   initMasterStatus: function() {
     var self = this;
 
+    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
+      R.player.play({
+        source: app.playState.get('playingTrack').trackKey,
+        initialPosition: app.playState.get('position')
+      });
+    } else {
+      this.playNext();
+    }
+
     // Delete user key reference on reference, will trigger search for new master
     var masterUserKeyRef = this.playState.firebase.child('masterUserKey');
     masterUserKeyRef.onDisconnect().set(null);
@@ -214,9 +223,6 @@ app.NowPlayingView = Backbone.View.extend({
    * Called when the client should listen to a remote player
    **/
   initSlaveStatus: function() {
-
-    // TODO: Should pick-up where it left off
-    this.playNext();
 
     if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
       R.player.play({
