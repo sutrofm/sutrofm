@@ -216,15 +216,16 @@ R.ready(function() {
     // enters during a track.
     //
     // for now oh well, fix in the morning by only doing this if I'm master.
-    var trackData = {
-      type: 'NewTrack',
-      title: newVal.get('name'),
-      artist: newVal.get('artist'),
-      iconUrl: newVal.get('icon')
-    };
+    if (newVal) {
+      var trackData = {
+        type: 'NewTrack',
+        title: newVal.get('name'),
+        artist: newVal.get('artist'),
+        iconUrl: newVal.get('icon')
+      };
 
-    chat.messageHistory.add(trackData);
-
+      chat.messageHistory.add(trackData);
+    }
   });
 
   var chatView = new chat.MessagesView();
