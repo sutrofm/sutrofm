@@ -102,6 +102,9 @@ app.NowPlayingView = Backbone.View.extend({
       console.log('change:masterUserKey', model, newValue, options);
       if (newValue === undefined) {
         self.findNewMasterKey();
+      } else if(newValue === app.currentUserKey) {
+        // This client just became master
+        self.initMasterStatus();
       }
     });
 
@@ -208,6 +211,7 @@ app.NowPlayingView = Backbone.View.extend({
    **/
   initMasterStatus: function() {
     var self = this;
+    self.destroySlaveStatus();
 
     if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
       R.player.play({
@@ -268,6 +272,11 @@ app.NowPlayingView = Backbone.View.extend({
           break;
       }
     });
+  },
+
+  destroySlaveStatus: function() {
+    app.playState.off('change:playingTrack');
+    app.playState.off('change:playState');
   }
 
 });
