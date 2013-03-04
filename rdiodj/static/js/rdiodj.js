@@ -172,7 +172,28 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   addToHistory: function(queueItem) {
-    console.log('Adding to history', queueItem);
+    // R.request here instead of in render, cause it's historical.
+    console.log('ADDING TRACK KEY TO HISTORY', queueItem.get('trackKey'));
+    var trackKey = queueItem.get('trackKey');
+    R.request({
+      method: 'get',
+      content: {
+        keys: trackKey,
+        extras: '-*,name,artist,icon'
+      },
+      success: function(res) {
+        var track = res.result[trackKey];
+        var messageData = {
+          type: 'NewTrack',
+          title: track.name,
+          artist: track.artist,
+          iconUrl: track.icon,
+          timestamp: (new Date()).toISOString()
+        };
+
+        chat.messageHistory.add(trackData);
+      }
+    });
   },
 
   findNewMasterKey: function() {
