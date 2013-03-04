@@ -63,9 +63,10 @@
 
   <script type="text/template" id="user-presence-template">
     <li class="span1">
-      <div class="thumbnail">
-        <a href="<%= user.shortUrl %>/" target="_blank" title="<%= user.firstName %> <%= user.lastName %>"><img src="<%= user.icon %>" width="50" height="50"></a>
-      </div>
+        <a class="thumbnail" href="<%= user.shortUrl %>/" target="_blank"
+            title="<%= user.firstName %> <%= user.lastName %>">
+          <img src="<%= user.icon %>" width="50" height="50">
+        </a>
     </li>
   </script>
 
