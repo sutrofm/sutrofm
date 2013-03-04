@@ -224,22 +224,32 @@ app.NowPlayingView = Backbone.View.extend({
     var masterUserKeyRef = this.playState.firebase.child('masterUserKey');
     masterUserKeyRef.onDisconnect().set(null);
 
+    // When the current track finishes, play the next
     R.player.on('change:playingTrack', function(newValue) {
       if (newValue === null) {
         self.playNext();
       }
     });
 
+    // Let the slaves know the master's player status
     R.player.on('change:playState', function(newValue) {
       self.playState.set({
         'playState': newValue
       });
     });
 
+    // Let the slaves know the master's player position
     R.player.on('change:position', function(newValue) {
       self.playState.set({
         'position': newValue
       });
+    });
+
+    // When something is added to the queue and we aren't playing, play it
+    this.listenTo(app.queue, 'add', function(model, collection, options) {
+      if (app.playState.get('playingTrack') === undefined) {
+        self.playNext();
+      }
     });
   },
 
