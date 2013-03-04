@@ -3,7 +3,7 @@ import os
 
 import dj_database_url
 
-DEBUG = bool(os.environ.get('DJANGO_DEBUG', False))
+DEBUG = 'DJANGO_DEBUG' in os.environ
 TEMPLATE_DEBUG = DEBUG
 INTERNAL_IPS = ('127.0.0.1',)
 
