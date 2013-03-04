@@ -176,7 +176,6 @@ app.NowPlayingView = Backbone.View.extend({
 
   addToHistory: function(queueItem) {
     // R.request here instead of in render, cause it's historical.
-    console.log('ADDING TRACK KEY TO HISTORY', queueItem.get('trackKey'));
     var trackKey = queueItem.get('trackKey');
     R.request({
       method: 'get',
