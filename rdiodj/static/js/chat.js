@@ -13,7 +13,7 @@ chat.UserList = Backbone.Firebase.Collection.extend({
   firebase: chat.firebasePeopleRef // pass the ref here instead of string so we can listen for disconnect.
 });
 
-chat.presenceList = new chat.UserList();
+chat.activeUsers  = new chat.UserList();
 
 chat.UserView = Backbone.View.extend({
   tagName: 'li',
@@ -58,12 +58,12 @@ chat.UserListView = Backbone.View.extend({
   initialize: function() {
     this.presenceStats = $('#presence-stats');
 
-    this.listenTo(chat.presenceList, 'change', this.onListChanged);
-    this.listenTo(chat.presenceList, 'all', this.render);
+    this.listenTo(chat.activeUsers , 'change', this.onListChanged);
+    this.listenTo(chat.activeUsers , 'all', this.render);
 
-    //probably should render the presenceList on init so we have a starting point too.
+    //probably should render the activeUsers  on init so we have a starting point too.
     console.log("render all the users here?");
-    this.redraw(chat.presenceList, {});
+    this.redraw(chat.activeUsers , {});
   },
 
   drawUser: function(model, collection, options) {
@@ -81,7 +81,7 @@ chat.UserListView = Backbone.View.extend({
   onListChanged: function(model, options) {
     console.log("list changed with model: ", model);
     // this is inefficient, but we don't have another hook to the dom element.
-    this.redraw(chat.presenceList, {});
+    this.redraw(chat.activeUsers , {});
   }
 
 });
@@ -92,15 +92,15 @@ R.ready(function() {
   var userListView = new chat.UserListView();
 
   // add current user to chat list, if they're not already
-  var user = chat.presenceList.get(userKey);
+  var user = chat.activeUsers .get(userKey);
   if (user === undefined) {
-    chat.presenceList.add({
+    chat.activeUsers .add({
       id: userKey,
       isOnline: true
     });
   }
 
-  var isOnlineRef = chat.presenceList.firebase.child(userKey).child('isOnline');
+  var isOnlineRef = chat.activeUsers .firebase.child(userKey).child('isOnline');
   console.log('online presence:', isOnlineRef.toString());
 
   // Mark yourself as offline on disconnect
