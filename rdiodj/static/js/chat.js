@@ -115,10 +115,22 @@ chat.UserMessageView = Backbone.View.extend({
   }
 });
 
-chat.EventMesageView = Backbone.View.extend({
+chat.NewTrackMessageView = Backbone.View.extend({
   tagName: 'li',
 
-  template: _.template($('#chat-player-event-template').html())
+  template: _.template($('#chat-new-track-template').html()),
+
+  render: function() {
+    var data = {
+      title: this.model.get('title'),
+      artist: this.model.get('artist'),
+      iconUrl: this.model.get('iconUrl')
+    };
+    this.$el.html(this.template(data));
+    this.$el.show();
+
+    return this;
+  }
 });
 
 chat.MessagesView = Backbone.View.extend({
@@ -131,27 +143,18 @@ chat.MessagesView = Backbone.View.extend({
     console.log('chat view initialized');
   },
 
-  drawUserMessage: function(model, collection, options) {
-    // hi
-  },
-
-  drawPlayerMessage: function(model, collection, options) {
-    // hi
-  },
-
   onMessageAdded: function(model, options) {
     var messageType = model.get('type');
     if (messageType == 'User') {
-      console.log("A user's message should be added to the chat!", model);
       var messageView = new chat.UserMessageView({ model: model });
-      var rendered = messageView.render();
 
-      console.log(rendered);
-      this.$el.append(rendered.el);
-
+      this.$el.append(messageView.render().el);
       this.el.scrollTop = this.el.scrollHeight;
     } else if (messageType == 'NewTrack') {
-      console.log('A new track started playing.');
+      var trackView = new chat.NewTrackMessageView({ model: model });
+
+      this.$el.append(trackView.render().el);
+      this.el.scrollTop = this.el.scrollHeight;
     }
   }
 });
@@ -184,6 +187,7 @@ R.ready(function() {
 
   // Set up chat
   
+  // user chat entry
   var chatEntryText = $('.chat-entry-text');
   chatEntryText.keypress(function(e) {
     if (e.keyCode == 13) { // listen for enter key
@@ -203,6 +207,24 @@ R.ready(function() {
 
       chatEntryText.val('');
     }
+  });
+
+  // track change track entry.
+  R.player.on('change:playingTrack', function(newVal) {
+    // even though we are, we can't just add to messageHistory here,
+    // since a new track entry will be added for every new user that
+    // enters during a track.
+    //
+    // for now oh well, fix in the morning by only doing this if I'm master.
+    var trackData = {
+      type: 'NewTrack',
+      title: newVal.get('name'),
+      artist: newVal.get('artist'),
+      iconUrl: newVal.get('icon')
+    };
+
+    chat.messageHistory.add(trackData);
+
   });
 
   var chatView = new chat.MessagesView();

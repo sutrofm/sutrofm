@@ -77,6 +77,18 @@ body {
   font-weight: bold;
 }
 
+.chat-message-track {
+  border-top-style: solid;
+  border-top-width: 1px;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-top: 0.5em;
+}
+
+.chat-track-icon {
+  margin-right: 0.5em;
+}
+
 .chat-entry-container {
   height: 1.9em;
   vertical-align: bottom;
@@ -95,3 +107,4 @@ body {
 .chat-entry-text:focus {
   outline: none;
 }
+
