@@ -95,9 +95,7 @@ R.ready(function() {
   console.log('online presence:', presenceRef.toString());
 
   // Mark yourself as offline on disconnect
-  presenceRef.onDisconnect(function() {
-    presenceRef.set('offline');
-  });
+  presenceRef.onDisconnect().set('offline');
 
   // Mark yourself as online
   presenceRef.set('online');
