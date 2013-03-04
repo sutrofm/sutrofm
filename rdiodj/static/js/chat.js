@@ -83,33 +83,43 @@ chat.UserListView = Backbone.View.extend({
     // this is inefficient, but we don't have another hook to the dom element.
     this.redraw(chat.activeUsers , {});
   }
-
 });
 
 
-R.ready(function() {
-  var userKey = R.currentUser.get('key');
-  var userListView = new chat.UserListView();
-
-  // add current user to chat list, if they're not already
-  var user = chat.activeUsers .get(userKey);
-  if (user === undefined) {
-    chat.activeUsers .add({
-      id: userKey,
-      isOnline: true
-    });
-  }
-
-  var isOnlineRef = chat.activeUsers .firebase.child(userKey).child('isOnline');
-  console.log('online presence:', isOnlineRef.toString());
-
-  // Mark yourself as offline on disconnect
-  isOnlineRef.onDisconnect().set(false);
-
-  // Mark yourself as online
-  isOnlineRef.set(true);
-
-  // Set up chat input
-
-
+/* chat messages! */
+chat.Message = Backbone.Model.extend({
 });
+
+chat.MessageHistoryList = Backbone.Firebase.Collection.extend({
+  model: chat.Message,
+
+  firebase: chat.firebaseMessagesRef
+});
+
+
+
+$.ready(function() {
+  R.ready(function() {
+    var userKey = R.currentUser.get('key');
+    var userListView = new chat.UserListView();
+
+    // add current user to chat list, if they're not already
+    var user = chat.activeUsers .get(userKey);
+    if (user === undefined) {
+      chat.activeUsers .add({
+        id: userKey,
+        isOnline: true
+      });
+    }
+
+    var isOnlineRef = chat.activeUsers .firebase.child(userKey).child('isOnline');
+    console.log('online presence:', isOnlineRef.toString());
+
+    // Mark yourself as offline on disconnect
+    isOnlineRef.onDisconnect().set(false);
+
+    // Mark yourself as online
+    isOnlineRef.set(true);
+  });
+});
+
