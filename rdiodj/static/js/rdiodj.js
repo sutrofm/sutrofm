@@ -151,7 +151,6 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   playNext: function() {
-    console.log('current play status:', R.player.playState());
     if (!app.queue.length) {
       this.playState.set({
         'playState': R.player.PLAYSTATE_STOPPED,
