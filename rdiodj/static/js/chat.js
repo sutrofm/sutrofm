@@ -52,7 +52,7 @@ chat.UserListView = Backbone.View.extend({
   },
 
   drawUser: function(model, collection, options) {
-    if (model.get('presenceStatus') != 'offline') {
+    if (model.get('isOnline')) {
       var view = new chat.UserView({ model: model });
       this.$el.append(view.render().el);
     }
@@ -87,17 +87,17 @@ R.ready(function() {
       id: userKey,
       vanityName: userName,
       iconSrc: userIcon,
-      presenceStatus: 'offline'
+      isOnline: false
     });
   }
 
-  var presenceRef = chat.presenceList.firebase.child(userKey).child('presenceStatus');
-  console.log('online presence:', presenceRef.toString());
+  var isOnlineRef = chat.presenceList.firebase.child(userKey).child('isOnline');
+  console.log('online presence:', isOnlineRef.toString());
 
   // Mark yourself as offline on disconnect
-  presenceRef.onDisconnect().set('offline');
+  isOnlineRef.onDisconnect().set(false);
 
   // Mark yourself as online
-  presenceRef.set('online');
+  isOnlineRef.set(true);
 
 });
