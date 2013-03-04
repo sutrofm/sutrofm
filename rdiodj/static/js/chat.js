@@ -96,30 +96,112 @@ chat.MessageHistoryList = Backbone.Firebase.Collection.extend({
   firebase: chat.firebaseMessagesRef
 });
 
+chat.messageHistory = new chat.MessageHistoryList();
 
+chat.UserMessageView = Backbone.View.extend({
+  tagName: 'li',
 
-$.ready(function() {
-  R.ready(function() {
-    var userKey = R.currentUser.get('key');
-    var userListView = new chat.UserListView();
+  template: _.template($('#chat-user-message-template').html()),
 
-    // add current user to chat list, if they're not already
-    var user = chat.activeUsers .get(userKey);
-    if (user === undefined) {
-      chat.activeUsers .add({
-        id: userKey,
-        isOnline: true
-      });
-    }
+  render: function() {
+    var data = {
+      fullName: this.model.get('fullName'),
+      message: this.model.get('message')
+    };
+    this.$el.html(this.template(data));
+    this.$el.show();
 
-    var isOnlineRef = chat.activeUsers .firebase.child(userKey).child('isOnline');
-    console.log('online presence:', isOnlineRef.toString());
-
-    // Mark yourself as offline on disconnect
-    isOnlineRef.onDisconnect().set(false);
-
-    // Mark yourself as online
-    isOnlineRef.set(true);
-  });
+    return this;
+  }
 });
 
+chat.EventMesageView = Backbone.View.extend({
+  tagName: 'li',
+
+  template: _.template($('#chat-player-event-template').html())
+});
+
+chat.MessagesView = Backbone.View.extend({
+  el: '.chat-messages',
+
+  initialize: function() {
+    // there's probably a better way to do this with inheritance...
+    this.listenTo(chat.messageHistory, 'add', this.onMessageAdded);
+
+    console.log('chat view initialized');
+  },
+
+  drawUserMessage: function(model, collection, options) {
+    // hi
+  },
+
+  drawPlayerMessage: function(model, collection, options) {
+    // hi
+  },
+
+  onMessageAdded: function(model, options) {
+    var messageType = model.get('type');
+    if (messageType == 'User') {
+      console.log("A user's message should be added to the chat!", model);
+      var messageView = new chat.UserMessageView({ model: model });
+      var rendered = messageView.render();
+
+      console.log(rendered);
+      this.$el.append(rendered.el);
+    } else if (messageType == 'NewTrack') {
+      console.log('A new track started playing.');
+    }
+  }
+});
+
+
+R.ready(function() {
+  chat.currentUser = R.currentUser;
+
+  var userKey = R.currentUser.get('key');
+  var userListView = new chat.UserListView();
+
+  // add current user to activeUsers list, if they're not already
+  var user = chat.activeUsers .get(userKey);
+  if (user === undefined) {
+    chat.activeUsers .add({
+      id: userKey,
+      isOnline: true
+    });
+  }
+
+  var isOnlineRef = chat.activeUsers .firebase.child(userKey).child('isOnline');
+  console.log('online presence:', isOnlineRef.toString());
+
+  // Mark yourself as offline on disconnect
+  isOnlineRef.onDisconnect().set(false);
+
+  // Mark yourself as online
+  isOnlineRef.set(true);
+
+
+  // Set up chat
+  
+  var chatEntryText = $('.chat-entry-text');
+  chatEntryText.keypress(function(e) {
+    if (e.keyCode == 13) { // listen for enter key
+      var message = chatEntryText.val();
+      var fullName = chat.currentUser.get('firstName') + ' ' +
+        chat.currentUser.get('lastName');
+
+      var messageData = {
+        type: 'User',
+        fullName: fullName,
+        userKey: chat.currentUser.get('key'),
+        message: message,
+        time: (new Date()).toISOString()
+      };
+
+      chat.messageHistory.add(messageData);
+
+      chatEntryText.val('');
+    }
+  });
+
+  var chatView = new chat.MessagesView();
+});
