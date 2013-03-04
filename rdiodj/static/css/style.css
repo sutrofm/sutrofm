@@ -66,18 +66,30 @@ body {
 
 .chat-messages {
   list-style-type: none;
-  margin-left: 1em;
-  margin-right: 1em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 .chat-message-username {
-  margin-right: 1em;
+  margin-right: 0.5em;
+  font-weight: bold;
 }
 
-.chat-text-entry {
-  height: 1.3em;
+.chat-entry-container {
+  height: 1.9em;
   vertical-align: bottom;
   padding-bottom: 0.3em;
   border-bottom-style: solid;
   border-top-style: solid;
+}
+
+.chat-entry-text {
+  width: 100%;
+  border-style: none;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+.chat-entry-text:focus {
+  outline: none;
 }
