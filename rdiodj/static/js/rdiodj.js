@@ -193,7 +193,7 @@ app.NowPlayingView = Backbone.View.extend({
           timestamp: (new Date()).toISOString()
         };
 
-        chat.messageHistory.add(trackData);
+        chat.messageHistory.add(messageData);
       }
     });
   },
