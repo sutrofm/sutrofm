@@ -10,14 +10,18 @@
     <div class="chat">
       <div class="chat-message-container">
         <ul class="chat-messages">
-          <li>
-          </li>
         </ul>
       </div>
-      <div class="chat-entry-container">
-        <div class="chat-icon"></div>
-        <input class="chat-entry-text" placeholder="Type your message here"></input>
-      </div>
+      <table class="text-input">
+        <tr>
+          <td>
+            <img src="{{STATIC_URL}}img/search.png" class="input-icon">
+          </td>
+          <td class="input-cell">
+            <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
+          </td>
+        </tr>
+      </table>
     </div>
   </div>
 
@@ -34,8 +38,16 @@
   <div class="span4">
     <h4>Up Next</h4>
     <div class="track-input">
-      <img src="{{STATIC_URL}}img/search.png" class="icon">
-      <input type="text" id="track-key-input" placeholder="Find a song to add to the party">
+      <table class="text-input">
+        <tr>
+          <td>
+            <img src="{{STATIC_URL}}img/search.png" class="input-icon">
+          </td>
+          <td class="input-cell">
+            <input type="text" id="track-key-input" placeholder="Find a song to add to the party">
+          </td>
+        </tr>
+      </table>
       <div class="dropdown">
         <ul class="dropdown-menu">
         </ul>
