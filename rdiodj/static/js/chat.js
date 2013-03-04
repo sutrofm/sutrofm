@@ -4,12 +4,13 @@ chat.User = Backbone.Model.extend({
 
 });
 
-chat.firebaseRef = new Firebase(firebaseRootUrl + '/people');
+chat.firebasePeopleRef = new Firebase(firebaseRootUrl + '/people');
+chat.firebaseMessagesRef = new Firebase(firebaseRootUrl + '/messages');
 
 chat.UserList = Backbone.Firebase.Collection.extend({
   model: chat.User,
 
-  firebase: chat.firebaseRef // pass the ref here instead of string so we can listen for disconnect.
+  firebase: chat.firebasePeopleRef // pass the ref here instead of string so we can listen for disconnect.
 });
 
 chat.presenceList = new chat.UserList();
@@ -101,5 +102,8 @@ R.ready(function() {
 
   // Mark yourself as online
   presenceRef.set('online');
+
+  // Set up chat input
+
 
 });

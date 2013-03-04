@@ -50,3 +50,34 @@ body {
 .dropdown .artist {
   font-size: 12px;
 }
+
+
+/* Chat stuff */
+.chat {
+  height: 36em;
+}
+
+.chat-message-container {
+  height: 33.7em;
+  background-color: rgba(100, 100, 100, 0.1);
+  border-top-style: solid;
+  vertical-align: bottom;
+}
+
+.chat-messages {
+  list-style-type: none;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.chat-message-username {
+  margin-right: 1em;
+}
+
+.chat-text-entry {
+  height: 1.3em;
+  vertical-align: bottom;
+  padding-bottom: 0.3em;
+  border-bottom-style: solid;
+  border-top-style: solid;
+}
