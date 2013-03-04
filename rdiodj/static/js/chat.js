@@ -149,12 +149,13 @@ chat.MessagesView = Backbone.View.extend({
       var messageView = new chat.UserMessageView({ model: model });
 
       this.$el.append(messageView.render().el);
-      this.el.scrollTop = this.el.scrollHeight;
+      this.el.parentElement.scrollTop = this.el.parentElement.scrollHeight;
+
     } else if (messageType == 'NewTrack') {
       var trackView = new chat.NewTrackMessageView({ model: model });
 
       this.$el.append(trackView.render().el);
-      this.el.scrollTop = this.el.scrollHeight;
+      this.el.parentElement.scrollTop = this.el.parentElement.scrollHeight;
     }
   }
 });
