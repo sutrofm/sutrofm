@@ -41,7 +41,7 @@ body {
 h4 {
   font-weight: normal;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 13px;
   color: #333;
 }
 
@@ -73,14 +73,15 @@ a:active {
 
 /* Chat stuff */
 .chat {
-  height: 36em;
 }
 
 .chat-message-container {
   height: 33.7em;
-  background-color: rgba(100, 100, 100, 0.1);
-  border-top-style: solid;
   vertical-align: bottom;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 10px; 
+  border-top: 1px solid #ccc;
 }
 
 .chat-messages {
@@ -88,7 +89,6 @@ a:active {
   margin-left: 0.5em;
   margin-right: 0.5em;
   height: 33em;
-  overflow-x: scroll;
 }
 
 .chat-message-username {
@@ -97,8 +97,8 @@ a:active {
 }
 
 .chat-message-track {
-  border-top-style: solid;
-  border-top-width: 1px;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding-top: 0.5em;
@@ -108,35 +108,25 @@ a:active {
   margin-right: 0.5em;
 }
 
-.chat-entry-container {
-  height: 1.9em;
-  vertical-align: bottom;
-  padding-bottom: 0.3em;
-  border-bottom-style: solid;
-  border-top-style: solid;
-}
-
-.chat-entry-text {
-  width: 100%;
-  border-style: none;
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
-}
-
 .chat-entry-text:focus {
   outline: none;
 }
 
 /* More */
-.track-input {
+.text-input {
   border-top: 2px solid #ccc;
   border-bottom: 2px solid #ccc;
 
-  .icon {
+  .input-icon {
     margin-left: 10px;
   }
 
+  .input-cell {
+    width: 100%;
+  }
+
   input {
+    width: 90%;
     margin-top: 7px;
     box-shadow: none;
     border: none;
