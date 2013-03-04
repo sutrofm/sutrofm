@@ -94,12 +94,7 @@ app.NowPlayingView = Backbone.View.extend({
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
 
-    this.listenTo(this.playState, 'change', function(model, newValue, options) {
-      console.log('change:masterUserKey', model, newValue, options);
-    });
-
     this.listenTo(this.playState, 'change:masterUserKey', function(model, newValue, options) {
-      console.log('change:masterUserKey', model, newValue, options);
       if (newValue === undefined) {
         self.findNewMasterKey();
       } else if(newValue === app.currentUserKey) {
