@@ -1,4 +1,4 @@
-/*globals app, console, R, Backbone, Firebase, rdioUserKey, firebaseToken */
+/*globals app, console, R, Backbone, Firebase, rdioUserKey, firebaseToken, firebaseRootUrl, firebaseRef */
 
 window.app = window.app || {};
 
@@ -56,7 +56,8 @@ app.Track = Backbone.Model.extend({
     console.log('Did vote count:', 'like', likeCount, 'dislike', dislikeCount);
     return {
       upVotes: likeCount,
-      downVotes: dislikeCount
+      downVotes: dislikeCount,
+      totalVotes: likeCount - dislikeCount
     };
   }
 
@@ -336,7 +337,7 @@ app.queueView = Backbone.View.extend({
 
   render: function() {
     if (app.queue.length) {
-      this.queueStats.html(this.statsTemplate({queueSize: app.queue.length}));
+      // this.queueStats.html(this.statsTemplate({queueSize: app.queue.length}));
       this.queueStats.show();
     } else {
       this.queueStats.hide();

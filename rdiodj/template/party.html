@@ -5,7 +5,7 @@
 {% block content %}
 <div class="row">
 
-  <div class="span3">
+  <div class="span4">
     <h4>Chat</h4>
     <div class="chat">
       <div class="chat-message-container">
@@ -21,7 +21,7 @@
     </div>
   </div>
 
-  <div class="span6">
+  <div class="span4">
     <div id="now-playing">
       <button id="player-play" class="btn btn-large" type="button"><i class="icon-play"></i></button>
     </div>
@@ -31,16 +31,15 @@
     </div>
   </div>
 
-  <div class="span3">
+  <div class="span4">
     <h4>Up Next</h4>
     <div class="track-input">
-      <fieldset>
-        <input type="text" id="track-key-input" placeholder="Find a song to add to the party">
-        <div class="dropdown">
-          <ul class="dropdown-menu">
-          </ul>
-        </div>
-      </fieldset>
+      <img src="{{STATIC_URL}}img/search.png" class="icon">
+      <input type="text" id="track-key-input" placeholder="Find a song to add to the party">
+      <div class="dropdown">
+        <ul class="dropdown-menu">
+        </ul>
+      </div>
     </div>
     <ul id="queue">
     </ul>
@@ -63,14 +62,29 @@
   <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
 
   <script type="text/template" id="track-template">
-    <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a> <br> by <em><%= track.artist %></em> <br> on <em><%= track.album %></em> <br>
-    Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a> <br>
-    <div class="btn-group">
-      <button class="btn btn-small disabled" type="button"><%= upVotes %></button>
-      <button class="up-vote btn btn-small" type="button"><i class="icon-thumbs-up"></i></button>
-      <button class="down-vote btn btn-small" type="button"><i class="icon-thumbs-down"></i></button>
-      <button class="btn btn-small disabled" type="button"><%= downVotes %></button>
-    </div>
+    <table>
+      <tr>
+        <td>
+          <img class="album-cover" src="<%= track.icon %>">
+        </td>
+        <td class="main">
+          <div class="title">
+            <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a>
+          </div>
+          <div>
+            <%= track.artist %>
+          </div>
+          <div>
+            Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a>
+          </div>
+        </td>
+        <td class="buttons">
+          <div class="up-vote" style="background-image: url({{STATIC_URL}}img/vote-up.png)"></div>
+          <span class="votes"><%= totalVotes %></span>
+          <div class="down-vote" style="background-image: url({{STATIC_URL}}img/vote-down.png)"></div>
+        </td>
+      </tr>
+    </table>
   </script>
 
   <script type="text/template" id="user-presence-template">
