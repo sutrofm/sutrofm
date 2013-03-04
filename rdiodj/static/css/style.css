@@ -68,7 +68,8 @@ body {
   list-style-type: none;
   margin-left: 0.5em;
   margin-right: 0.5em;
-  height: 30em;
+  height: 33em;
+  overflow-x: scroll;
 }
 
 .chat-message-username {

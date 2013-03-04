@@ -148,6 +148,8 @@ chat.MessagesView = Backbone.View.extend({
 
       console.log(rendered);
       this.$el.append(rendered.el);
+
+      this.el.scrollTop = this.el.scrollHeight;
     } else if (messageType == 'NewTrack') {
       console.log('A new track started playing.');
     }
