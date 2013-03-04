@@ -96,7 +96,7 @@ R.ready(function() {
   if (user === undefined) {
     chat.presenceList.add({
       id: userKey,
-      isOnline: false
+      isOnline: true
     });
   }
 
