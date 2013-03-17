@@ -328,20 +328,20 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   _onSlaveTrackChange: function(model, value, options) {
-      console.log('change:playingTrack', model, value, options);
-      R.player.play({
-        source: value.trackKey
-      });
+    console.log('change:playingTrack', model, value, options);
+    R.player.play({
+      source: value.trackKey
+    });
   },
 
   _onSlavePlayerStateChange: function(model, value, options) {
-      console.log('change:playState', model, value, options);
-      switch (value) {
-        case R.player.PLAYSTATE_PAUSED:
-        case R.player.PLAYSTATE_STOPPED:
-          R.player.pause();
-          break;
-      }
+    console.log('change:playState', model, value, options);
+    switch (value) {
+      case R.player.PLAYSTATE_PAUSED:
+      case R.player.PLAYSTATE_STOPPED:
+        R.player.pause();
+        break;
+    }
   }
 
 });
