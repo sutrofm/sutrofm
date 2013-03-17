@@ -85,7 +85,6 @@ app.NowPlayingView = Backbone.View.extend({
   template: _.template($('#now-playing-template').html()),
 
   events: {
-    'click #player-play': 'playNext'
   },
 
   initialize: function() {
