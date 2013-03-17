@@ -14,7 +14,7 @@
         <p class="lead">This is going to be awesome.</p>
         <p>
             <a class="btn btn-primary btn-large"
-            href="{% url party %}">Sounds fun!</a>
+            href="{% url 'party' %}">Sounds fun!</a>
         </p>
         {% else %}
         <div class="page-header">
@@ -23,7 +23,7 @@
         <p class="lead">This is going to be awesome.</p>
         <p>
             <a class="btn btn-primary btn-large"
-            href="{% url socialauth_begin backend='rdio-oauth2' %}">Sign In</a>
+            href="{% url 'socialauth_begin' backend='rdio-oauth2' %}">Sign In</a>
         </p>
         {% endif %}
 

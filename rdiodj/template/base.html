@@ -29,11 +29,11 @@
             <div class="nav-collapse collapse">
               <ul class="nav">
                 <li class="{% activelink 'index' %}">
-                  <a href="{% url index %}">Home</a>
+                  <a href="{% url 'index' %}">Home</a>
                 </li>
                 {% if user.is_authenticated %}
                 <li class="{% activelink 'party' %}">
-                  <a href="{% url party %}">Party</a>
+                  <a href="{% url 'party' %}">Party</a>
                 </li>
                 {% endif %}
               </ul>
@@ -48,24 +48,24 @@
                   </a>
                   <ul class="dropdown-menu">
                     <li>
-                      <a href="{% url admin:index %}">Home</a>
+                      <a href="{% url 'admin:index' %}">Home</a>
                     </li>
                     <li class="divider"></li>
                     <li class="nav-header">Social Auth</li>
                     <li>
                       {% if social_auth.rdio_oauth2 %}
-                      <a href="{% url socialauth_disconnect backend='rdio-oauth2' %}">Remove Rdio 2.0</a>
+                      <a href="{% url 'socialauth_disconnect' backend='rdio-oauth2' %}">Remove Rdio 2.0</a>
                       {% else %}
-                      <a href="{% url socialauth_begin backend='rdio-oauth2' %}">Add Rdio 2.0</a>
+                      <a href="{% url 'socialauth_begin' backend='rdio-oauth2' %}">Add Rdio 2.0</a>
                       {% endif %}
                     </li>
                   </ul>
                   </li>
                 {% endif %}
                 {% if user.is_authenticated %}
-                <li><a href="{% url sign-out %}">Sign Out</a></li>
+                <li><a href="{% url 'sign-out' %}">Sign Out</a></li>
                 {% else %}
-                <li><a href="{% url socialauth_begin backend='rdio-oauth2' %}">Sign In</a></li>
+                <li><a href="{% url 'socialauth_begin' backend='rdio-oauth2' %}">Sign In</a></li>
                 {% endif %}
               </ul>
             </div>
