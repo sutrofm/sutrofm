@@ -195,9 +195,28 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   findNewMasterKey: function() {
-    var onlineUsers = this.activeUsers.where({isOnline:true});
-    this.playState.set({
-      'masterUserKey': onlineUsers[0].get('id')
+    this.playState.firebase.child('masterUserKey').transaction(function(currentValue) {
+      console.log('Setting a new masterUserKey:', currentValue);
+      var newUserKey = app.currentUserKey;
+      if (this.activeUsers) {
+        var onlineUsers = this.activeUsers.where({isOnline:true});
+        newUserKey = onlineUsers[0].get('id');
+      }
+
+      if (currentValue === null) {
+        return newUserKey;
+      } else {
+        return undefined;
+      }
+    }, function(error, committed, snapshot) {
+      if (error) {
+        console.warn('Error when setting masterUserKey:', error.message);
+        if (committed) {
+          console.warn('Transaction was committed:', snapshot);
+        } else {
+          console.warn('Transaction was not committed:', snapshot);
+        }
+      }
     });
   },
 
