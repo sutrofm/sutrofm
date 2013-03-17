@@ -126,10 +126,13 @@ app.NowPlayingView = Backbone.View.extend({
    * Handles changes to the currently playing track
    */
   _onPlayingTrackChange: function(newValue) {
-    if (newValue !== null) {
+    if (newValue === null) {
+      this.rdioTrackKey = null;
+    } else {
       this.rdioTrackKey = newValue.get('key');
-      this.render();
     }
+
+    this.render();
   },
 
   render: function() {
