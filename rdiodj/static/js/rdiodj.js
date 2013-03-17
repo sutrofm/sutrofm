@@ -94,28 +94,42 @@ app.NowPlayingView = Backbone.View.extend({
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
 
-    this.listenTo(this.playState, 'change:masterUserKey', function(model, newValue, options) {
-      if (newValue === undefined) {
-        self.findNewMasterKey();
-      } else if(newValue === app.currentUserKey) {
-        // This client just became master
-        self.initMasterStatus();
-      }
-    });
+    this.listenTo(this.playState, 'change:masterUserKey', this._onMasterUserKeyChange);
 
-    R.player.on('change:playingTrack', function(newValue) {
-      if (newValue !== null) {
-        self.rdioTrackKey = newValue.get('key');
-        self.render();
-      }
-    });
+    R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
 
     if (this.playState.get('masterUserKey') === undefined) {
       this.findNewMasterKey();
     }
 
-    if (!this.playState.isMaster()) {
+    if (this.playState.isMaster()) {
+      this.initMasterStatus();
+    } else {
       this.initSlaveStatus();
+    }
+  },
+
+  /**
+   * Handles changes to masterUserKey
+   */
+  _onMasterUserKeyChange: function(model, newValue, options) {
+    console.info('change:masterUserKey', newValue);
+    if (newValue === undefined) {
+      this.findNewMasterKey();
+    } else if(newValue === app.currentUserKey) {
+      this.initMasterStatus();
+    } else {
+      this.initSlaveStatus();
+    }
+  },
+
+  /**
+   * Handles changes to the currently playing track
+   */
+  _onPlayingTrackChange: function(newValue) {
+    if (newValue !== null) {
+      this.rdioTrackKey = newValue.get('key');
+      this.render();
     }
   },
 
@@ -225,6 +239,7 @@ app.NowPlayingView = Backbone.View.extend({
    **/
   initMasterStatus: function() {
     var self = this;
+    console.info('Becoming master');
     self.destroySlaveStatus();
 
     if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
@@ -241,38 +256,55 @@ app.NowPlayingView = Backbone.View.extend({
     masterUserKeyRef.onDisconnect().set(null);
 
     // When the current track finishes, play the next
-    R.player.on('change:playingTrack', function(newValue) {
-      if (newValue === null) {
-        self.playNext();
-      }
-    });
+    R.player.on('change:playingTrack', this._onMasterTrackChange, this);
 
     // Let the slaves know the master's player status
-    R.player.on('change:playState', function(newValue) {
-      self.playState.set({
-        'playState': newValue
-      });
-    });
+    R.player.on('change:playState', this._onMasterPlayerStateChange, this);
 
     // Let the slaves know the master's player position
-    R.player.on('change:position', function(newValue) {
-      self.playState.set({
-        'position': newValue
-      });
-    });
+    R.player.on('change:position', this._onMasterPlayerPositionChange, this);
 
     // When something is added to the queue and we aren't playing, play it
-    this.listenTo(app.queue, 'add', function(model, collection, options) {
-      if (app.playState.get('playingTrack') === null) {
-        self.playNext();
-      }
+    this.listenTo(app.queue, 'add', this._onMasterQueueChange);
+  },
+
+  destroyMasterStatus: function() {
+    R.player.off('change:playingTrack', this._onMasterTrackChange, this);
+    R.player.off('change:playState', this._onMasterPlayerStateChange, this);
+    R.player.off('change:position', this._onMasterPlayerPositionChange, this);
+    this.stopListening(app.queue, 'add', this._onMasterQueueChange);
+  },
+
+  _onMasterTrackChange: function(newValue) {
+    if (newValue === null) {
+      this.playNext();
+    }
+  },
+
+  _onMasterPlayerStateChange: function(newValue) {
+    this.playState.set({
+      'playState': newValue
     });
+  },
+
+  _onMasterPlayerPositionChange: function(newValue) {
+    this.playState.set({
+      'position': newValue
+    });
+  },
+
+  _onMasterQueueChange: function(model, collection, options) {
+    if (app.playState.get('playingTrack') === null) {
+      this.playNext();
+    }
   },
 
   /**
    * Called when the client should listen to a remote player
    **/
   initSlaveStatus: function() {
+    console.info('Becoming slave');
+    this.destroyMasterStatus();
 
     if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
       R.player.play({
@@ -281,13 +313,23 @@ app.NowPlayingView = Backbone.View.extend({
       });
     }
 
-    app.playState.on('change:playingTrack', function(model, value, options) {
+    app.playState.on('change:playingTrack', this._onSlaveTrackChange, this);
+    app.playState.on('change:playState', this._onSlavePlayerStateChange, this);
+  },
+
+  destroySlaveStatus: function() {
+    app.playState.off('change:playingTrack', this._onSlaveTrackChange, this);
+    app.playState.off('change:playState', this._onSlavePlayerStateChange, this);
+  },
+
+  _onSlaveTrackChange: function(model, value, options) {
       console.log('change:playingTrack', model, value, options);
       R.player.play({
         source: value.trackKey
       });
-    });
-    app.playState.on('change:playState', function(model, value, options) {
+  },
+
+  _onSlavePlayerStateChange: function(model, value, options) {
       console.log('change:playState', model, value, options);
       switch (value) {
         case R.player.PLAYSTATE_PAUSED:
@@ -295,12 +337,6 @@ app.NowPlayingView = Backbone.View.extend({
           R.player.pause();
           break;
       }
-    });
-  },
-
-  destroySlaveStatus: function() {
-    app.playState.off('change:playingTrack');
-    app.playState.off('change:playState');
   }
 
 });
