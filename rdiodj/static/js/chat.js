@@ -187,7 +187,7 @@ R.ready(function() {
 
 
   // Set up chat
-  
+
   // user chat entry
   var chatEntryText = $('.chat-entry-text');
   chatEntryText.keypress(function(e) {
