@@ -274,6 +274,9 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   destroyMasterStatus: function() {
+    var masterUserKeyRef = this.playState.firebase.child('masterUserKey');
+    masterUserKeyRef.onDisconnect().cancel();
+
     R.player.off('change:playingTrack', this._onMasterTrackChange, this);
     R.player.off('change:playState', this._onMasterPlayerStateChange, this);
     R.player.off('change:position', this._onMasterPlayerPositionChange, this);
