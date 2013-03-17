@@ -209,12 +209,17 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   findNewMasterKey: function() {
+    var self = this;
     this.playState.firebase.child('masterUserKey').transaction(function(currentValue) {
-      console.log('Setting a new masterUserKey:', currentValue);
+      console.log('Finding a new masterUserKey:', currentValue);
       var newUserKey = app.currentUserKey;
-      if (this.activeUsers) {
-        var onlineUsers = this.activeUsers.where({isOnline:true});
-        newUserKey = onlineUsers[0].get('id');
+
+      if (self.activeUsers) {
+        var onlineUsers = self.activeUsers.where({isOnline:true});
+        var sortedOnlineUsers = _.sortBy(onlineUsers,
+          function(user) { return user.get('id'); });
+
+        newUserKey = sortedOnlineUsers[0].get('id');
       }
 
       if (currentValue === null) {
