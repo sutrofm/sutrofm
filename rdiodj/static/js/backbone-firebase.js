@@ -97,7 +97,7 @@ _.extend(Backbone.Firebase.prototype, {
     });
   },
 
-  delete: function(model, cb) {
+  'delete': function(model, cb) {
     this._fbref.child(model.id).remove(function(err) {
       if (!err) {
         cb(null, model);
@@ -257,7 +257,12 @@ Backbone.Firebase.Collection = Backbone.Collection.extend({
   },
 
   _childAdded: function(snap) {
-    Backbone.Collection.prototype.add.apply(this, [snap.val()]);
+    var model = snap.val();
+    // If a node was added without Backfire, it may not have an ID.
+    if (!model.id) {
+      model.id = snap.name();
+    }
+    Backbone.Collection.prototype.add.apply(this, [model]);
   },
 
   _childMoved: function(snap) {
