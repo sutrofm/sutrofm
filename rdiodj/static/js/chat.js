@@ -27,7 +27,6 @@ chat.UserView = Backbone.View.extend({
 
   render: function() {
     var self = this;
-    console.log("rendering user with icon at ", this.model.get('iconSrc'));
 
     R.request({
       method: 'get',
@@ -58,8 +57,14 @@ chat.UserListView = Backbone.View.extend({
   initialize: function() {
     this.presenceStats = $('#presence-stats');
 
-    this.listenTo(chat.activeUsers , 'change', this.onListChanged);
-    this.listenTo(chat.activeUsers , 'all', this.render);
+    // listen to when new users are added
+    this.listenTo(chat.activeUsers, 'add', this.onListChanged);
+
+    // and to when users change from online to offline
+    this.listenTo(chat.activeUsers, 'change', this.onListChanged);
+
+    // rerender always
+    this.listenTo(chat.activeUsers, 'all', this.render);
 
     //probably should render the activeUsers  on init so we have a starting point too.
     console.log("render all the users here?");
@@ -68,6 +73,7 @@ chat.UserListView = Backbone.View.extend({
 
   drawUser: function(model, collection, options) {
     if (model.get('isOnline')) {
+      console.log("rendering user: ", model);
       var view = new chat.UserView({ model: model });
       this.$el.append(view.render().el);
     }
@@ -167,15 +173,17 @@ R.ready(function() {
   var userKey = R.currentUser.get('key');
 
   // add current user to activeUsers list, if they're not already
-  var user = chat.activeUsers .get(userKey);
+  var user = chat.activeUsers.get(userKey);
   if (user === undefined) {
-    chat.activeUsers .add({
+    chat.activeUsers.add({
       id: userKey,
-      isOnline: true
+      isOnline: true,
+      icon: R.currentUser.get('icon')
     });
+    console.log("added user ", chat.activeUsers.get(userKey), " to chat");
   }
 
-  var isOnlineRef = chat.activeUsers .firebase.child(userKey).child('isOnline');
+  var isOnlineRef = chat.activeUsers.firebase.child(userKey).child('isOnline');
   console.log('online presence:', isOnlineRef.toString());
 
   // Mark yourself as offline on disconnect
