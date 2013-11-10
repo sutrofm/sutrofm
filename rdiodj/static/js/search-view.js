@@ -19,9 +19,12 @@
         .on('click', 'a', function(event) {
           event.preventDefault();
           var $target = $(event.currentTarget);
+          var originalVote = {};
+          originalVote[app.currentUserKey] = "like";
           app.queue.add({
             trackKey: $target.data('rdio-key'),
-            userKey: app.currentUserKey
+            userKey: app.currentUserKey,
+            votes: originalVote
           });
 
           self.close();
