@@ -165,7 +165,6 @@ R.ready(function() {
   chat.currentUser = R.currentUser;
 
   var userKey = R.currentUser.get('key');
-  var userListView = new chat.UserListView();
 
   // add current user to activeUsers list, if they're not already
   var user = chat.activeUsers .get(userKey);
@@ -185,6 +184,8 @@ R.ready(function() {
   // Mark yourself as online
   isOnlineRef.set(true);
 
+  // draw user list view (after marking yourself as online)
+  var userListView = new chat.UserListView();
 
   // Set up chat
 
