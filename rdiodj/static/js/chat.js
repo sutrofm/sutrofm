@@ -63,11 +63,7 @@ chat.UserListView = Backbone.View.extend({
     // and to when users change from online to offline
     this.listenTo(chat.activeUsers, 'change', this.onListChanged);
 
-    // rerender always
-    this.listenTo(chat.activeUsers, 'all', this.render);
-
     //probably should render the activeUsers  on init so we have a starting point too.
-    console.log("render all the users here?");
     this.redraw(chat.activeUsers , {});
   },
 
