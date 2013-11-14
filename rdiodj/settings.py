@@ -201,7 +201,7 @@ RDIO_OAUTH2_SECRET = os.environ['RDIO_OAUTH2_SECRET']
 RDIO2_PERMISSIONS = []
 
 LOGIN_URL = '/auth/login/rdio-oauth2/'
-LOGIN_REDIRECT_URL = '/party'
+LOGIN_REDIRECT_URL = '/parties/'
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
 FIREBASE_TOKEN = os.environ.get('FIREBASE_TOKEN')

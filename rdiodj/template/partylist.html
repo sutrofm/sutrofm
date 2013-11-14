@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<div class="row">
+
+  <div class="span6">
+    <h4>Find a party room</h4>
+    <div class="party-list-container">
+      <ul id="party-list">
+
+      </ul>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block javascript %}
+  {{ block.super }}
+
+  {% if user.is_authenticated %}
+  <script type='text/javascript' src="https://rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
+  <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/underscore-min.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
+
+  <script type="text/template" id="room-template">
+    <div class="party-room">
+      <div class="party-room-name">
+        <a href="{% url 'party' %}<%= name %>"><%= name %></a>
+      </div>
+      <div class="party-room-population">
+        <%= population %> listening to
+      </div>
+      <div class="party-room-now-playing">
+        <%= nowPlaying %>.
+      </div>
+    </div>
+  </script>
+
+
+  <script type="text/javascript">
+  var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
+  var rdioUserKey = '{{ rdio.id }}';
+  var firebaseToken = '{{ rdio.firebase_token }}';
+  var firebaseRootUrl = '{{ firebase_url }}';
+  var firebaseRef = new Firebase(firebaseRootUrl);
+  </script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/partylist.js"></script>
+  {% endif %}
+
+{% endblock%}

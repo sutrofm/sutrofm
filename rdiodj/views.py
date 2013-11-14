@@ -25,6 +25,13 @@ def party(request, room_name):
     return render_to_response('party.html', c)
 
 
+def parties(request):
+    c = RequestContext(request, {
+        'firebase_url': "%s/" % (settings.FIREBASE_URL,)
+    })
+    return render_to_response('partylist.html', c)
+
+
 def sign_out(request):
     response = logout(request, next_page=reverse('index'))
     return HttpResponse(response)
