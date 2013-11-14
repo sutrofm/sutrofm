@@ -38,7 +38,11 @@ app.Track = Backbone.Model.extend({
   },
 
   getVoteCount: function(voteType) {
-    var votes = _.values(this.get('votes'));
+    var voteArray = this.get('votes');
+    if (voteArray === undefined) {
+      return 0;
+    }
+    var votes = _.values(voteArray);
     var count = _.reduce(votes, function(num, vote) {
       if (vote === voteType) {
         return num + 1;
