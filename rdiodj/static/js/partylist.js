@@ -22,7 +22,15 @@ app.RoomView = Backbone.View.extend({
   template: _.template($('#room-template').html()),
 
   initialize: function(){
-    this.listenTo(this.model, 'change', this.render);
+    this.listenTo(this.model, 'change:player', this.onPlayerChanged);
+  },
+
+  onPlayerChanged: function(change) {
+    var previousTrack = change.previousAttributes().player.playingTrack.trackKey;
+    var newTrack = change.changedAttributes().player.playingTrack.trackKey;
+    if (previousTrack != newTrack) {
+      this.render();
+    }
   },
 
   render: function() {
