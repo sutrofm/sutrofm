@@ -57,7 +57,6 @@ app.Track = Backbone.Model.extend({
     var likeCount = this.getVoteCount(this.LIKE);
     var dislikeCount = this.getVoteCount(this.DISLIKE);
 
-    console.log('Did vote count:', 'like', likeCount, 'dislike', dislikeCount);
     return {
       upVotes: likeCount,
       downVotes: dislikeCount,
@@ -76,7 +75,6 @@ app.TrackList = Backbone.Firebase.Collection.extend({
   comparator: function(a, b) {
     var aScore = a.getVoteCounts().totalVotes;
     var bScore = b.getVoteCounts().totalVotes;
-    console.log("sort result: ", bScore - aScore);
     return bScore - aScore;
   }
 
