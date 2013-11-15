@@ -39,6 +39,7 @@ app.RoomView = Backbone.View.extend({
 
     if (population === 0) {
       // don't render empty rooms.
+      self.$el.hide();
       return;
     }
 
@@ -96,7 +97,7 @@ app.PartyRoomListView = Backbone.View.extend({
   initialize: function() {
     // listen for changes
     this.listenTo(app.partyRooms, 'add', this.onListChanged);
-    this.listenTo(app.partyRooms, 'change', this.onListChanged);
+    //this.listenTo(app.partyRooms, 'change', this.onListChanged);
 
     // and draw the initial rooms
     this.redraw(app.partyRooms, {});
