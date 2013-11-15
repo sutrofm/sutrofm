@@ -83,7 +83,6 @@ app.TrackList = Backbone.Firebase.Collection.extend({
 });
 
 app.queue = new app.TrackList();
-app.playState = new app.Player();
 
 app.NowPlayingView = Backbone.View.extend({
   el: '#now-playing',
@@ -264,7 +263,7 @@ app.NowPlayingView = Backbone.View.extend({
       this.playNext();
     }
 
-    // Delete user key reference on reference, will trigger search for new master
+    // Delete user key reference on disconnect, which will trigger search for new master
     var masterUserKeyRef = this.playState.firebase.child('masterUserKey');
     masterUserKeyRef.onDisconnect().set(null);
 
@@ -464,6 +463,7 @@ R.ready(function() {
     } else {
       console.log('Login Succeeded!');
 
+      app.playState = new app.Player();
       var queueView = new app.queueView();
       var nowPlayingView = new app.NowPlayingView();
       var searchView = new app.SearchView();
