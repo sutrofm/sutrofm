@@ -23,6 +23,7 @@ app.RoomView = Backbone.View.extend({
 
   initialize: function(){
     this.listenTo(this.model, 'change:player', this.onPlayerChanged);
+    this.listenTo(this.model, 'change:people', this.render);
   },
 
   onPlayerChanged: function(change) {
@@ -112,7 +113,6 @@ app.PartyRoomListView = Backbone.View.extend({
   },
 
   drawRoom: function(model, collection, options) {
-    console.log("should draw party room");
     var view = new app.RoomView({model: model});
     var rendered = view.render();
     if (rendered) {
@@ -127,7 +127,6 @@ app.PartyRoomListView = Backbone.View.extend({
   },
 
   onListChanged: function(model, options) {
-    console.log("party room list changed with mode: ", model);
     this.redraw(app.partyRooms, {});
   }
 });
