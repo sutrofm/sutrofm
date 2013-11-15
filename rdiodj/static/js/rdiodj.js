@@ -9,7 +9,7 @@ app.roomUrl = firebaseRootUrl;
 app.Player = Backbone.Firebase.Model.extend({
 
   isMaster: function () {
-    return this.get('masterUserKey') === app.currentUserKey;
+    return (this.get('masterUserKey') === app.currentUserKey) && app.currentUserKey;
   },
 
   firebase: app.roomUrl + '/player'
