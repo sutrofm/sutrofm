@@ -73,9 +73,11 @@ app.TrackList = Backbone.Firebase.Collection.extend({
 
   firebase: app.roomUrl + '/queue',
 
-  comparator: function(track) {
-    var counts = track.getVoteCounts();
-    return (counts.upVotes - counts.downVotes) * -1;
+  comparator: function(a, b) {
+    var aScore = a.getVoteCounts().totalVotes;
+    var bScore = b.getVoteCounts().totalVotes;
+    console.log("sort result: ", bScore - aScore);
+    return bScore - aScore;
   }
 
 });
@@ -425,7 +427,8 @@ app.queueView = Backbone.View.extend({
     this.queueStats = $('#queue-stats');
 
     this.listenTo(app.queue, 'add', this.addOne);
-    // this.listenTo(app.queue, 'sort', this.addAll);
+    this.listenTo(app.queue, 'sort', this.addAll);
+    this.listenTo(app.queue, 'change', this.sortQueue);
     this.listenTo(app.queue, 'all', this.render);
     this.addAll(app.queue, {});
   },
@@ -447,6 +450,10 @@ app.queueView = Backbone.View.extend({
   addAll: function (collection, options) {
     this.$el.empty();
     collection.each(this.addOne, this);
+  },
+
+  sortQueue: function() {
+    app.queue.sort();
   }
 });
 
