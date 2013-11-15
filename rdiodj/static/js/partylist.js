@@ -133,4 +133,22 @@ R.ready(function() {
       var partyRoomListView = new app.PartyRoomListView();
     }
   });
+
+  $('#create-room-button').click(function(e){
+    e.preventDefault();
+    var roomName = $('#room-name-input').val();
+    var allowedChars = /^[A-Za-z0-9_\-]+$/;
+    var matches = roomName.match(allowedChars);
+    if (matches && matches[0] == roomName) {
+      //we have a match
+
+      // TODO check if the room existed before, give the user the option to reset it
+      console.log("room name is valid");
+      window.location = window.location.origin + '/p/' + roomName;
+    } else {
+      // TODO render this error in the dom
+      alert("Invalid room name");
+    }
+  });
 });
+
