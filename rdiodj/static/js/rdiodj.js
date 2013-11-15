@@ -198,7 +198,7 @@ app.NowPlayingView = Backbone.View.extend({
       method: 'get',
       content: {
         keys: trackKey,
-        extras: '-*,name,artist,icon'
+        extras: '-*,name,artist,icon,shortUrl'
       },
       success: function(res) {
         var track = res.result[trackKey];
@@ -207,6 +207,7 @@ app.NowPlayingView = Backbone.View.extend({
           title: track.name,
           artist: track.artist,
           iconUrl: track.icon,
+          trackUrl: track.shortUrl,
           timestamp: (new Date()).toISOString()
         };
 

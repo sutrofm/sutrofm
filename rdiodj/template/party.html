@@ -156,7 +156,12 @@
             <img src="<%= iconUrl %>" width="50" class="chat-track-icon"/>
           </td>
           <td class="main">
-            <div class="track-info"><%= title %> - <%= artist %></div>
+            <div class="track-info title">
+              <a href="<%= trackUrl %>" target="_blank"><%= title %></a>
+            </div>
+            <div>
+              <%= artist %>
+            </div>
           </td>
         </tr>
       </table>
