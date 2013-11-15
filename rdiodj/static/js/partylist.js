@@ -6,18 +6,6 @@ app.currentUserKey = rdioUserKey;
 app.firebaseUrl = firebaseRootUrl;
 
 app.Room = Backbone.Model.extend({
-
-  join: function(room) {
-    console.log("stub for joining a room");
-  },
-
-  updateNowPlaying: function(newTrackKey) {
-    console.log("now playing changed?");
-  },
-
-  updatePopulation: function(newPopulation) {
-    console.log("change in number of users in the room!");
-  }
 });
 
 app.RoomList = Backbone.Firebase.Collection.extend({
@@ -32,10 +20,6 @@ app.RoomView = Backbone.View.extend({
   tagName: 'li',
 
   template: _.template($('#room-template').html()),
-
-  events: {
-    'click .join': 'join'
-  },
 
   initialize: function(){
     this.listenTo(this.model, 'change', this.render);
@@ -52,6 +36,11 @@ app.RoomView = Backbone.View.extend({
       }
       return memo;
     }, 0);
+
+    if (population === 0) {
+      // don't render empty rooms.
+      return;
+    }
 
     var populationStr = '';
 
@@ -81,7 +70,7 @@ app.RoomView = Backbone.View.extend({
           success: function(response) {
             var track = response.result[playingTrackKey].name;
             var artist = response.result[playingTrackKey].artist;
-            data.nowPlaying = '"' + track + '" - ' + artist;
+            data.nowPlaying = '"' + track + '" by ' + artist;
             self.$el.html(self.template(data));
             self.$el.show();
           },
@@ -99,10 +88,6 @@ app.RoomView = Backbone.View.extend({
     }
     return this;
   },
-
-  join: function() {
-    console.log("you're trying to join a room...");
-  }
 });
 
 app.PartyRoomListView = Backbone.View.extend({
@@ -121,7 +106,10 @@ app.PartyRoomListView = Backbone.View.extend({
     console.log("should draw party room");
     var view = new app.RoomView({model: model});
     var rendered = view.render();
-    this.$el.append(rendered.el);
+    if (rendered) {
+      // empty rooms will return undefined and not be rendered.
+      this.$el.append(rendered.el);
+    }
   },
 
   redraw: function(collection, options) {
