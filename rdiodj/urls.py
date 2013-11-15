@@ -8,7 +8,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^$', 'rdiodj.views.home', name='index'),
-    url(r'^p/((?P<room_name>\w+)/)?$', 'rdiodj.views.party', name='party'),
+    url(r'^p/((?P<room_name>[A-Za-z0-9\-_]+)/)?$', 'rdiodj.views.party', name='party'),
     url(r'^parties/$', 'rdiodj.views.parties', name='parties'),
 
     url(r'^sign-out/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='sign-out'),
