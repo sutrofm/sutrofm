@@ -4,6 +4,9 @@
 
 {% block content %}
 <div class="row">
+  <div class="span12">
+    <div id="theme"></div>
+  </div>
 
   <div class="span4">
     <h4>Chat</h4>
@@ -166,6 +169,10 @@
         </tr>
       </table>
     </li>
+  </script>
+  <script type="text/template" id="theme-template">
+    Party theme: <b><%= themeText %></b> <br><br>
+    Set a new theme: <input type="text" class="theme_text"><input type='button' class='theme_text_button' value='make it so'><br>
   </script>
 
   <script type="text/javascript">

@@ -455,6 +455,40 @@ app.queueView = Backbone.View.extend({
   }
 });
 
+app.ThemeInfo = Backbone.Firebase.Model.extend({
+  firebase: app.roomUrl + '/meta',
+  getText: function() { return this.get('themeText') },
+  setText: function(text) { this.set({'themeText': text}) },
+
+}),
+
+app.ThemeView = Backbone.View.extend({
+  el: '#theme',
+
+  template: _.template($('#theme-template').html()),
+
+  events: {
+    "click .theme_text_button": "onThemeTextSubmit",
+    "click .theme_image_button": "onThemeImageSubmit",
+  },
+
+  initialize: function() {
+    this.model.setText('no theme... just play whatever you want')
+    this.listenTo(this.model, "change", this.render)
+    this.render()
+
+  },
+
+  render: function() {
+    this.$el.html(this.template(this.model.attributes));
+    return this;
+  },
+
+  onThemeTextSubmit: function() {
+    this.model.setText($(".theme_text")[0].value)
+  }
+})
+
 R.ready(function() {
   firebaseRef.auth(firebaseToken, function(error) {
     if (error) {
@@ -466,6 +500,7 @@ R.ready(function() {
       var queueView = new app.queueView();
       var nowPlayingView = new app.NowPlayingView();
       var searchView = new app.SearchView();
+      var themeView = new app.ThemeView({model: new app.ThemeInfo()});
     }
   });
 });
