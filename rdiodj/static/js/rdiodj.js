@@ -421,7 +421,7 @@ app.TrackView = Backbone.View.extend({
     var durationMins = Math.floor(duration / 60);
     var durationSecs = String(duration % 60);
     if (durationSecs.length < 2)
-      durationSecs = "0" + durationSecs
+      durationSecs = "0" + durationSecs;
     return durationMins + ":" + durationSecs;
   },
 

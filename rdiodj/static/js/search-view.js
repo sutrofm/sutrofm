@@ -95,6 +95,8 @@
           _.each(data.result.results, function(v, i) {
             var durationMins = Math.floor(v['duration'] / 60);
             var durationSecs = v['duration'] % 60;
+            if (durationSecs.length < 2)
+              durationSecs = "0" + durationSecs;
             v['formattedDuration'] = durationMins + ":" + durationSecs;
             var html = $.trim(self.resultTemplate(v));
             self.$menu.append(html);
