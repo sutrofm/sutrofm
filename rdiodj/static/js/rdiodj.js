@@ -62,7 +62,8 @@ app.Track = Backbone.Model.extend({
       downVotes: dislikeCount,
       totalVotes: likeCount - dislikeCount
     };
-  }
+  },
+
 
 });
 
@@ -109,7 +110,8 @@ app.NowPlayingView = Backbone.View.extend({
   template: _.template($('#now-playing-template').html()),
 
   events: {
-    'click #skip-button': '_clickSkip'
+    'click #skip-button': '_clickSkip',
+    'click #favorite-button': '_clickFavorites'
   },
 
   initialize: function() {
@@ -136,6 +138,10 @@ app.NowPlayingView = Backbone.View.extend({
 
   _clickSkip: function() {
     app.skipList.voteToSkip();
+  },
+
+  _clickFavorites: function() {
+    this.favoriteCurrentlyPlaying();
   },
 
   /**
@@ -250,6 +256,18 @@ app.NowPlayingView = Backbone.View.extend({
         chat.messageHistory.add(messageData);
       }
     });
+  },
+
+  favoriteCurrentlyPlaying: function() {
+    R.request({
+      method: 'addToFavorites',
+      content: {
+        keys: this.rdioTrackKey
+      },
+      success: function(response) {
+        chat.sendMessage("favorited this track");
+      }
+    })
   },
 
   findNewMasterKey: function() {
