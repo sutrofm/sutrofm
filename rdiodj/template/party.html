@@ -86,6 +86,9 @@
             <%= track.artist %>
           </div>
           <div>
+            <%= formattedDuration %>
+          </div>
+          <div>
             Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a>
           </div>
         </td>
@@ -136,6 +139,7 @@
             <td>
               <div class="name"><%= name %></div>
               <div class="artist"><%= artist %></div>
+              <div class="duration"><%= formattedDuration %></div>
             </td>
           </tr>
       </a>

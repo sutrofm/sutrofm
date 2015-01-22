@@ -62,7 +62,14 @@ app.Track = Backbone.Model.extend({
       downVotes: dislikeCount,
       totalVotes: likeCount - dislikeCount
     };
-  }
+  },
+
+  getDuration: function(duration) {
+    var durationInSecs = duration;
+    var durationMins = Math.floor(duration / 60);
+    var durationSecs = duration % 60;
+    return durationMins + ":" + durationSecs;
+  },
 
 });
 
@@ -83,6 +90,8 @@ app.TrackList = Backbone.Firebase.Collection.extend({
 app.queue = new app.TrackList();
 
 app.NowPlayingView = Backbone.View.extend({
+  model: app.Track,
+
   el: '#now-playing',
 
   template: _.template($('#now-playing-template').html()),
@@ -146,13 +155,12 @@ app.NowPlayingView = Backbone.View.extend({
         method: 'get',
         content: {
           keys: this.rdioTrackKey,
-          extras: 'streamRegions,shortUrl,bigIcon'
+          extras: 'streamRegions,shortUrl,bigIcon,duration'
         },
         success: function(response) {
           var data = _.extend({
-            'track': response.result[self.rdioTrackKey]
+            'track': response.result[self.rdioTrackKey],
           });
-
           self.$el.html(self.template(data));
           self.$el.show();
         },
@@ -191,12 +199,13 @@ app.NowPlayingView = Backbone.View.extend({
 
   addToHistory: function(queueItem) {
     // R.request here instead of in render, cause it's historical.
+    var self = this;
     var trackKey = queueItem.get('trackKey');
     R.request({
       method: 'get',
       content: {
         keys: trackKey,
-        extras: '-*,name,artist,icon,shortUrl'
+        extras: '-*,name,artist,icon,shortUrl,duration'
       },
       success: function(res) {
         var track = res.result[trackKey];
@@ -206,7 +215,8 @@ app.NowPlayingView = Backbone.View.extend({
           artist: track.artist,
           iconUrl: track.icon,
           trackUrl: track.shortUrl,
-          timestamp: (new Date()).toISOString()
+          timestamp: (new Date()).toISOString(),
+          formattedDuration: self.model.getDuration(track.duration)
         };
 
         chat.messageHistory.add(messageData);
@@ -376,11 +386,12 @@ app.TrackView = Backbone.View.extend({
       method: 'get',
       content: {
         keys: self.model.get('trackKey') + ',' + self.model.get('userKey'),
-        extras: 'streamRegions,shortUrl,bigIcon'
+        extras: 'streamRegions,shortUrl,bigIcon,duration'
       },
       success: function(response) {
         self.rdioTrack = response.result[self.model.get('trackKey')];
         self.rdioUser = response.result[self.model.get('userKey')];
+        self.trackDuration = self.getDuration(self.rdioTrack['duration']);
         self.render();
       },
       error: function(response) {
@@ -394,7 +405,8 @@ app.TrackView = Backbone.View.extend({
     if (this.rdioTrack && this.rdioUser) {
       var data = _.extend({
         'track': this.rdioTrack,
-        'user': this.rdioUser
+        'user': this.rdioUser,
+        'formattedDuration': this.trackDuration,
       }, this.model.toJSON(), this.model.getVoteCounts());
       this.$el.html(this.template(data));
       this.$el.show();
@@ -402,6 +414,15 @@ app.TrackView = Backbone.View.extend({
       this.$el.hide();
     }
     return this;
+  },
+
+  getDuration: function(duration) {
+    var durationInSecs = duration;
+    var durationMins = Math.floor(duration / 60);
+    var durationSecs = String(duration % 60);
+    if (durationSecs.length < 2)
+      durationSecs = "0" + durationSecs
+    return durationMins + ":" + durationSecs;
   },
 
   upVote: function() {
