@@ -82,12 +82,34 @@ app.TrackList = Backbone.Firebase.Collection.extend({
 
 app.queue = new app.TrackList();
 
+app.SkipList = Backbone.Firebase.Collection.extend({
+  model: chat.User,
+  firebase: app.roomUrl + '/skippers',
+
+  voteToSkip: function() {
+    if (!this.contains(chat.currentUser)) {
+      this.add(chat.currentUser);
+      chat.sendMessage("Voted to skip");
+    }
+  },
+
+  //HACK TODO there has got to be a better way to do this
+  clear: function() {
+    while (this.length > 0) {
+      this.pop();
+    }
+  }
+});
+
+app.skipList = new app.SkipList();
+
 app.NowPlayingView = Backbone.View.extend({
   el: '#now-playing',
 
   template: _.template($('#now-playing-template').html()),
 
   events: {
+    'click #skip-button': '_clickSkip'
   },
 
   initialize: function() {
@@ -97,6 +119,7 @@ app.NowPlayingView = Backbone.View.extend({
     this.playState = app.playState;
 
     this.listenTo(this.playState, 'change:masterUserKey', this._onMasterUserKeyChange);
+    this.listenTo(app.skipList, 'add', this._onSkipListUpdate);
 
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
 
@@ -109,6 +132,10 @@ app.NowPlayingView = Backbone.View.extend({
     } else {
       this.initSlaveStatus();
     }
+  },
+
+  _clickSkip: function() {
+    app.skipList.voteToSkip();
   },
 
   /**
@@ -136,6 +163,12 @@ app.NowPlayingView = Backbone.View.extend({
     }
 
     this.render();
+  },
+
+  _onSkipListUpdate: function() {
+    if (app.skipList.length > chat.activeUsers.getOnlineUsers().length / 2) {
+      this.skipSong();
+    }
   },
 
   render: function() {
@@ -167,6 +200,10 @@ app.NowPlayingView = Backbone.View.extend({
     return this;
   },
 
+  skipSong: function() {
+    this.playNext();
+  },
+
   playNext: function() {
     if (!app.queue.length) {
       this.playState.set({
@@ -179,6 +216,7 @@ app.NowPlayingView = Backbone.View.extend({
     var queueItem = app.queue.shift();
     console.log('Playing next track', queueItem);
     this.addToHistory(queueItem);
+    app.skipList.clear();
 
     this.playState.set({
       'playingTrack': queueItem.toJSON()
@@ -464,7 +502,7 @@ R.ready(function() {
 
       app.playState = new app.Player();
       var queueView = new app.queueView();
-      var nowPlayingView = new app.NowPlayingView();
+      app.nowPlayingView = new app.NowPlayingView();
       var searchView = new app.SearchView();
     }
   });
