@@ -67,7 +67,7 @@ app.Track = Backbone.Model.extend({
   getDuration: function(duration) {
     var durationInSecs = duration;
     var durationMins = Math.floor(duration / 60);
-    var durationSecs = duration % 60;
+    var durationSecs = String(duration % 60);
     if (durationSecs.length < 2)
       durationSecs = "0" + durationSecs;
     return durationMins + ":" + durationSecs;
