@@ -90,7 +90,7 @@
             Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a>
           </div>
           <div>
-            Duration: <%= formattedDuration =>
+            Duration: <%= formattedDuration %>
           </div>
         </td>
         <td class="buttons">
@@ -182,6 +182,18 @@
     <% } %>
 
   </script>
+
+  <script type="text/template" id="theme-template">
+    Party theme: <b><%= themeText %></b> <br><br>
+    Set a new theme: <input type="text" class="theme_text"><input type='button' class='theme_text_button' value='make it so'><br>
+    Party theme:
+    <% if (!editing) { %>
+    <b class='theme_name' style='cursor:pointer;'><%= themeText %></b>
+    <% } else { %>
+    <input type="text" class="theme_text">
+    <% } %>
+    <br>
+</script>
 
   <script type="text/javascript">
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
