@@ -198,8 +198,15 @@ app.NowPlayingView = Backbone.View.extend({
           extras: 'streamRegions,shortUrl,bigIcon,duration'
         },
         success: function(response) {
+          var activeUsers = self.activeUsers;
+          var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
+          var userName = null;
+          if (masterUserObj.length > 0 && masterUserObj[0]) {
+            userName = masterUserObj[0].get('fullName');
+          }
           var data = _.extend({
             'track': response.result[self.rdioTrackKey],
+            'masterUser': userName
           });
           self.$el.html(self.template(data));
           self.$el.show();
@@ -533,6 +540,53 @@ app.queueView = Backbone.View.extend({
   }
 });
 
+app.ThemeInfo = Backbone.Firebase.Model.extend({
+  firebase: app.roomUrl + '/meta',
+  getText: function() { return this.get('themeText') },
+  setText: function(text) { this.set({'themeText': text}) },
+
+}),
+
+app.ThemeView = Backbone.View.extend({
+  el: '#theme',
+
+  template: _.template($('#theme-template').html()),
+
+  events: {
+    "click .theme_name": "onThemeClick",
+    "keyup .theme_text": "onThemeTextSubmit"
+  },
+
+  initialize: function() {
+    this.editing = false
+    this.model.setText('no theme... just play whatever you want')
+    this.listenTo(this.model, "change", this.render)
+    this.render()
+  },
+
+  render: function() {
+    var values = {
+        'editing': this.editing,
+        'themeText': this.model.getText()
+    }
+    this.$el.html(this.template(values));
+    $(".theme_text").focus()
+    return this;
+  },
+
+  onThemeTextSubmit: function(e) {
+    if (e.keyCode == 13 && $(".theme_text").val()) {
+      this.model.setText($(".theme_text").val())
+      this.editing = false
+      this.render()
+    }
+  },
+  onThemeClick: function() {
+    this.editing = true;
+    this.render();
+  }
+})
+
 R.ready(function() {
   firebaseRef.auth(firebaseToken, function(error) {
     if (error) {
@@ -544,6 +598,7 @@ R.ready(function() {
       var queueView = new app.queueView();
       app.nowPlayingView = new app.NowPlayingView();
       var searchView = new app.SearchView();
+      var themeView = new app.ThemeView({model: new app.ThemeInfo()});
     }
   });
 });
