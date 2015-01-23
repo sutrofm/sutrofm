@@ -188,8 +188,15 @@ app.NowPlayingView = Backbone.View.extend({
           extras: 'streamRegions,shortUrl,bigIcon'
         },
         success: function(response) {
+          var activeUsers = self.activeUsers;
+          var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
+          var userName = null;
+          if (masterUserObj.length > 0 && masterUserObj[0]) {
+            userName = masterUserObj[0].get('fullName');
+          }
           var data = _.extend({
-            'track': response.result[self.rdioTrackKey]
+            'track': response.result[self.rdioTrackKey],
+            'masterUser': userName
           });
 
           self.$el.html(self.template(data));
