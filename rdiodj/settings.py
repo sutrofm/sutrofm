@@ -134,6 +134,7 @@ INSTALLED_APPS = (
     'social_auth',
     'storages',
     'library',
+    'rdiodj'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
