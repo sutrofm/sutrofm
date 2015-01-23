@@ -16,6 +16,63 @@ app.Player = Backbone.Firebase.Model.extend({
 
 });
 
+app.PlaylistView = Backbone.View.extend({
+  el: '.playlist',
+  template: _.template($('#playlist-template').html()),
+
+  events: {
+    "click .playlist_text": "onPlaylistClick"
+  },
+  initialize: function() {
+    this.snapped = false
+    this.render()
+  },
+  render: function() {
+    values = {
+      'snapped': this.snapped,
+      'playlist': this.playlist
+    }
+    this.$el.html(this.template(values));
+    return this
+  },
+  getDateString: function() {
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1;
+    var yyyy = today.getFullYear();
+    if(dd<10) {
+        dd='0'+dd
+    }
+    if(mm<10) {
+        mm='0'+mm
+    }
+    today = yyyy + '-' + mm + '-' + dd
+    return today
+  },
+
+  onPlaylistClick: function() {
+    var playlistName = 'rdio-party-snapshot-' + this.getDateString()
+    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey }; });
+    R.request({
+      method: 'createPlaylist',
+      content: {
+        name: playlistName,
+        description: 'lovingly created from rdioparty!',
+        tracks: this.trackIds
+      },
+      success: function(response) {
+        console.log('playlist created')
+      },
+      error: function(response) {
+        console.log('playlist probably not created');
+      }
+    });
+    this.snapped = true
+    this.playlist = playlistName
+    this.render()
+  }
+})
+
 app.Track = Backbone.Model.extend({
   LIKE: 'like',
   DISLIKE: 'dislike',
@@ -206,6 +263,7 @@ app.NowPlayingView = Backbone.View.extend({
           artist: track.artist,
           iconUrl: track.icon,
           trackUrl: track.shortUrl,
+          trackKey: trackKey,
           timestamp: (new Date()).toISOString()
         };
 
@@ -466,6 +524,7 @@ R.ready(function() {
       var queueView = new app.queueView();
       var nowPlayingView = new app.NowPlayingView();
       var searchView = new app.SearchView();
+      var playlistView = new app.PlaylistView();
     }
   });
 });

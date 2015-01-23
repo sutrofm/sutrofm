@@ -7,6 +7,7 @@
 
   <div class="span4">
     <h4>Chat</h4>
+    <div class="playlist"></div>
     <div class="chat">
       <div class="chat-message-container">
         <ul class="chat-messages">
@@ -166,6 +167,16 @@
         </tr>
       </table>
     </li>
+  </script>
+
+  <script type="text/template" id="playlist-template">
+
+    <% if (!snapped) { %>
+      <b class='playlist_text' style='cursor:pointer;'>Take playlist snapshot</b>
+    <% } else { %>
+      <b>Playlist created:</b> <%= playlist %>
+    <% } %>
+
   </script>
 
   <script type="text/javascript">
