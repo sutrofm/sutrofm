@@ -208,7 +208,7 @@ app.NowPlayingView = Backbone.View.extend({
           var data = _.extend({
             'track': response.result[self.rdioTrackKey],
             'masterUser': userName,
-                        'addedBy': addedByName
+            'addedBy': addedByName,
 
           });
           self.$el.html(self.template(data));
