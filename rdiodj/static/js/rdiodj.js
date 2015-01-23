@@ -191,7 +191,6 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioTrackKey = null;
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
-
     this.listenTo(this.playState, 'change:masterUserKey', this._onMasterUserKeyChange);
     this.listenTo(app.skipList, 'add', this._onSkipListUpdate);
 
@@ -251,15 +250,17 @@ app.NowPlayingView = Backbone.View.extend({
 
   render: function() {
     var self = this;
-
+    var userKey = self.playState.get('playingTrack').userKey;
     if (this.rdioTrackKey) {
       R.request({
         method: 'get',
         content: {
-          keys: this.rdioTrackKey,
+          keys: this.rdioTrackKey + ',' + userKey,
           extras: 'streamRegions,shortUrl,bigIcon,duration'
         },
         success: function(response) {
+          var userObj = response.result[userKey];
+          var addedByName = userObj.firstName + " " + userObj.lastName;
           var activeUsers = self.activeUsers;
           var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
           var userName = null;
@@ -268,7 +269,9 @@ app.NowPlayingView = Backbone.View.extend({
           }
           var data = _.extend({
             'track': response.result[self.rdioTrackKey],
-            'masterUser': userName
+            'masterUser': userName,
+            'addedBy': addedByName,
+
           });
           self.$el.html(self.template(data));
           self.$el.show();
