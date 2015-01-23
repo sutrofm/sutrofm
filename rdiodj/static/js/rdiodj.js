@@ -62,7 +62,16 @@ app.Track = Backbone.Model.extend({
       downVotes: dislikeCount,
       totalVotes: likeCount - dislikeCount
     };
-  }
+  },
+
+  getDuration: function(duration) {
+    var durationInSecs = duration;
+    var durationMins = Math.floor(duration / 60);
+    var durationSecs = String(duration % 60);
+    if (durationSecs.length < 2)
+      durationSecs = "0" + durationSecs;
+    return durationMins + ":" + durationSecs;
+  },
 
 });
 
@@ -82,12 +91,37 @@ app.TrackList = Backbone.Firebase.Collection.extend({
 
 app.queue = new app.TrackList();
 
+app.SkipList = Backbone.Firebase.Collection.extend({
+  model: chat.User,
+  firebase: app.roomUrl + '/skippers',
+
+  voteToSkip: function() {
+    if (!this.contains(chat.currentUser)) {
+      this.add(chat.currentUser);
+      chat.sendMessage("Voted to skip");
+    }
+  },
+
+  //HACK TODO there has got to be a better way to do this
+  clear: function() {
+    while (this.length > 0) {
+      this.pop();
+    }
+  }
+});
+
+app.skipList = new app.SkipList();
+
 app.NowPlayingView = Backbone.View.extend({
+  model: app.Track,
+
   el: '#now-playing',
 
   template: _.template($('#now-playing-template').html()),
 
   events: {
+    'click #skip-button': '_clickSkip',
+    'click #favorite-button': '_clickFavorites'
   },
 
   initialize: function() {
@@ -97,6 +131,7 @@ app.NowPlayingView = Backbone.View.extend({
     this.playState = app.playState;
 
     this.listenTo(this.playState, 'change:masterUserKey', this._onMasterUserKeyChange);
+    this.listenTo(app.skipList, 'add', this._onSkipListUpdate);
 
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
 
@@ -109,6 +144,14 @@ app.NowPlayingView = Backbone.View.extend({
     } else {
       this.initSlaveStatus();
     }
+  },
+
+  _clickSkip: function() {
+    app.skipList.voteToSkip();
+  },
+
+  _clickFavorites: function() {
+    this.favoriteCurrentlyPlaying();
   },
 
   /**
@@ -138,6 +181,12 @@ app.NowPlayingView = Backbone.View.extend({
     this.render();
   },
 
+  _onSkipListUpdate: function() {
+    if (app.skipList.length > chat.activeUsers.getOnlineUsers().length / 2) {
+      this.skipSong();
+    }
+  },
+
   render: function() {
     var self = this;
 
@@ -146,13 +195,19 @@ app.NowPlayingView = Backbone.View.extend({
         method: 'get',
         content: {
           keys: this.rdioTrackKey,
-          extras: 'streamRegions,shortUrl,bigIcon'
+          extras: 'streamRegions,shortUrl,bigIcon,duration'
         },
         success: function(response) {
+          var activeUsers = self.activeUsers;
+          var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
+          var userName = null;
+          if (masterUserObj.length > 0 && masterUserObj[0]) {
+            userName = masterUserObj[0].get('fullName');
+          }
           var data = _.extend({
-            'track': response.result[self.rdioTrackKey]
+            'track': response.result[self.rdioTrackKey],
+            'masterUser': userName
           });
-
           self.$el.html(self.template(data));
           self.$el.show();
         },
@@ -167,6 +222,10 @@ app.NowPlayingView = Backbone.View.extend({
     return this;
   },
 
+  skipSong: function() {
+    this.playNext();
+  },
+
   playNext: function() {
     if (!app.queue.length) {
       this.playState.set({
@@ -179,6 +238,7 @@ app.NowPlayingView = Backbone.View.extend({
     var queueItem = app.queue.shift();
     console.log('Playing next track', queueItem);
     this.addToHistory(queueItem);
+    app.skipList.clear();
 
     this.playState.set({
       'playingTrack': queueItem.toJSON()
@@ -191,12 +251,13 @@ app.NowPlayingView = Backbone.View.extend({
 
   addToHistory: function(queueItem) {
     // R.request here instead of in render, cause it's historical.
+    var self = this;
     var trackKey = queueItem.get('trackKey');
     R.request({
       method: 'get',
       content: {
         keys: trackKey,
-        extras: '-*,name,artist,icon,shortUrl'
+        extras: '-*,name,artist,icon,shortUrl,duration'
       },
       success: function(res) {
         var track = res.result[trackKey];
@@ -206,12 +267,25 @@ app.NowPlayingView = Backbone.View.extend({
           artist: track.artist,
           iconUrl: track.icon,
           trackUrl: track.shortUrl,
-          timestamp: (new Date()).toISOString()
+          timestamp: (new Date()).toISOString(),
+          formattedDuration: self.model.getDuration(track.duration)
         };
 
         chat.messageHistory.add(messageData);
       }
     });
+  },
+
+  favoriteCurrentlyPlaying: function() {
+    R.request({
+      method: 'addToFavorites',
+      content: {
+        keys: this.rdioTrackKey
+      },
+      success: function(response) {
+        chat.sendMessage("favorited this track");
+      }
+    })
   },
 
   findNewMasterKey: function() {
@@ -376,11 +450,12 @@ app.TrackView = Backbone.View.extend({
       method: 'get',
       content: {
         keys: self.model.get('trackKey') + ',' + self.model.get('userKey'),
-        extras: 'streamRegions,shortUrl,bigIcon'
+        extras: 'streamRegions,shortUrl,bigIcon,duration'
       },
       success: function(response) {
         self.rdioTrack = response.result[self.model.get('trackKey')];
         self.rdioUser = response.result[self.model.get('userKey')];
+        self.trackDuration = self.getDuration(self.rdioTrack['duration']);
         self.render();
       },
       error: function(response) {
@@ -394,7 +469,8 @@ app.TrackView = Backbone.View.extend({
     if (this.rdioTrack && this.rdioUser) {
       var data = _.extend({
         'track': this.rdioTrack,
-        'user': this.rdioUser
+        'user': this.rdioUser,
+        'formattedDuration': this.trackDuration,
       }, this.model.toJSON(), this.model.getVoteCounts());
       this.$el.html(this.template(data));
       this.$el.show();
@@ -402,6 +478,15 @@ app.TrackView = Backbone.View.extend({
       this.$el.hide();
     }
     return this;
+  },
+
+  getDuration: function(duration) {
+    var durationInSecs = duration;
+    var durationMins = Math.floor(duration / 60);
+    var durationSecs = String(duration % 60);
+    if (durationSecs.length < 2)
+      durationSecs = "0" + durationSecs;
+    return durationMins + ":" + durationSecs;
   },
 
   upVote: function() {
@@ -455,6 +540,53 @@ app.queueView = Backbone.View.extend({
   }
 });
 
+app.ThemeInfo = Backbone.Firebase.Model.extend({
+  firebase: app.roomUrl + '/meta',
+  getText: function() { return this.get('themeText') },
+  setText: function(text) { this.set({'themeText': text}) },
+
+}),
+
+app.ThemeView = Backbone.View.extend({
+  el: '#theme',
+
+  template: _.template($('#theme-template').html()),
+
+  events: {
+    "click .theme_name": "onThemeClick",
+    "keyup .theme_text": "onThemeTextSubmit"
+  },
+
+  initialize: function() {
+    this.editing = false
+    this.model.setText('no theme... just play whatever you want')
+    this.listenTo(this.model, "change", this.render)
+    this.render()
+  },
+
+  render: function() {
+    var values = {
+        'editing': this.editing,
+        'themeText': this.model.getText()
+    }
+    this.$el.html(this.template(values));
+    $(".theme_text").focus()
+    return this;
+  },
+
+  onThemeTextSubmit: function(e) {
+    if (e.keyCode == 13 && $(".theme_text").val()) {
+      this.model.setText($(".theme_text").val())
+      this.editing = false
+      this.render()
+    }
+  },
+  onThemeClick: function() {
+    this.editing = true;
+    this.render();
+  }
+})
+
 R.ready(function() {
   firebaseRef.auth(firebaseToken, function(error) {
     if (error) {
@@ -464,8 +596,9 @@ R.ready(function() {
 
       app.playState = new app.Player();
       var queueView = new app.queueView();
-      var nowPlayingView = new app.NowPlayingView();
+      app.nowPlayingView = new app.NowPlayingView();
       var searchView = new app.SearchView();
+      var themeView = new app.ThemeView({model: new app.ThemeInfo()});
     }
   });
 });
