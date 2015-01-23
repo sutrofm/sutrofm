@@ -4,6 +4,9 @@
 
 {% block content %}
 <div class="row">
+  <div class="span12">
+    <div id="theme"></div>
+  </div>
 
   <div class="span4">
     <h4>Chat</h4>
@@ -168,6 +171,16 @@
         </tr>
       </table>
     </li>
+  </script>
+  <script type="text/template" id="theme-template">
+    Party theme:
+    <% if (!editing) { %>
+      <b class='theme_name' style='cursor:pointer;'><%= themeText %></b>
+    <% } else { %>
+      <input type="text" class="theme_text">
+    <% } %>
+    <br>
+
   </script>
 
   <script type="text/javascript">
