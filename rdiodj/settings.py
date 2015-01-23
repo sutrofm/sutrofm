@@ -8,7 +8,11 @@ TEMPLATE_DEBUG = DEBUG
 INTERNAL_IPS = ('127.0.0.1',)
 
 ADMINS = (
-    ('Devin Sevilla', 'devin.sevilla@rd.io'),
+    ('Brandon Wilson', 'brandon.wilson@rd.io'),
+    ('Rebecca Stecker', 'rebecca.stecker@rdio.com'),
+    ('Emily Stumpf','emily.stumpf@rdio.com'),
+    ('Marek Kapolka','marek.kapolka@rd.io'),
+    ('holly.french@rd.io','Holly French'),
 )
 
 MANAGERS = ADMINS
@@ -20,7 +24,7 @@ DATABASES = {
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.4/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['rdioparty.herokuapp.com']
+ALLOWED_HOSTS = ['rdioparty.com']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -59,6 +63,7 @@ MEDIA_URL = ''
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = '%s/build_static' % os.path.abspath(os.path.split(__file__)[0])
+#STATIC_ROOT = os.path.join(BASE_DIR, "staticexport/")
 
 # S3 static files
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -152,7 +157,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
     'root': {
-        'level': 'WARNING',
+        'level': 'DEBUG',
         'handlers': ['sentry'],
     },
     'formatters': {
@@ -162,7 +167,7 @@ LOGGING = {
     },
     'handlers': {
         'sentry': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'class': 'raven.contrib.django.handlers.SentryHandler',
         },
         'console': {
@@ -173,7 +178,7 @@ LOGGING = {
     },
     'loggers': {
         'django.db.backends': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'handlers': ['console'],
             'propagate': False,
         },
@@ -206,4 +211,4 @@ LOGIN_REDIRECT_URL = '/parties/'
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
 FIREBASE_TOKEN = os.environ.get('FIREBASE_TOKEN')
 
-FIREBASE_URL = 'https://rdiodj.firebaseio.com'
+FIREBASE_URL = 'https://rdioparty.firebaseio.com'
