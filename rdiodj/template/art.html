@@ -3,24 +3,18 @@
 {% block title %}Welcome{% endblock %}
 
 {% block content %}
-
-<div id="index">
 <div class="row">
     <div class="span12">
 
 
         {% if user.is_authenticated %}
         <div class="page-header">
-            <h1>Welcome to the party, {{user.first_name}}!</h1>
-            <hr width="98%">
-
+            <h1>Welcome {{user.first_name}}!</h1>
         </div>
-        <p class="lead">Rdio Party is a social music discovery tool built to bring Rdio users together. We built this site so that people everywhere can enjoy the wonderful experience of social listening and discovery.</p>
-
-        <p class="lead">Welcome back to social discovery. This is going to be awesome.</p>
+        <p class="lead">This is going to be awesome.</p>
         <p>
             <a class="btn btn-primary btn-large"
-            href="{% url 'parties' %}">Party Time!</a>
+            href="{% url 'parties' %}">Sounds fun!</a>
         </p>
         {% else %}
         <div class="page-header">
@@ -34,6 +28,5 @@
         {% endif %}
 
     </div>
-</div>
 </div>
 {% endblock %}

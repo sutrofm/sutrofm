@@ -72,7 +72,7 @@
         content: {
           query: query,
           types: 'Track',
-          extras: '-*,key,icon,name,artist',
+          extras: '-*,key,icon,name,artist,duration',
           count: 10
         },
         success: function(data) {
@@ -93,6 +93,11 @@
             .show();
 
           _.each(data.result.results, function(v, i) {
+            var durationMins = Math.floor(v['duration'] / 60);
+            var durationSecs = String(v['duration'] % 60);
+            if (durationSecs.length < 2)
+              durationSecs = "0" + durationSecs;
+            v['formattedDuration'] = durationMins + ":" + durationSecs;
             var html = $.trim(self.resultTemplate(v));
             self.$menu.append(html);
           });
