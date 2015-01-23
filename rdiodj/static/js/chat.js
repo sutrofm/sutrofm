@@ -175,7 +175,8 @@ R.ready(function() {
     chat.activeUsers.add({
       id: userKey,
       isOnline: true,
-      icon: R.currentUser.get('icon')
+      icon: R.currentUser.get('icon'),
+      fullName: R.currentUser.get('firstName') + ' ' + R.currentUser.get('lastName')
     });
     console.log("added user ", chat.activeUsers.get(userKey), " to chat");
   }
