@@ -4,9 +4,6 @@
 
 {% block content %}
 <div class="row">
-  <div class="span12">
-    <div id="theme"></div>
-  </div>
 
   <div class="span4">
     <h4>Chat</h4>
@@ -89,9 +86,6 @@
             <%= track.artist %>
           </div>
           <div>
-            <%= formattedDuration %>
-          </div>
-          <div>
             Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a>
           </div>
         </td>
@@ -118,7 +112,6 @@
   </script>
 
   <script type="text/template" id="now-playing-template">
-  Party Master: <%= masterUser %>
     <div class="now-playing-album">
       <img src="<%= track.bigIcon %>" width="600" height="600">
       <div class="album-info">
@@ -128,8 +121,6 @@
         <div class="credits">
           <%= track.artist %> - <%= track.album %>
         </div>
-        <div id="skip-button" style="background-image: url({{STATIC_URL}}img/skip.png"></div>
-        <div id="favorite-button" style="background-image: url({{STATIC_URL}}img/favorite.png"></div>
       </div>
     </div>
   </script>
@@ -145,7 +136,6 @@
             <td>
               <div class="name"><%= name %></div>
               <div class="artist"><%= artist %></div>
-              <div class="duration"><%= formattedDuration %></div>
             </td>
           </tr>
       </a>
@@ -176,16 +166,6 @@
         </tr>
       </table>
     </li>
-  </script>
-  <script type="text/template" id="theme-template">
-    Party theme:
-    <% if (!editing) { %>
-      <b class='theme_name' style='cursor:pointer;'><%= themeText %></b>
-    <% } else { %>
-      <input type="text" class="theme_text">
-    <% } %>
-    <br>
-
   </script>
 
   <script type="text/javascript">

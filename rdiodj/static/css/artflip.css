@@ -25,16 +25,18 @@ a {
   padding: 5px;
 }
 
-#content {
+#contentbkg {
   -webkit-transform: translateZ(0);
   -moz-transform: translateZ(0);
 }
 
-#content .container {
-  position: relative;
+#contentbkg .containerbkg {
+  position: absolute;
+    left: 0px;
+    top: 0px;
 }
 
-#content .container .album {
+#contentbkg .containerbkg .album {
   -webkit-transform: rotateY(0);
   -moz-transform: rotateY(0);
   position: absolute;
@@ -79,10 +81,10 @@ a {
   }
 }
 
-#content .container .album.flippedl,
-#content .container .album.flippedr,
-#content .container .album.flippingl,
-#content .container .album.flippingr {
+#contentbkg .containerbkg .album.flippedl,
+#contentbkg .containerbkg .album.flippedr,
+#contentbkg .containerbkg .album.flippingl,
+#contentbkg .containerbkg .album.flippingr {
   -webkit-animation: flipped 0.6s normal linear;
   -webkit-animation-iteration-count: once;
 
@@ -98,15 +100,15 @@ a {
   z-index: 20;
 }
 
-#content .container .album.flippedl {
+#contentbkg .containerbkg .album.flippedl {
 }
 
-#content .container .album.flippingl {
+#contentbkg .containerbkg .album.flippingl {
   -webkit-animation-name: flipping;
   -moz-animation-name: flipping;
 }
 
-#content .container .album.flippedr {
+#contentbkg .containerbkg .album.flippedr {
   -webkit-animation-name: flipping;
   -webkit-animation-direction: reverse;
 
@@ -114,7 +116,7 @@ a {
   -moz-animation-direction: reverse;
 }
 
-#content .container .album.flippingr {
+#contentbkg .containerbkg .album.flippingr {
   -webkit-animation-direction: reverse;
   -moz-animation-direction: reverse;
 }

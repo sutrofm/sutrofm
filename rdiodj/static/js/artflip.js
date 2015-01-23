@@ -1,5 +1,3 @@
-// Depends on rdio.js
-
 (function() {
 
 var App = function(options) {
@@ -9,8 +7,7 @@ var App = function(options) {
     rows: 3,
     delay: 3,
     type: 'top',
-    user: null,
-    debug: false
+    username: null
   });
 
   // Never load more than this many albums
@@ -20,37 +17,18 @@ var App = function(options) {
   // Album lookup of key -> this.albums index
   this.albumLookup = {};
   this.init();
-
-  if (this.options.debug) {
-    console.log('setting up debug print interval');
-    this._debugPrintInterval = window.setInterval(_.bind(this.debugPrint, this), 500);
-  }
 };
 
 App.prototype.init = function() {
-  _.bindAll(this, 'resize', 'startFlip');
+  _.bindAll(this);
 
   // Setup initial size and bind resize
   $(window).on('resize', this.resize);
   this.resize();
 
-  this.content = $('#content').find('.container');
+  this.content = $('#contentbkg').find('.containerbkg');
 
-  var that = this;
-
-  if (this.options.user && this.options.type != 'top') {
-    Rdio.get('findUser', {
-      vanityName: that.options.user,
-      extras: '-*,key'
-    }, function(response) {
-      if (response && response.result) {
-        that.options.userKey = response.result.key;
-      }
-      that.getAlbums(that.startFlip);
-    });
-  } else {
-    this.getAlbums(this.startFlip);
-  }
+  this.getAlbums(this.startFlip);
 };
 
 // Add album to albums array if it doesn't exist already
@@ -63,90 +41,37 @@ App.prototype.addAlbum = function(album) {
   }
 };
 
-// Load albums depending on App.options.type in chunks until
-// we run out or hit the limit.
-// Call `k` when done.
+// Get list of albums from `get_albums` api. Keep scraping
+// while incrementing `offset` until we get a response with
+// no new albums. Call `k` when done loading albums.
 App.prototype.getAlbums = function(k) {
   var that = this;
   // Scan collection
   function getChunk() {
-    var content = {};
-    var method = '';
-    var postProcess;
+    $.ajax({
+      url: '/get_albums',
+      data: {
+        type: that.options.type,
+        user: that.options.user,
+        offset: that.albums.length
+      },
+      success: function(result) {
+        console.log(result)
+        var albums = result.albums;
+        console.log(result)
+        var added = 0;
 
-    switch(that.options.type) {
-      case 'collection':
-        method = 'getAlbumsInCollection';
-        content = {
-          user: that.options.userKey,
-          start: that.albums.length,
-          extras: '-*,albumKey,icon',
-          count: 50
-        };
-        postProcess = function(response) {
-          if (!response) {
-            return;
-          }
-          var result = response.result;
-          var newResult = [];
-          _.each(result, function(item) {
-            item.key = item.albumKey;
-            delete item.albumKey;
-            newResult.push(item);
-          });
-          response.result = newResult;
-          return response;
-        };
-        break;
-      case 'heavyrotation':
-        method = 'getHeavyRotation';
-        content = {
-          user: that.options.userKey,
-          start: that.albums.length,
-          count: 50,
-          type: 'albums',
-          extras: '-*,key,icon'
-        };
-        break;
-      case 'friendsheavyrotation':
-        method = 'getHeavyRotation';
-        content = {
-          user: that.options.userKey,
-          start: that.albums.length,
-          count: 50,
-          type: 'albums',
-          friends: 'true'
-        };
-        break;
-      default:
-        method = 'getTopCharts';
-        content = {
-          type: 'Album',
-          extras: '-*,key,icon',
-          start: that.albums.length,
-          count: 50
-        };
-        break;
-    }
+        _.each(albums, function(album) {
+          added += !!that.addAlbum(album) ? 1 : 0;
+        });
 
-    Rdio.get(method, content, function(response) {
-      if (postProcess) {
-        response = postProcess(response);
-      }
-
-      var albums = response.result;
-      var added = 0;
-
-      _.each(albums, function(album) {
-        added += !!that.addAlbum(album) ? 1 : 0;
-      });
-
-      // If we added at least one album, we got new data, otherwise, we might be looping! So just get started.
-      // Also, don't get more than `ALBUM_LIMIT` albums.
-      if (added > 0 && that.albums.length < that.ALBUM_LIMIT) {
-        getChunk();
-      } else {
-        k();
+        // If we added at least one album, we got new data, otherwise, we might be looping! So just get started.
+        // Also, don't get more than `ALBUM_LIMIT` albums.
+        if (added > 0 && that.albums.length < that.ALBUM_LIMIT) {
+          getChunk();
+        } else {
+          k();
+        }
       }
     });
   }
@@ -261,36 +186,6 @@ App.prototype.getAlbumArt = function(index) {
   return icon;
 };
 
-App.prototype.debugPrint = function() {
-  if (!this._debugDiv) {
-    console.log('div didnt exist, creating');
-    this._debugDiv = $('<div id="debug"></div>').appendTo($('#content'));
-  }
-
-  var htmlDiv = $('<div></div>');
-
-  var data = {
-    albums: this.albums.length,
-    user: this.options.user,
-    type: this.options.type,
-    rows: this.options.rows,
-    cols: this.cols,
-    delay: this.options.delay,
-    'Window Width': this.prevWidth,
-    'Window Height': this.prevHeight,
-    size: this.size
-  };
-
-  var keys = _.keys(data);
-
-  _.each(keys, function(key) {
-    var row = $('<div></div>').text(key + ': ' + data[key]);
-    htmlDiv.append(row);
-  });
-
-  this._debugDiv.html(htmlDiv.html());
-};
-
 App.prototype.flipTime = function() {
   var col = this.randInt(this.cols);
   var row = this.randInt(this.options.rows);
@@ -358,21 +253,6 @@ function setupApp() {
   }
   var options = {};
   var parts;
-
-  // Convert options from a url like:
-  //
-  //   http://endenizen.net/artflip/#user=endenizen;type=collection;rows=3;delay=3;version=1";
-  //
-  // into:
-  //
-  //   {
-  //     user: 'endenizen',
-  //     type: 'collection',
-  //     rows: '3',
-  //     delay: '3',
-  //     version: '1'
-  //   }
-  //   
   try {
     parts = window.location.hash.substring(1).split(';');
     _.each(parts, function(part) {
@@ -382,11 +262,6 @@ function setupApp() {
   } catch (e) {
     options = {};
   }
-
-  if (window.location.host === 'localhost:5000') {
-    options.debug = true;
-  }
-
   window.app = new App(options);
 }
 
