@@ -62,7 +62,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = '%s/build_static' % os.path.abspath(os.path.split(__file__)[0])
+STATIC_ROOT = '%s/static' % os.path.abspath(os.path.split(__file__)[0])
 #STATIC_ROOT = os.path.join(BASE_DIR, "staticexport/")
 
 # S3 static files
