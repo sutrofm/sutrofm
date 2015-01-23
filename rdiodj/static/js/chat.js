@@ -10,7 +10,13 @@ chat.firebaseMessagesRef = new Firebase(firebaseRootUrl + '/messages');
 chat.UserList = Backbone.Firebase.Collection.extend({
   model: chat.User,
 
-  firebase: chat.firebasePeopleRef // pass the ref here instead of string so we can listen for disconnect.
+  firebase: chat.firebasePeopleRef, // pass the ref here instead of string so we can listen for disconnect.
+
+  getOnlineUsers: function() {
+    return this.filter(function(user) {
+      return user.get('isOnline');
+    });
+  }
 });
 
 chat.activeUsers  = new chat.UserList();
@@ -175,7 +181,8 @@ R.ready(function() {
     chat.activeUsers.add({
       id: userKey,
       isOnline: true,
-      icon: R.currentUser.get('icon')
+      icon: R.currentUser.get('icon'),
+      fullName: R.currentUser.get('firstName') + ' ' + R.currentUser.get('lastName')
     });
     console.log("added user ", chat.activeUsers.get(userKey), " to chat");
   }
@@ -199,19 +206,7 @@ R.ready(function() {
   chatEntryText.keypress(function(e) {
     if (e.keyCode == 13) { // listen for enter key
       var message = chatEntryText.val();
-      var fullName = chat.currentUser.get('firstName') + ' ' +
-        chat.currentUser.get('lastName');
-
-      var messageData = {
-        type: 'User',
-        fullName: fullName,
-        userKey: chat.currentUser.get('key'),
-        message: message,
-        timestamp: (new Date()).toISOString()
-      };
-
-      chat.messageHistory.add(messageData);
-
+      chat.sendMessage(message);
       chatEntryText.val('');
     }
   });
@@ -220,3 +215,16 @@ R.ready(function() {
 
   var chatView = new chat.MessagesView();
 });
+
+chat.sendMessage = function(message) {
+  var fullName = chat.currentUser.get('firstName') + ' ' + chat.currentUser.get('lastName');
+  var messageData = {
+    type: 'User',
+    fullName: fullName,
+    userKey: chat.currentUser.get('key'),
+    message: message,
+    timestamp: (new Date()).toISOString()
+  };
+
+  chat.messageHistory.add(messageData);
+}
