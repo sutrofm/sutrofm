@@ -1,0 +1,122 @@
+body {
+  background: black;
+  color: white;
+  margin: 0;
+  overflow: hidden;
+  font-family: Helvetica Neue;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: white;
+  text-decoration: none;
+}
+
+#debug {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 5px;
+  background: black;
+  font-size: 10px;
+  color: white;
+  line-height: 10px;
+  z-index: 10;
+  padding: 5px;
+}
+
+#contentbkg {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+}
+
+#contentbkg .containerbkg {
+  position: absolute;
+    left: 0px;
+    top: 0px;
+}
+
+#contentbkg .containerbkg .album {
+  -webkit-transform: rotateY(0);
+  -moz-transform: rotateY(0);
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
+}
+
+@-webkit-keyframes flipped {
+  0% { -webkit-transform: perspective(5000px) rotateY(180deg); }
+  50% { -webkit-transform: perspective(5000px) rotateY(90deg); }
+  100% {
+    -webkit-transform: perspective(5000px) rotateY(0deg);
+    -webkit-animation-timing-function: ease-out;
+  }
+}
+
+@-webkit-keyframes flipping {
+  0% { -webkit-transform: perspective(5000px) rotateY(0deg); }
+  50% { -webkit-transform: perspective(5000px) rotateY(-90deg); }
+  100% {
+    -webkit-transform: perspective(5000px) rotateY(-180deg);
+    -webkit-animation-timing-function: ease-out;
+  }
+}
+
+@-moz-keyframes flipped {
+  0% { -moz-transform: perspective(5000px) rotateY(180deg); }
+  50% { -moz-transform: perspective(5000px) rotateY(90deg); }
+  100% {
+    -moz-transform: perspective(5000px) rotateY(0deg);
+    -moz-animation-timing-function: ease-out;
+  }
+}
+
+@-moz-keyframes flipping {
+  0% { -moz-transform: perspective(5000px) rotateY(0deg); }
+  50% { -moz-transform: perspective(5000px) rotateY(-90deg); }
+  100% {
+    -moz-transform: perspective(5000px) rotateY(-180deg);
+    -moz-animation-timing-function: ease-out;
+  }
+}
+
+#contentbkg .containerbkg .album.flippedl,
+#contentbkg .containerbkg .album.flippedr,
+#contentbkg .containerbkg .album.flippingl,
+#contentbkg .containerbkg .album.flippingr {
+  -webkit-animation: flipped 0.6s normal linear;
+  -webkit-animation-iteration-count: once;
+
+  -moz-animation-name: flipped;
+  -moz-animation-duration: 0.6s;
+  -moz-animation-iteration-count: once;
+  -moz-animation-direction: forward;
+  -moz-animation-timing-function: linear;
+
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+
+  z-index: 20;
+}
+
+#contentbkg .containerbkg .album.flippedl {
+}
+
+#contentbkg .containerbkg .album.flippingl {
+  -webkit-animation-name: flipping;
+  -moz-animation-name: flipping;
+}
+
+#contentbkg .containerbkg .album.flippedr {
+  -webkit-animation-name: flipping;
+  -webkit-animation-direction: reverse;
+
+  -moz-animation-name: flipping;
+  -moz-animation-direction: reverse;
+}
+
+#contentbkg .containerbkg .album.flippingr {
+  -webkit-animation-direction: reverse;
+  -moz-animation-direction: reverse;
+}
