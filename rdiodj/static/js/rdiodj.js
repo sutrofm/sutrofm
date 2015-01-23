@@ -468,24 +468,37 @@ app.ThemeView = Backbone.View.extend({
   template: _.template($('#theme-template').html()),
 
   events: {
-    "click .theme_text_button": "onThemeTextSubmit",
-    "click .theme_image_button": "onThemeImageSubmit",
+    "click .theme_name": "onThemeClick",
+    "keyup .theme_text": "onThemeTextSubmit"
   },
 
   initialize: function() {
+    this.editing = false
     this.model.setText('no theme... just play whatever you want')
     this.listenTo(this.model, "change", this.render)
     this.render()
-
   },
 
   render: function() {
-    this.$el.html(this.template(this.model.attributes));
+    var values = {
+        'editing': this.editing,
+        'themeText': this.model.getText()
+    }
+    this.$el.html(this.template(values));
+    $(".theme_text").focus()
     return this;
   },
 
-  onThemeTextSubmit: function() {
-    this.model.setText($(".theme_text")[0].value)
+  onThemeTextSubmit: function(e) {
+    if (e.keyCode == 13 && $(".theme_text").val()) {
+      this.model.setText($(".theme_text").val())
+      this.editing = false
+      this.render()
+    }
+  },
+  onThemeClick: function() {
+    this.editing = true;
+    this.render();
   }
 })
 

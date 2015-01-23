@@ -171,8 +171,14 @@
     </li>
   </script>
   <script type="text/template" id="theme-template">
-    Party theme: <b><%= themeText %></b> <br><br>
-    Set a new theme: <input type="text" class="theme_text"><input type='button' class='theme_text_button' value='make it so'><br>
+    Party theme:
+    <% if (!editing) { %>
+      <b class='theme_name' style='cursor:pointer;'><%= themeText %></b>
+    <% } else { %>
+      <input type="text" class="theme_text">
+    <% } %>
+    <br>
+
   </script>
 
   <script type="text/javascript">
