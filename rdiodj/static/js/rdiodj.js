@@ -49,9 +49,14 @@ app.PlaylistView = Backbone.View.extend({
     today = yyyy + '-' + mm + '-' + dd
     return today
   },
+  getRoomString: function() {
+    var roomUrlList = app.roomUrl.split('/')
+    var roomString = roomUrlList[roomUrlList.length-1].replace(/_/g, ' ')
+    return roomString
+  },
 
   onPlaylistClick: function() {
-    var playlistName = 'rdio-party-snapshot-' + this.getDateString()
+    var playlistName = 'Rdio Party "' + this.getRoomString() + '" ' + this.getDateString()
     this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey }; });
     R.request({
       method: 'createPlaylist',
