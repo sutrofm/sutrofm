@@ -339,7 +339,7 @@ app.NowPlayingView = Backbone.View.extend({
           trackUrl: track.shortUrl,
           trackKey: trackKey,
           timestamp: (new Date()).toISOString(),
-          formattedDuration: self.model.getDuration(track.duration)
+          formattedDuration: queueItem.getDuration(track.duration)
         };
 
         chat.messageHistory.add(messageData);
