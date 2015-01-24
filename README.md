@@ -19,6 +19,8 @@ Create a `.env` file with the following defined:
 Setup and run locally:
 
     $ pip install -r requirements.txt
+    $ mkdir webassets
+    $ foreman run python manage.py collectstatic
     $ foreman run python manage.py syncdb
     $ foreman run python manage.py runserver
 

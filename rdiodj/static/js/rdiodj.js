@@ -16,6 +16,68 @@ app.Player = Backbone.Firebase.Model.extend({
 
 });
 
+app.PlaylistView = Backbone.View.extend({
+  el: '.playlist',
+  template: _.template($('#playlist-template').html()),
+
+  events: {
+    "click .playlist_text": "onPlaylistClick"
+  },
+  initialize: function() {
+    this.snapped = false
+    this.render()
+  },
+  render: function() {
+    values = {
+      'snapped': this.snapped,
+      'playlist': this.playlist
+    }
+    this.$el.html(this.template(values));
+    return this
+  },
+  getDateString: function() {
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1;
+    var yyyy = today.getFullYear();
+    if(dd<10) {
+        dd='0'+dd
+    }
+    if(mm<10) {
+        mm='0'+mm
+    }
+    today = yyyy + '-' + mm + '-' + dd
+    return today
+  },
+  getRoomString: function() {
+    var roomUrlList = app.roomUrl.split('/')
+    var roomString = roomUrlList[roomUrlList.length-1].replace(/_/g, ' ')
+    return roomString
+  },
+
+  onPlaylistClick: function() {
+    var playlistName = 'Rdio Party "' + this.getRoomString() + '" ' + this.getDateString()
+    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey }; });
+    R.request({
+      method: 'createPlaylist',
+      content: {
+        name: playlistName,
+        description: 'lovingly created from rdioparty!',
+        tracks: this.trackIds
+      },
+      success: function(response) {
+        console.log('playlist created')
+      },
+      error: function(response) {
+        console.log('playlist probably not created');
+      }
+    });
+    this.snapped = true
+    this.playlist = playlistName
+    this.render()
+  }
+})
+
 app.Track = Backbone.Model.extend({
   LIKE: 'like',
   DISLIKE: 'dislike',
@@ -129,7 +191,6 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioTrackKey = null;
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
-
     this.listenTo(this.playState, 'change:masterUserKey', this._onMasterUserKeyChange);
     this.listenTo(app.skipList, 'add', this._onSkipListUpdate);
 
@@ -189,15 +250,22 @@ app.NowPlayingView = Backbone.View.extend({
 
   render: function() {
     var self = this;
-
+    var keys = [this.rdioTrackKey];
+    var userKey = null;
+    if (self.playState.get('playingTrack')) {
+      keys.push(self.playState.get('playingTrack').userKey);
+      userKey = self.playState.get('playingTrack').userKey;
+    }
     if (this.rdioTrackKey) {
       R.request({
         method: 'get',
         content: {
-          keys: this.rdioTrackKey,
-          extras: 'streamRegions,shortUrl,bigIcon,duration'
+          keys: keys.join(","),
+          extras: 'streamRegions,shortUrl,bigIcon,duration,dominantColor,playerBackgroundUrl'
         },
         success: function(response) {
+          var userObj = (response.result[userKey]) ? response.result[userKey] : {firstName: '', lastName: ''};
+          var addedByName = userObj.firstName + " " + userObj.lastName;
           var activeUsers = self.activeUsers;
           var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
           var userName = null;
@@ -206,10 +274,12 @@ app.NowPlayingView = Backbone.View.extend({
           }
           var data = _.extend({
             'track': response.result[self.rdioTrackKey],
-            'masterUser': userName
+            'masterUser': userName,
+            'addedBy': addedByName
           });
           self.$el.html(self.template(data));
           self.$el.show();
+          $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
         },
         error: function(response) {
           console.log('Unable to get tack information for', self.rdioTrackKey);
@@ -267,6 +337,7 @@ app.NowPlayingView = Backbone.View.extend({
           artist: track.artist,
           iconUrl: track.icon,
           trackUrl: track.shortUrl,
+          trackKey: trackKey,
           timestamp: (new Date()).toISOString(),
           formattedDuration: self.model.getDuration(track.duration)
         };
@@ -327,7 +398,7 @@ app.NowPlayingView = Backbone.View.extend({
     console.info('Becoming master');
     self.destroySlaveStatus();
 
-    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
+    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING && app.playState.get('playingTrack')) {
       R.player.play({
         source: app.playState.get('playingTrack').trackKey,
         initialPosition: app.playState.get('position')
@@ -394,7 +465,7 @@ app.NowPlayingView = Backbone.View.extend({
     console.info('Becoming slave');
     this.destroyMasterStatus();
 
-    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
+    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING && app.playState.get('playingTrack')) {
       R.player.play({
         source: app.playState.get('playingTrack').trackKey,
         initialPosition: app.playState.get('position')
@@ -598,6 +669,7 @@ R.ready(function() {
       var queueView = new app.queueView();
       app.nowPlayingView = new app.NowPlayingView();
       var searchView = new app.SearchView();
+      var playlistView = new app.PlaylistView();
       var themeView = new app.ThemeView({model: new app.ThemeInfo()});
     }
   });

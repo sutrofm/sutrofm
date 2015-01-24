@@ -5,25 +5,6 @@
 {% block content %}
 <div class="row">
 
-  <div class="span4">
-    <h4>Chat</h4>
-    <div class="chat">
-      <div class="chat-message-container">
-        <ul class="chat-messages">
-        </ul>
-      </div>
-      <table class="text-input">
-        <tr>
-          <td>
-            <img src="{{STATIC_URL}}img/chat-bubble.png" class="input-icon">
-          </td>
-          <td class="input-cell">
-            <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
-          </td>
-        </tr>
-      </table>
-    </div>
-  </div>
 
   <div class="span4">
     <div id="now-playing">
@@ -34,7 +15,7 @@
     </div>
   </div>
 
-  <div class="span4">
+  <div class="span4 queue-box">
     <h4>Up Next</h4>
     <div class="track-input">
       <table class="text-input">
@@ -56,6 +37,29 @@
     </ul>
     <div id="queue-stats"></div>
   </div>
+
+  
+  <div class="span4 chat-box">
+    <h4>Chat</h4>
+    <div class="playlist"></div>
+    <div class="chat">
+      <div class="chat-message-container">
+        <ul class="chat-messages">
+        </ul>
+      </div>
+      <table class="text-input">
+        <tr>
+          <td>
+            <img src="{{STATIC_URL}}img/chat-bubble.png" class="input-icon">
+          </td>
+          <td class="input-cell">
+            <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
 
 </div>
 {% endblock %}
@@ -87,6 +91,9 @@
           </div>
           <div>
             Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a>
+          </div>
+          <div>
+            Duration: <%= formattedDuration %>
           </div>
         </td>
         <td class="buttons">
@@ -120,6 +127,7 @@
         </div>
         <div class="credits">
           <%= track.artist %> - <%= track.album %>
+          Added by: <%= addedBy %>
         </div>
       </div>
     </div>
@@ -167,6 +175,28 @@
       </table>
     </li>
   </script>
+
+  <script type="text/template" id="playlist-template">
+
+    <% if (!snapped) { %>
+      <b class='playlist_text' style='cursor:pointer;'>Take playlist snapshot</b>
+    <% } else { %>
+      <b>Playlist created:</b> <%= playlist %>
+    <% } %>
+
+  </script>
+
+  <script type="text/template" id="theme-template">
+    Party theme: <b><%= themeText %></b> <br><br>
+    Set a new theme: <input type="text" class="theme_text"><input type='button' class='theme_text_button' value='make it so'><br>
+    Party theme:
+    <% if (!editing) { %>
+    <b class='theme_name' style='cursor:pointer;'><%= themeText %></b>
+    <% } else { %>
+    <input type="text" class="theme_text">
+    <% } %>
+    <br>
+</script>
 
   <script type="text/javascript">
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';

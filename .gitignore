@@ -36,3 +36,6 @@ nosetests.xml
 test.db
 .env
 rdiodj.sublime-workspace
+
+# static web assets
+webassets
