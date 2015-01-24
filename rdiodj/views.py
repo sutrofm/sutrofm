@@ -8,6 +8,10 @@ from django.template import RequestContext
 import json
 from django.http import HttpResponse
 
+import subprocess
+import psutil
+import os
+
 def home(request):
     c = RequestContext(request, {
         # Something good
@@ -222,6 +226,17 @@ def ajax(request):
 
     return HttpResponse(json.dumps(data), content_type = "application/json")
 
+def make_room_daemon(room_name):
+  child_processes = psutil.Process(os.getpid()).get_children()
+  for process in child_processes:
+    try:
+      if process.cmdline()[-1] == room_name:
+        return
+    except psutil.AccessDenied:
+      pass
+  subprocess.Popen(["python", "manage.py", "master", room_name])
+
+
 @login_required
 def party(request, room_name):
     if room_name is None:
@@ -231,6 +246,7 @@ def party(request, room_name):
         'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),
         'room_name': room_name
     })
+    make_room_daemon(room_name)
     return render_to_response('party.html', c)
 
 

@@ -8,10 +8,6 @@ app.roomUrl = firebaseRootUrl;
 
 app.Player = Backbone.Firebase.Model.extend({
 
-  isMaster: function () {
-    return (this.get('masterUserKey') === app.currentUserKey) && app.currentUserKey;
-  },
-
   firebase: app.roomUrl + '/player'
 
 });
@@ -191,20 +187,8 @@ app.NowPlayingView = Backbone.View.extend({
     this.rdioTrackKey = null;
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
-    this.listenTo(this.playState, 'change:masterUserKey', this._onMasterUserKeyChange);
-    this.listenTo(app.skipList, 'add', this._onSkipListUpdate);
 
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
-
-    if (this.playState.get('masterUserKey') === undefined) {
-      this.findNewMasterKey();
-    }
-
-    if (this.playState.isMaster()) {
-      this.initMasterStatus();
-    } else {
-      this.initSlaveStatus();
-    }
   },
 
   _clickSkip: function() {
@@ -213,20 +197,6 @@ app.NowPlayingView = Backbone.View.extend({
 
   _clickFavorites: function() {
     this.favoriteCurrentlyPlaying();
-  },
-
-  /**
-   * Handles changes to masterUserKey
-   */
-  _onMasterUserKeyChange: function(model, newValue, options) {
-    console.info('change:masterUserKey', newValue);
-    if (newValue === undefined) {
-      this.findNewMasterKey();
-    } else if(newValue === app.currentUserKey) {
-      this.initMasterStatus();
-    } else {
-      this.initSlaveStatus();
-    }
   },
 
   /**
@@ -240,12 +210,6 @@ app.NowPlayingView = Backbone.View.extend({
     }
 
     this.render();
-  },
-
-  _onSkipListUpdate: function() {
-    if (app.skipList.length > chat.activeUsers.getOnlineUsers().length / 2) {
-      this.skipSong();
-    }
   },
 
   render: function() {
@@ -292,61 +256,6 @@ app.NowPlayingView = Backbone.View.extend({
     return this;
   },
 
-  skipSong: function() {
-    this.playNext();
-  },
-
-  playNext: function() {
-    if (!app.queue.length) {
-      this.playState.set({
-        'playState': R.player.PLAYSTATE_STOPPED,
-        'playingTrack': null
-      });
-      return;
-    }
-
-    var queueItem = app.queue.shift();
-    console.log('Playing next track', queueItem);
-    this.addToHistory(queueItem);
-    app.skipList.clear();
-
-    this.playState.set({
-      'playingTrack': queueItem.toJSON()
-    });
-
-    R.player.play({
-      source: queueItem.get('trackKey')
-    });
-  },
-
-  addToHistory: function(queueItem) {
-    // R.request here instead of in render, cause it's historical.
-    var self = this;
-    var trackKey = queueItem.get('trackKey');
-    R.request({
-      method: 'get',
-      content: {
-        keys: trackKey,
-        extras: '-*,name,artist,icon,shortUrl,duration'
-      },
-      success: function(res) {
-        var track = res.result[trackKey];
-        var messageData = {
-          type: 'NewTrack',
-          title: track.name,
-          artist: track.artist,
-          iconUrl: track.icon,
-          trackUrl: track.shortUrl,
-          trackKey: trackKey,
-          timestamp: (new Date()).toISOString(),
-          formattedDuration: queueItem.getDuration(track.duration)
-        };
-
-        chat.messageHistory.add(messageData);
-      }
-    });
-  },
-
   favoriteCurrentlyPlaying: function() {
     R.request({
       method: 'addToFavorites',
@@ -359,111 +268,11 @@ app.NowPlayingView = Backbone.View.extend({
     })
   },
 
-  findNewMasterKey: function() {
-    var self = this;
-    this.playState.firebase.child('masterUserKey').transaction(function(currentValue) {
-      console.log('Finding a new masterUserKey:', currentValue);
-      var newUserKey = app.currentUserKey;
-
-      if (self.activeUsers) {
-        var onlineUsers = self.activeUsers.where({isOnline:true});
-        var sortedOnlineUsers = _.sortBy(onlineUsers,
-          function(user) { return user.get('id'); });
-
-        newUserKey = sortedOnlineUsers[0].get('id');
-      }
-
-      if (currentValue === null) {
-        return newUserKey;
-      } else {
-        return undefined;
-      }
-    }, function(error, committed, snapshot) {
-      if (error) {
-        console.warn('Error when setting masterUserKey:', error.message);
-        if (committed) {
-          console.warn('Transaction was committed:', snapshot);
-        } else {
-          console.warn('Transaction was not committed:', snapshot);
-        }
-      }
-    });
-  },
-
-  /**
-   * Called when this client assumes control of the player
-   **/
-  initMasterStatus: function() {
-    var self = this;
-    console.info('Becoming master');
-    self.destroySlaveStatus();
-
-    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING && app.playState.get('playingTrack')) {
-      R.player.play({
-        source: app.playState.get('playingTrack').trackKey,
-        initialPosition: app.playState.get('position')
-      });
-    } else {
-      this.playNext();
-    }
-
-    // Delete user key reference on disconnect, which will trigger search for new master
-    var masterUserKeyRef = this.playState.firebase.child('masterUserKey');
-    masterUserKeyRef.onDisconnect().set(null);
-
-    // When the current track finishes, play the next
-    R.player.on('change:playingTrack', this._onMasterTrackChange, this);
-
-    // Let the slaves know the master's player status
-    R.player.on('change:playState', this._onMasterPlayerStateChange, this);
-
-    // Let the slaves know the master's player position
-    R.player.on('change:position', this._onMasterPlayerPositionChange, this);
-
-    // When something is added to the queue and we aren't playing, play it
-    this.listenTo(app.queue, 'add', this._onMasterQueueChange);
-  },
-
-  destroyMasterStatus: function() {
-    var masterUserKeyRef = this.playState.firebase.child('masterUserKey');
-    masterUserKeyRef.onDisconnect().cancel();
-
-    R.player.off('change:playingTrack', this._onMasterTrackChange, this);
-    R.player.off('change:playState', this._onMasterPlayerStateChange, this);
-    R.player.off('change:position', this._onMasterPlayerPositionChange, this);
-    this.stopListening(app.queue, 'add', this._onMasterQueueChange);
-  },
-
-  _onMasterTrackChange: function(newValue) {
-    if (newValue === null) {
-      this.playNext();
-    }
-  },
-
-  _onMasterPlayerStateChange: function(newValue) {
-    this.playState.set({
-      'playState': newValue
-    });
-  },
-
-  _onMasterPlayerPositionChange: function(newValue) {
-    this.playState.set({
-      'position': newValue
-    });
-  },
-
-  _onMasterQueueChange: function(model, collection, options) {
-    if (app.playState.get('playingTrack') === null) {
-      this.playNext();
-    }
-  },
-
   /**
    * Called when the client should listen to a remote player
    **/
   initSlaveStatus: function() {
     console.info('Becoming slave');
-    this.destroyMasterStatus();
 
     if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING && app.playState.get('playingTrack')) {
       R.player.play({
@@ -476,15 +285,11 @@ app.NowPlayingView = Backbone.View.extend({
     app.playState.on('change:playState', this._onSlavePlayerStateChange, this);
   },
 
-  destroySlaveStatus: function() {
-    app.playState.off('change:playingTrack', this._onSlaveTrackChange, this);
-    app.playState.off('change:playState', this._onSlavePlayerStateChange, this);
-  },
-
   _onSlaveTrackChange: function(model, value, options) {
     console.log('change:playingTrack', model, value, options);
     R.player.play({
-      source: value.trackKey
+      source: value.trackKey,
+      initialPosition: model.get('position')
     });
   },
 
@@ -494,6 +299,9 @@ app.NowPlayingView = Backbone.View.extend({
       case R.player.PLAYSTATE_PAUSED:
       case R.player.PLAYSTATE_STOPPED:
         R.player.pause();
+        break;
+      case R.player.PLAYSTATE_PLAYING:
+        R.player.play();
         break;
     }
   }
@@ -671,6 +479,7 @@ R.ready(function() {
       var searchView = new app.SearchView();
       var playlistView = new app.PlaylistView();
       var themeView = new app.ThemeView({model: new app.ThemeInfo()});
+      app.nowPlayingView.initSlaveStatus();
     }
   });
 });
