@@ -14,8 +14,6 @@ app.RoomList = Backbone.Firebase.Collection.extend({
   firebase: app.firebaseUrl
 });
 
-app.partyRooms = new app.RoomList();
-
 app.RoomView = Backbone.View.extend({
   tagName: 'li',
 
@@ -134,10 +132,11 @@ app.PartyRoomListView = Backbone.View.extend({
 R.ready(function() {
   firebaseRef.auth(firebaseToken, function(error) {
     if (error) {
-      console.log('Login Failed!', error);
+      window.alert('Login Failed!', error);
     } else {
       console.log('Login Succeeded!');
 
+      app.partyRooms = new app.RoomList();
       var partyRoomListView = new app.PartyRoomListView();
     }
   });
