@@ -5,26 +5,6 @@
 {% block content %}
 <div class="row">
 
-  <div class="span4">
-    <h4>Chat</h4>
-    <div class="playlist"></div>
-    <div class="chat">
-      <div class="chat-message-container">
-        <ul class="chat-messages">
-        </ul>
-      </div>
-      <table class="text-input">
-        <tr>
-          <td>
-            <img src="{{STATIC_URL}}img/chat-bubble.png" class="input-icon">
-          </td>
-          <td class="input-cell">
-            <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
-          </td>
-        </tr>
-      </table>
-    </div>
-  </div>
 
   <div class="span4">
     <div id="now-playing">
@@ -35,7 +15,7 @@
     </div>
   </div>
 
-  <div class="span4">
+  <div class="span4 queue-box">
     <h4>Up Next</h4>
     <div class="track-input">
       <table class="text-input">
@@ -57,6 +37,29 @@
     </ul>
     <div id="queue-stats"></div>
   </div>
+
+  
+  <div class="span4 chat-box">
+    <h4>Chat</h4>
+    <div class="playlist"></div>
+    <div class="chat">
+      <div class="chat-message-container">
+        <ul class="chat-messages">
+        </ul>
+      </div>
+      <table class="text-input">
+        <tr>
+          <td>
+            <img src="{{STATIC_URL}}img/chat-bubble.png" class="input-icon">
+          </td>
+          <td class="input-cell">
+            <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
 
 </div>
 {% endblock %}

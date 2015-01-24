@@ -250,16 +250,21 @@ app.NowPlayingView = Backbone.View.extend({
 
   render: function() {
     var self = this;
-    var userKey = self.playState.get('playingTrack').userKey;
+    var keys = [this.rdioTrackKey];
+    var userKey = null;
+    if (self.playState.get('playingTrack')) {
+      keys.push(self.playState.get('playingTrack').userKey);
+      userKey = self.playState.get('playingTrack').userKey;
+    }
     if (this.rdioTrackKey) {
       R.request({
         method: 'get',
         content: {
-          keys: this.rdioTrackKey + ',' + userKey,
-          extras: 'streamRegions,shortUrl,bigIcon,duration'
+          keys: keys.join(","),
+          extras: 'streamRegions,shortUrl,bigIcon,duration,dominantColor,playerBackgroundUrl'
         },
         success: function(response) {
-          var userObj = response.result[userKey];
+          var userObj = (response.result[userKey]) ? response.result[userKey] : {firstName: '', lastName: ''};
           var addedByName = userObj.firstName + " " + userObj.lastName;
           var activeUsers = self.activeUsers;
           var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
@@ -270,11 +275,11 @@ app.NowPlayingView = Backbone.View.extend({
           var data = _.extend({
             'track': response.result[self.rdioTrackKey],
             'masterUser': userName,
-            'addedBy': addedByName,
-
+            'addedBy': addedByName
           });
           self.$el.html(self.template(data));
           self.$el.show();
+          $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
         },
         error: function(response) {
           console.log('Unable to get tack information for', self.rdioTrackKey);
@@ -393,7 +398,7 @@ app.NowPlayingView = Backbone.View.extend({
     console.info('Becoming master');
     self.destroySlaveStatus();
 
-    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
+    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING && app.playState.get('playingTrack')) {
       R.player.play({
         source: app.playState.get('playingTrack').trackKey,
         initialPosition: app.playState.get('position')
@@ -460,7 +465,7 @@ app.NowPlayingView = Backbone.View.extend({
     console.info('Becoming slave');
     this.destroyMasterStatus();
 
-    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING) {
+    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING && app.playState.get('playingTrack')) {
       R.player.play({
         source: app.playState.get('playingTrack').trackKey,
         initialPosition: app.playState.get('position')
