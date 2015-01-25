@@ -179,12 +179,18 @@
 
   <script type="text/template" id="playlist-template">
 
-    <% if (!snapped) { %>
-      <b class='playlist_text' style='cursor:pointer;'>Take playlist snapshot</b>
-    <% } else { %>
-      <b>Playlist created:</b> <%= playlist %>
-    <% } %>
 
+    <% if (!snapped) { %>
+    <p class='playlist_text' style='cursor:pointer; color:#FFFFFF';>
+      <img src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25>
+      Take playlist snapshot
+    </p>
+    <% } else { %>
+    <p>
+      <img src="{{STATIC_URL}}img/capture-black.png" class="input-icon" width=25>
+      Playlist created: <%= playlist %>
+    </p>
+    <% } %>
   </script>
 
   <script type="text/template" id="theme-template">

@@ -72,6 +72,7 @@ class Command(BaseCommand):
             'iconUrl': rdio_track['icon'],
             'timestamp': datetime.now().isoformat(),
             'trackUrl': rdio_track['shortUrl'],
+            'trackKey': rdio_track['key'],
             'type': 'NewTrack'
         }
         self.firebase.post(self.party_name + "/messages/", message)

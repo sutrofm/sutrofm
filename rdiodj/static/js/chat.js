@@ -133,7 +133,8 @@ chat.NewTrackMessageView = Backbone.View.extend({
       title: this.model.get('title'),
       artist: this.model.get('artist'),
       iconUrl: this.model.get('iconUrl'),
-      trackUrl: this.model.get('trackUrl')
+      trackUrl: this.model.get('trackUrl'),
+      trackKey: this.model.get('trackKey')
     };
     this.$el.html(this.template(data));
     this.$el.show();
