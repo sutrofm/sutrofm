@@ -3,21 +3,29 @@
 {% block title %}Rdio Party - {{room_name}}{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row-fluid no-space">
 
 
-  <div class="span4">
-    <div id="theme"></div>
-    <div id="now-playing">
+  <div class="span5 full-height">
+    <div class="col-title">
+      Partiers
     </div>
     <div class="presence">
       <ul id="user-list" class="thumbnails"></ul>
       <div id="presence-stats"></div>
     </div>
+    <div class="col-title">
+      Now Playing
+    </div>
+    <div id="now-playing">
+    </div>
+    <div id="theme"></div>
   </div>
 
-  <div class="span4 queue-box">
-    <h4>Up Next</h4>
+  <div class="span4 queue-box full-height">
+    <div class="col-title">
+      Queue
+    </div>
     <div class="track-input">
       <table class="text-input">
         <tr>
@@ -40,10 +48,11 @@
   </div>
 
   
-  <div class="span4 chat-box">
-    <h4>Chat</h4>
+  <div class="span3 chat-box full-height">
+    <div class="col-title">
+      Chat
+    </div>
     <div class="playlist"></div>
-    <div class="chat">
       <div class="chat-message-container">
         <ul class="chat-messages">
         </ul>
@@ -58,7 +67,6 @@
           </td>
         </tr>
       </table>
-    </div>
   </div>
 
 
@@ -87,20 +95,25 @@
           <div class="title">
             <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a>
           </div>
-          <div>
+          <div class="artist">
             <%= track.artist %>
           </div>
-          <div>
+          <div class="added">
             Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a>
           </div>
-          <div>
-            Duration: <%= formattedDuration %>
+          <div class="duration">
+            <%= formattedDuration %>
           </div>
         </td>
         <td class="buttons">
-          <div class="up-vote" style="background-image: url({{STATIC_URL}}img/vote-up.png)"></div>
-          <span class="votes"><%= totalVotes %></span>
-          <div class="down-vote" style="background-image: url({{STATIC_URL}}img/vote-down.png)"></div>
+	  <div class="button-group">
+            <div class="up-vote" style="background-image: url({{STATIC_URL}}img/vote-up.png)"></div>
+            <span class="votes"><%= upVotes %></span>
+	  </div>
+	  <div class="button-group">
+            <div class="down-vote" style="background-image: url({{STATIC_URL}}img/vote-down.png)"></div>
+	    <span class="votes"><%= downVotes %></span>
+	  </div>
         </td>
       </tr>
     </table>
@@ -128,9 +141,11 @@
         </div>
         <div class="credits">
           <%= track.artist %> - <%= track.album %>
-          Added by: <%= addedBy %>
         </div>
       </div>
+    </div>
+    <div class="now-playing-added">
+      Added by <%= addedBy %>
     </div>
   </script>
 
@@ -153,27 +168,15 @@
 
   <script type="text/template" id="chat-user-message-template">
     <li>
-      <span class="chat-message-username"><%= fullName %></span><%= message %>
+      <span class="chat-message-username"><%= fullName %></span>
+      <span class="chat-message"><%= message %></span>
     </li>
   </script>
 
   <script type="text/template" id="chat-new-track-template">
     <li class="chat-message-track">
-      <table>
-        <tr>
-          <td>
-            <img src="<%= iconUrl %>" width="50" class="chat-track-icon"/>
-          </td>
-          <td class="main">
-            <div class="track-info title">
-              <a href="<%= trackUrl %>" target="_blank"><%= title %></a>
-            </div>
-            <div>
-              <%= artist %>
-            </div>
-          </td>
-        </tr>
-      </table>
+      <a href="<%= trackUrl %>" target="_blank"><%= title %></a>
+      <span> / <%= artist %> </span>
     </li>
   </script>
 
