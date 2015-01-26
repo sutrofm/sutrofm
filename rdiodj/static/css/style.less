@@ -5,19 +5,60 @@ body {
 }
 
 .queue-box {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.4);
 }
 .chat-box {
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.6);
 }
 /* Wrapper for page content to push down footer */
 #wrap {
-  min-height: 100%;
-  height: auto !important;
-  height: 100%;
-  /* Negative indent footer by it's height */
-  margin: 0 auto -60px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 60px;
   background-size: cover;
+}
+
+.container-full {
+  box-sizing: border-box;
+  padding-bottom: 60px;
+  height: 100%;
+}
+
+.col-title {
+  text-transform: uppercase;
+  padding-bottom: 20px;
+  color: white;
+  font-size: 16px;
+}
+
+.row-fluid {
+  height: 100%;
+}
+
+.span3, .span4, .span5 {
+  position: relative;
+  box-sizing: border-box;
+  padding: 20px;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.no-space [class*="span"]{
+  margin-left: 0 !important;
+
+  &.span5{
+      width: 42%;
+  }
+  &.span4{
+      width: 33%;
+  }
+  &.span3{
+      width: 25%;
+  }
 }
 
 #index {
@@ -53,11 +94,14 @@ body {
   color: #FFF;
 }
 
+.navbar {
+  margin-bottom: 0;
+}
+
 .nav > li > a:focus {
   text-decoration: overline;
   background-color: #FFF;
 }
-
 
 .navbar-inner{
   background: #333333;
@@ -73,9 +117,11 @@ body {
 
 
 #footer {
+  position: absolute;
+  bottom: 0;
   height: 60px;
+  width: 100%;
   background: #333;
-  box-shadow: 0px 0px 5px 5px #000;
 }
 
 /* Lastly, apply responsive CSS fixes as necessary */
@@ -138,12 +184,12 @@ img {
 }
 
 .chat-message-container {
-  height: 33.7em;
+  top: 60px;
+  bottom: 60px;
   vertical-align: bottom;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
   padding: 10px;
-  border-top: 1px solid #ccc;
 }
 
 .chat-messages {
@@ -220,20 +266,28 @@ img {
   }
 }
 
-.presence {
-  margin-top: 50px;
+.now-playing-added {
+  color: white;
+  font-size: 12px;
+  text-align: center;
+  padding-top: 10px;
+}
 
+.presence {
   .user-presence {
     border-radius: 25px;
   }
 }
 
 .text-input {
-  border-top: 2px solid #ccc;
-  border-bottom: 2px solid #ccc;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 60px;
 
   .input-icon {
-    margin-left: 10px;
+    margin-left: 20px;
+    margin-right: 10px;
   }
 
   .input-cell {
@@ -242,21 +296,23 @@ img {
 
   input {
     width: 90%;
-    margin-top: 7px;
+    margin-top: 10px;
     box-shadow: none;
     border: none;
   }
 }
 
 #queue {
+  position: absolute;
+  top: 60px;
+  bottom: 60px;
   margin: 0;
   list-style: none;
   font-size: 12px;
-  height: 40em;
-  overflow-y: scroll;
+  overflow-y: auto;
 
   li {
-    padding: 12px 0;
+    padding-bottom: 20px;
   }
 
   .album-cover {
@@ -266,10 +322,19 @@ img {
   .main {
     width: 100%;
     padding: 0 12px;
+
+    .artist, .duration, .added {
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 200;
+      color: white;
+    }
   }
 
   .title {
     font-size: 16px;
+    line-height: 24px;
+    font-weight: 200;
   }
 
   .buttons {
