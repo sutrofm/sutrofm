@@ -85,7 +85,7 @@
       <div class="containerbkg">
       </div>
       </div>
-      <div class="container-full" style="z-index: 1000; position: relative">
+      <div class="container-full" style="z-index: 1000;">
         {% block content %}{% endblock %}
       </div>
 
@@ -93,12 +93,8 @@
       <div id="push"></div>
     </div>
 
-    <div id="footer">
-      <div class="container">
-        <p class="muted credit">Powered by <a target="_blank" href="http://www.rdio.com/">Rdio</a> and <a href="http://www.firebase.com/">Firebase</a>. Checkout the source on <a target="_blank" href="https://github.com/dasevilla/rdiodj">GitHub</a>.</p>
-      </div>
-    </div>
-    </div>
+
+        </div>
 
     {% block javascript %}
     <script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.10.2.min.js"></script>

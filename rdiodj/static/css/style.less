@@ -16,14 +16,16 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 60px;
+  bottom: 0px;
   background-size: cover;
 }
 
 .container-full {
-  box-sizing: border-box;
-  padding-bottom: 60px;
-  height: 100%;
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .col-title {
@@ -108,6 +110,7 @@ body {
   background: #333333;
   border: 0px solid #d4d4d4;
   border-radius: 0;
+  height: 60px;
 }
 
 .page-header {
@@ -116,14 +119,6 @@ body {
   border-bottom: 0px solid #eeeeee;
 }
 
-
-#footer {
-  position: absolute;
-  bottom: 0;
-  height: 60px;
-  width: 100%;
-  background: #333;
-}
 
 /* Lastly, apply responsive CSS fixes as necessary */
 @media (max-width: 767px) {
