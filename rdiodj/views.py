@@ -234,7 +234,8 @@ def make_room_daemon(room_name):
         return
     except psutil.AccessDenied:
       pass
-  subprocess.Popen(["python", "manage.py", "master", room_name])
+  directory = os.path.dirname(os.path.realpath(__file__))
+  subprocess.Popen(["python", "%s/../manage.py" % directory, "master", room_name])
 
 
 @login_required
