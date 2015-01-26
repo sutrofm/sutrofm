@@ -230,7 +230,7 @@ def make_room_daemon(room_name):
   child_processes = psutil.Process(os.getpid()).get_children()
   for process in child_processes:
     try:
-      if process.cmdline()[-1] == room_name:
+      if process.cmdline() and len(process.cmdline()) > 0 and process.cmdline()[-1] == room_name:
         return
     except psutil.AccessDenied:
       pass
