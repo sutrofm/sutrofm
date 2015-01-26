@@ -438,7 +438,7 @@ app.ThemeView = Backbone.View.extend({
 
   initialize: function() {
     this.editing = false
-    this.model.setText('no theme... just play whatever you want')
+    this.model.setText('Play whatever your heart desires')
     this.listenTo(this.model, "change", this.render)
     this.render()
   },
