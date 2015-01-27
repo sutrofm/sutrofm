@@ -49,10 +49,16 @@ class Command(BaseCommand):
                 logging.exception("AH DAEMON PROBLEM")
             time.sleep(1)
 
+    def _vote_score(self, track):
+      votes = track['votes'].values()
+      upvotes = filter(lambda x: x == "like", votes)
+      downvotes = filter(lambda x: x == "dislike", votes)
+      return len(upvotes) - len(downvotes)
+
     def play_next_track(self):
         if 'queue' in self.party_data:
             queue = self.party_data['queue']
-            ordered_tracks = sorted(queue.values(), key=lambda x: len(x['votes']), reverse=True)
+            ordered_tracks = sorted(queue.values(), key=self._vote_score, reverse=True)
             try:
                 next_track = ordered_tracks[0]
             except IndexError:
