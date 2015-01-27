@@ -136,8 +136,10 @@ class Command(BaseCommand):
         users_online = bool([
             person for person in people.values() if person['isOnline']
         ])
+        if users_online:
+            self.last_saw_users = datetime.now()
+
         if not users_online and (datetime.now() - self.last_saw_users) > WAIT_FOR_USERS:
             return False
         else:
-            self.last_saw_users = datetime.now()
             return True
