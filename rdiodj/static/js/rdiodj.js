@@ -421,9 +421,7 @@ app.queueView = Backbone.View.extend({
 
 app.ThemeInfo = Backbone.Firebase.Model.extend({
   firebase: app.roomUrl + '/meta',
-  getText: function() { return this.get('themeText') },
-  setText: function(text) { this.set({'themeText': text}) },
-
+  defaults: { themeText: 'Play whatever your heart desires' }
 }),
 
 app.ThemeView = Backbone.View.extend({
@@ -438,7 +436,7 @@ app.ThemeView = Backbone.View.extend({
 
   initialize: function() {
     this.editing = false
-    this.model.setText('Play whatever your heart desires')
+
     this.listenTo(this.model, "change", this.render)
     this.render()
   },
@@ -446,7 +444,7 @@ app.ThemeView = Backbone.View.extend({
   render: function() {
     var values = {
         'editing': this.editing,
-        'themeText': this.model.getText()
+        'themeText': this.model.get('themeText')
     }
     this.$el.html(this.template(values));
     $(".theme_text").focus()
@@ -455,7 +453,7 @@ app.ThemeView = Backbone.View.extend({
 
   onThemeTextSubmit: function(e) {
     if (e.keyCode == 13 && $(".theme_text").val()) {
-      this.model.setText($(".theme_text").val())
+      this.model.set('themeText', $(".theme_text").val())
       this.editing = false
       this.render()
     }
