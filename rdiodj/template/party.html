@@ -19,10 +19,10 @@
     </div>
     <div id="now-playing">
     </div>
-    <div id="theme"></div>
   </div>
 
   <div class="span4 queue-box full-height">
+    <div id="theme"></div>
     <div class="col-title">
       Queue
     </div>
@@ -197,7 +197,7 @@
   </script>
 
   <script type="text/template" id="theme-template">
-    <h4>PARTY THEME</h4>
+    <div class="col-title">Party theme</div>
     <p class='theme_name' style='cursor:pointer; color: #FFFFFF'>
     <% if (!editing) { %>
       <%= themeText %>
