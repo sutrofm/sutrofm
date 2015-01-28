@@ -104,8 +104,6 @@ chat.MessageHistoryList = Backbone.Firebase.Collection.extend({
   firebase: chat.firebaseMessagesRef
 });
 
-chat.messageHistory = new chat.MessageHistoryList();
-
 chat.UserMessageView = Backbone.View.extend({
   tagName: 'li',
 
@@ -213,7 +211,7 @@ R.ready(function() {
   });
 
   // we set up track change messages in rdiodj.js
-
+  chat.messageHistory = new chat.MessageHistoryList();
   var chatView = new chat.MessagesView();
 });
 
