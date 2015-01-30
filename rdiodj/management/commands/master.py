@@ -76,7 +76,7 @@ class Command(BaseCommand):
             'artist': rdio_track['artist'],
             'title': rdio_track['name'],
             'iconUrl': rdio_track['icon'],
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.utcnow().isoformat(),
             'trackUrl': rdio_track['shortUrl'],
             'trackKey': rdio_track['key'],
             'type': 'NewTrack'

@@ -181,19 +181,14 @@
   </script>
 
   <script type="text/template" id="playlist-template">
-
-
+    <div>
+    <img src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25>
     <% if (!snapped) { %>
-    <p class='playlist_text' style='cursor:pointer; color:#FFFFFF';>
-      <img src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25>
-      Take playlist snapshot
-    </p>
+      Snapshot: <span class="playlist-today">Today</span> / <span class="playlist-room-history">Room History</span>
     <% } else { %>
-    <p>
-      <img src="{{STATIC_URL}}img/capture-black.png" class="input-icon" width=25>
-      Playlist created: <%= playlist %>
-    </p>
+      Created: <span class="playlist-clicked"><%= playlist %></span>
     <% } %>
+    </div>
   </script>
 
   <script type="text/template" id="theme-template">
