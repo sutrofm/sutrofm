@@ -4,6 +4,10 @@ body {
   /* The html and body elements cannot have any padding or margin. */
 }
 
+.now-playing-box {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
 .queue-box {
   background-color: rgba(0, 0, 0, 0.4);
 }
@@ -75,6 +79,11 @@ body {
 .navbar .brand {
   background: #333333;
   text-shadow: 0 1px 0 #000;
+  color: #FFF;
+}
+
+.navbar .nav>li>a:focus, .navbar .nav>li>a:hover {
+  background-color: #444;
   color: #FFF;
 }
 
@@ -234,6 +243,21 @@ img {
 
 .chat-entry-text:focus {
   outline: none;
+}
+
+.playlist-today {
+  color: white;
+  cursor: pointer;
+}
+.playlist-room-history {
+  color: white;
+  cursor: pointer;
+}
+.playlist-clicked {
+  color: white;
+}
+.playlist {
+  color: #CCC;
 }
 
 /* More */

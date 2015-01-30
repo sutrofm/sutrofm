@@ -17,7 +17,8 @@ app.PlaylistView = Backbone.View.extend({
   template: _.template($('#playlist-template').html()),
 
   events: {
-    "click .playlist_text": "onPlaylistClick"
+    "click .playlist-today": "onPlaylistTodayClick",
+    "click .playlist-room-history": "onPlaylistRoomHistoryClick"
   },
   initialize: function() {
     this.snapped = false
@@ -51,14 +52,18 @@ app.PlaylistView = Backbone.View.extend({
     return roomString
   },
 
-  onPlaylistClick: function() {
+  onPlaylistTodayClick: function() {
     var playlistName = 'Rdio Party "' + this.getRoomString() + '" ' + this.getDateString()
-    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey }; });
+    this.trackIds = chat.messageHistory.map(function(x) {
+        var twelve_hours_in_ms = 43200000;
+        var today = new Date()
+        var timestamp = new Date(x.attributes.timestamp)
+        if (x.attributes.type == 'NewTrack' && x.attributes.type == 'NewTrack' && Math.abs(today - timestamp) < twelve_hours_in_ms) { return x.attributes.trackKey }; });
     R.request({
       method: 'createPlaylist',
       content: {
         name: playlistName,
-        description: 'lovingly created from rdioparty!',
+        description: 'Lovingly created with http://rdioparty.com!',
         tracks: this.trackIds
       },
       success: function(response) {
@@ -71,6 +76,31 @@ app.PlaylistView = Backbone.View.extend({
     this.snapped = true
     this.playlist = playlistName
     this.render()
+    self = this
+    setTimeout(function () {self.snapped = false; self.render();}, 5000)
+  },
+  onPlaylistRoomHistoryClick: function() {
+    var playlistName = 'Rdio Party "' + this.getRoomString() + '" ' + this.getDateString()
+    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey }; });
+    R.request({
+      method: 'createPlaylist',
+      content: {
+        name: playlistName,
+        description: 'Lovingly created with http://rdioparty.com!',
+        tracks: this.trackIds
+      },
+      success: function(response) {
+        console.log('playlist created')
+      },
+      error: function(response) {
+        console.log('playlist probably not created');
+      }
+    });
+    this.snapped = true
+    this.playlist = playlistName
+    this.render()
+    self = this
+    setTimeout(function () {self.snapped = false; self.render();}, 5000)
   }
 })
 
