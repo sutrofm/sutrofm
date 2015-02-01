@@ -3,6 +3,17 @@
 {% block title %}Rdio Party - {{room_name}}{% endblock %}
 
 {% block content %}
+<style>
+    .was_favorited {
+        background-image: url("{{STATIC_URL}}img/was_favorited.png");
+        background-size: 25px 25px;
+    }
+
+    .not_favorited {
+        background-image: url("{{STATIC_URL}}img/favorite.png"); 
+        background-size: 25px 25px;
+    }
+</style>
 <div class="row-fluid no-space">
 
 
@@ -145,7 +156,7 @@
       </div>
     </div>
     <div class="now-playing-added">
-      Added by <%= addedBy %>
+      Added by <%= addedBy %> <img id="favorite-button" class="<%= favorited ? 'was_favorited' : 'not_favorited' %>" width=25>
     </div>
   </script>
 

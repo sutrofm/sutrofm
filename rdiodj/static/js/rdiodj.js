@@ -211,6 +211,55 @@ app.SkipButton = Backbone.View.extend({
     }
 });
 
+app.FavoriteButton = Backbone.View.extend({
+    el: "#favorite-button",
+
+    events: {
+        'click': '_clickFavorite'
+    },
+
+    initialize: function(isFavorited) {
+        this.isFavorited = isFavorited;
+    },
+
+    _clickFavorite: function() {
+        console.log("clickfav");
+        if (this.isFavorited) {
+            this.unfavoriteCurrentlyPlaying();
+        } else {
+            this.favoriteCurrentlyPlaying();
+        }
+    },
+
+    unfavoriteCurrentlyPlaying: function() {
+      this.isFavorited = false;
+      $('#favorite-button').removeClass("was_favorited").addClass("not_favorited");
+      R.request({
+        method: 'removeFromFavorites',
+        content: {
+          keys: [app.nowPlayingView.rdioTrackKey]
+        },
+        success: function(response) {
+          chat.sendMessage("unfavorited this track");
+        }
+      })
+    },
+
+    favoriteCurrentlyPlaying: function() {
+      this.isFavorited = true;
+      $('#favorite-button').removeClass("not_favorited").addClass("was_favorited");
+      R.request({
+        method: 'addToFavorites',
+        content: {
+          keys: [app.nowPlayingView.rdioTrackKey]
+        },
+        success: function(response) {
+          chat.sendMessage("favorited this track");
+        }
+      })
+    },
+});
+
 app.skipList = new app.SkipList();
 
 app.NowPlayingView = Backbone.View.extend({
@@ -233,8 +282,12 @@ app.NowPlayingView = Backbone.View.extend({
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
   },
 
+  initChildModels: function() {
+    this.skipButton = new app.SkipButton();
+    this.favoriteButton = new app.FavoriteButton();
+  },
+
   _clickFavorites: function() {
-    this.favoriteCurrentlyPlaying();
   },
 
   /**
@@ -263,7 +316,7 @@ app.NowPlayingView = Backbone.View.extend({
         method: 'get',
         content: {
           keys: keys.join(","),
-          extras: 'streamRegions,shortUrl,bigIcon,duration,dominantColor,playerBackgroundUrl'
+          extras: 'streamRegions,shortUrl,bigIcon,duration,dominantColor,playerBackgroundUrl,isInCollection'
         },
         success: function(response) {
           var userObj = (response.result[userKey]) ? response.result[userKey] : {firstName: '', lastName: ''};
@@ -271,16 +324,19 @@ app.NowPlayingView = Backbone.View.extend({
           var activeUsers = self.activeUsers;
           var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
           var userName = null;
+          var favorited = response.result[self.rdioTrackKey].isInCollection;
           if (masterUserObj.length > 0 && masterUserObj[0]) {
             userName = masterUserObj[0].get('fullName');
           }
           var data = _.extend({
             'track': response.result[self.rdioTrackKey],
             'masterUser': userName,
-            'addedBy': addedByName
+            'addedBy': addedByName,
+            'favorited': favorited
           });
           self.$el.html(self.template(data));
           self.$el.show();
+          self.initChildModels();
           $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
         },
         error: function(response) {
@@ -292,18 +348,6 @@ app.NowPlayingView = Backbone.View.extend({
       this.$el.hide();
     }
     return this;
-  },
-
-  favoriteCurrentlyPlaying: function() {
-    R.request({
-      method: 'addToFavorites',
-      content: {
-        keys: this.rdioTrackKey
-      },
-      success: function(response) {
-        chat.sendMessage("favorited this track");
-      }
-    })
   },
 
   /**
