@@ -7,6 +7,8 @@ body {
 .now-playing-box {
   background-color: rgba(0, 0, 0, 0.2);
 
+  overflow-y: auto;
+
   #skip-button {
     float: right;
     cursor: pointer;
@@ -274,7 +276,8 @@ img {
 
 /* More */
 #now-playing {
-    width: 600px;
+    max-width: 600px;
+    width: 100%;
     display: block;
     margin: 0 auto;
 }
@@ -283,8 +286,14 @@ img {
   position: relative;
   z-index: 1;
 
+  max-width: 600px;
+  width: auto;
+  height: 100%;
+
   img {
     max-width: 100%;
+    width: 100%;
+    height: auto;
   }
 
   .album-info {
