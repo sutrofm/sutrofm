@@ -221,7 +221,6 @@ app.NowPlayingView = Backbone.View.extend({
   template: _.template($('#now-playing-template').html()),
 
   events: {
-    'click #skip-button': '_clickSkip',
     'click #favorite-button': '_clickFavorites'
   },
 
@@ -232,10 +231,6 @@ app.NowPlayingView = Backbone.View.extend({
     this.playState = app.playState;
 
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
-  },
-
-  _clickSkip: function() {
-    app.skipList.voteToSkip();
   },
 
   _clickFavorites: function() {
@@ -348,7 +343,6 @@ app.NowPlayingView = Backbone.View.extend({
         break;
     }
   }
-
 });
 
 app.TrackView = Backbone.View.extend({
