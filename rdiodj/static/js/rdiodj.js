@@ -282,9 +282,9 @@ app.NowPlayingView = Backbone.View.extend({
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
   },
 
-  initChildModels: function() {
+  initChildModels: function(favoritedTrack) {
     this.skipButton = new app.SkipButton();
-    this.favoriteButton = new app.FavoriteButton();
+    this.favoriteButton = new app.FavoriteButton(favoritedTrack);
   },
 
   _clickFavorites: function() {
@@ -336,7 +336,7 @@ app.NowPlayingView = Backbone.View.extend({
           });
           self.$el.html(self.template(data));
           self.$el.show();
-          self.initChildModels();
+          self.initChildModels(favorited);
           $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
         },
         error: function(response) {
