@@ -14,9 +14,6 @@
       <ul id="user-list" class="thumbnails"></ul>
       <div id="presence-stats"></div>
     </div>
-    <div class="col-title">
-      Now Playing
-    </div>
     <div id="now-playing">
     </div>
   </div>
@@ -133,6 +130,9 @@
   </script>
 
   <script type="text/template" id="now-playing-template">
+    <div class="col-title">
+      Now Playing <img src="{{STATIC_URL}}img/skip.png" id="skip-button" width=25>
+    </div>
     <div class="now-playing-album">
       <img src="<%= track.bigIcon %>" width="600" height="600">
       <div class="album-info">

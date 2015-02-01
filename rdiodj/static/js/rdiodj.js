@@ -183,19 +183,32 @@ app.SkipList = Backbone.Firebase.Collection.extend({
   model: chat.User,
   firebase: app.roomUrl + '/skippers',
 
-  voteToSkip: function() {
-    if (!this.contains(chat.currentUser)) {
-      this.add(chat.currentUser);
-      chat.sendMessage("Voted to skip");
-    }
+  containsUser: function(user) {
+    keys = this.map(function(user){return user.get('key')});
+    return keys.indexOf(user.get('key')) !== -1;
   },
 
-  //HACK TODO there has got to be a better way to do this
-  clear: function() {
-    while (this.length > 0) {
-      this.pop();
+  voteToSkip: function() {
+    if (!this.containsUser(chat.currentUser)) {
+      this.add(chat.currentUser, {
+        success: function() {
+          chat.sendMessage("Voted to skip");
+        }
+      });
     }
   }
+});
+
+app.SkipButton = Backbone.View.extend({
+    el: "#skip-button",
+
+    events: {
+        'click': '_clickSkip'
+    },
+
+    _clickSkip: function() {
+        app.skipList.voteToSkip();
+    }
 });
 
 app.skipList = new app.SkipList();
@@ -508,6 +521,7 @@ R.ready(function() {
       var playlistView = new app.PlaylistView();
       var themeView = new app.ThemeView({model: new app.ThemeInfo()});
       app.nowPlayingView.initSlaveStatus();
+      var skipButton = new app.SkipButton();
     }
   });
 });
