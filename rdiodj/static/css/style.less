@@ -6,6 +6,20 @@ body {
 
 .now-playing-box {
   background-color: rgba(0, 0, 0, 0.2);
+
+  overflow-y: auto;
+
+  #skip-button {
+    float: right;
+    cursor: pointer;
+  }
+
+  #favorite-button {
+    float: right;
+    cursor: pointer;
+    width: 25px;
+    height: 25px;
+  }
 }
 
 .queue-box {
@@ -261,12 +275,25 @@ img {
 }
 
 /* More */
+#now-playing {
+    max-width: 600px;
+    width: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
 .now-playing-album {
   position: relative;
   z-index: 1;
 
+  max-width: 600px;
+  width: auto;
+  height: 100%;
+
   img {
     max-width: 100%;
+    width: 100%;
+    height: auto;
   }
 
   .album-info {

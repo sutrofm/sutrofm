@@ -3,6 +3,17 @@
 {% block title %}Rdio Party - {{room_name}}{% endblock %}
 
 {% block content %}
+<style>
+    .was_favorited {
+        background-image: url("{{STATIC_URL}}img/was_favorited.png");
+        background-size: 25px 25px;
+    }
+
+    .not_favorited {
+        background-image: url("{{STATIC_URL}}img/favorite.png"); 
+        background-size: 25px 25px;
+    }
+</style>
 <div class="row-fluid no-space">
 
 
@@ -13,9 +24,6 @@
     <div class="presence">
       <ul id="user-list" class="thumbnails"></ul>
       <div id="presence-stats"></div>
-    </div>
-    <div class="col-title">
-      Now Playing
     </div>
     <div id="now-playing">
     </div>
@@ -133,8 +141,11 @@
   </script>
 
   <script type="text/template" id="now-playing-template">
+    <div class="col-title">
+      Now Playing <img src="{{STATIC_URL}}img/skip.png" id="skip-button" width=25>
+    </div>
     <div class="now-playing-album">
-      <img src="<%= track.bigIcon %>" width="600" height="600">
+      <img src="<%= track.bigIcon %>">
       <div class="album-info">
         <div class="title">
           <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a>
@@ -145,7 +156,7 @@
       </div>
     </div>
     <div class="now-playing-added">
-      Added by <%= addedBy %>
+      Added by <%= addedBy %> <img id="favorite-button" class="<%= favorited ? 'was_favorited' : 'not_favorited' %>" width=25>
     </div>
   </script>
 
