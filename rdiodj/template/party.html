@@ -167,17 +167,31 @@
   </script>
 
   <script type="text/template" id="chat-user-message-template">
-    <li>
-      <span class="chat-message-username"><%= fullName %></span>
-      <span class="chat-message"><%= message %></span>
-    </li>
+    <div class="presence">
+      <li>
+        <img class="user-presence" src=<%= icon %> width=20 height=20>
+        <span class="chat-message-username"><%= fullName %></span>
+        <span class="chat-message"><%= message %></span>
+      </li>
+    </div>
   </script>
 
   <script type="text/template" id="chat-new-track-template">
-    <li class="chat-message-track">
-      <a href="<%= trackUrl %>" target="_blank"><%= title %></a>
-      <span> / <%= artist %> </span>
-    </li>
+    <div class="chat-message-track">
+      <table>
+        <tr>
+          <td>
+            <a href="<%= trackUrl %>" target="_blank">
+              <img src="<%= iconUrl %>" width=50 height=50 style="padding: 5px; border: 0;">
+            </a>
+          </td>
+          <td>
+            <a href="<%= trackUrl %>" target="_blank"><%= title %></a>
+            <br><%= artist %>
+          </td>
+        </tr>
+      </table>
+    </div>
   </script>
 
   <script type="text/template" id="playlist-template">

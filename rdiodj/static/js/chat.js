@@ -110,9 +110,16 @@ chat.UserMessageView = Backbone.View.extend({
   template: _.template($('#chat-user-message-template').html()),
 
   render: function() {
+    var user = chat.activeUsers.get(this.model.get('userKey'))
+    if (user) {
+      icon = user.attributes.icon
+    } else {
+        icon = ''
+    }
     var data = {
       fullName: this.model.get('fullName'),
-      message: this.model.get('message')
+      message: this.model.get('message'),
+      icon: icon
     };
     this.$el.html(this.template(data));
     this.$el.show();
