@@ -118,10 +118,10 @@ chat.UserMessageView = Backbone.View.extend({
     }
     var data = {
       fullName: this.model.get('fullName'),
-      message: this.model.get('message'),
       icon: icon
     };
     this.$el.html(this.template(data));
+    this.$el.find('.chat-message').text(this.model.get('message'));
     this.$el.show();
 
     return this;
