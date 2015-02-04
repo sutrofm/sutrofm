@@ -219,10 +219,8 @@
   <script type="text/template" id="theme-template">
     <div class="col-title">Party theme</div>
     <p class='theme_name' style='cursor:pointer; color: #FFFFFF'>
-    <% if (!editing) { %>
-      <%= themeText %>
-    <% } else { %>
-    <input type="text" class="theme_text">
+    <% if (editing) { %>
+      <input type="text" class="theme_text"/>
     <% } %>
     </p>
 </script>
