@@ -525,9 +525,11 @@ app.ThemeView = Backbone.View.extend({
   render: function() {
     var values = {
         'editing': this.editing,
-        'themeText': this.model.get('themeText')
     }
     this.$el.html(this.template(values));
+    if (!this.editing) {
+      this.$el.find('.theme_name').text(this.model.get('themeText'));
+    }
     $(".theme_text").focus()
     return this;
   },
