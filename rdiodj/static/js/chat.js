@@ -199,6 +199,13 @@ R.ready(function() {
   // Mark yourself as offline on disconnect
   isOnlineRef.onDisconnect().set(false);
 
+  //Mark myself as online on reconnect
+  var connectedRef = new Firebase("https://rdiodj.firebaseio.com/.info/connected");
+  connectedRef.on("value", function(snap) {
+    if (snap.val() === true) {
+      isOnlineRef.set(true);
+    }
+  });
   // Mark yourself as online
   isOnlineRef.set(true);
 
