@@ -270,7 +270,9 @@ app.NowPlayingView = Backbone.View.extend({
   template: _.template($('#now-playing-template').html()),
 
   events: {
-    'click #favorite-button': '_clickFavorites'
+    'click #favorite-button': '_clickFavorites',
+    'click .mute': '_handleMuteClick',
+    'click .music': '_handleSpeakerClick'
   },
 
   initialize: function() {
@@ -280,6 +282,41 @@ app.NowPlayingView = Backbone.View.extend({
     this.playState = app.playState;
 
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
+    R.player.on('change:isMaster', function() {
+      if (R.player.isMaster()) {
+        $('.player-controls .music').css('color', 'white');
+      } else {
+        $('.player-controls .music').css('color', 'red');
+      }
+    }, this);
+    R.player.on('change:volume', function() {
+      if (R.player.volume() > 0.5) {
+        $('.player-controls .mute').css('color', 'white');
+      } else {
+        $('.player-controls .mute').css('color', 'red');
+      }
+    }, this);
+
+  },
+
+  _handleMuteClick: function() {
+    if (R.player.volume() > 0.5) {
+      R.player.volume(0);
+    } else {
+      R.player.volume(1);
+    }
+  },
+
+  _handleSpeakerClick: function() {
+    R.player.startMasterTakeover();
+    R.player.volume(1);
+    if (app.playState.get('playingTrack') && app.playState.get('position')) {
+      console.log("Jumping player to track '"+app.playState.get('playingTrack')+"' @ "+app.playState.get('position')+"s")
+      R.player.play({
+        source: app.playState.get('playingTrack').trackKey,
+        initialPosition: app.playState.get('position')
+      });
+    }
   },
 
   initChildModels: function(favoritedTrack) {
