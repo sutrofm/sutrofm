@@ -18,19 +18,11 @@
 
 
   <div class="span5 now-playing-box full-height">
-    <div class="col-title">
-      Partiers
-    </div>
-    <div class="presence">
-      <ul id="user-list" class="thumbnails"></ul>
-      <div id="presence-stats"></div>
-    </div>
     <div id="now-playing">
     </div>
   </div>
 
   <div class="span4 queue-box full-height">
-    <div id="theme"></div>
     <div class="col-title">
       Queue
     </div>
@@ -57,27 +49,32 @@
 
   
   <div class="span3 chat-box full-height">
-    <div class="col-title">
-      Chat
-    </div>
     <div class="playlist"></div>
-      <div class="chat-message-container">
-        <ul class="chat-messages">
-        </ul>
+      <div class="col-title">
+        Chat
       </div>
-      <table class="text-input">
-        <tr>
-          <td>
-            <img src="{{STATIC_URL}}img/chat-bubble.png" class="input-icon">
-          </td>
-          <td class="input-cell">
-            <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
-          </td>
-        </tr>
-      </table>
+    <div class="chat-message-container">
+      <ul class="chat-messages"></ul>
+    </div>
+    <table class="text-input">
+      <tr>
+        <td>
+          <img src="{{STATIC_URL}}img/chat-bubble.png" class="input-icon">
+        </td>
+        <td class="input-cell">
+          <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
+        </td>
+      </tr>
+    </table>
   </div>
 
-
+<div class="span1 user-box full-height">
+    <div class="presence">
+      <ul id="user-list" class="thumbnails"></ul>
+      <div id="presence-stats"></div>
+    </div>
+    <div id="now-playing">
+    </div>
 </div>
 {% endblock %}
 
@@ -142,7 +139,7 @@
 
   <script type="text/template" id="now-playing-template">
     <div class="col-title">
-      Now Playing <img src="{{STATIC_URL}}img/skip.png" id="skip-button" width=25>
+      Now Playing
     </div>
     <div class="now-playing-album">
       <img src="<%= track.bigIcon %>">
@@ -156,7 +153,9 @@
       </div>
     </div>
     <div class="now-playing-added">
-      Added by <%= addedBy %> <span id="favorite-button" class="<%= favorited ? 'was_favorited' : 'not_favorited' %>" width=25></span>
+      <div align="left">Added by <%= addedBy %></div>
+      <span id="favorite-button" class="<%= favorited ? 'was_favorited' : 'not_favorited' %>" width=25></span>
+      <img src="{{STATIC_URL}}img/skip.png" id="skip-button" width=25>
     </div>
   </script>
 
@@ -207,9 +206,8 @@
 
   <script type="text/template" id="playlist-template">
     <div>
-    <img src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25>
     <% if (!snapped) { %>
-      Snapshot: <span class="playlist-today">Today</span> / <span class="playlist-room-history">Room History</span>
+      <span class="playlist-today"><img align="right" src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25></span>
     <% } else { %>
       Created: <span class="playlist-clicked"><%= playlist %></span>
     <% } %>
