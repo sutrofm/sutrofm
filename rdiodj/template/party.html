@@ -156,12 +156,22 @@
         </div>
       </div>
     </div>
-    <div class="now-playing-added">
-      <div align="left">Added by <%= addedBy %></div>
-      <span id="favorite-button" class="<%= favorited ? 'was_favorited' : 'not_favorited' %>" width=25></span>
-      <img src="{{STATIC_URL}}img/skip.png" id="skip-button" width=25>
+    <div class="now-playing-details">
+      <div style="float: left;"> Added by <%= addedBy %></div><div style="float: right;" class="np-duration">3:00/23:00</div>
     </div>
-  </script>
+    
+    <div class="now-playing-buttons">
+      <img src="{{STATIC_URL}}img/favorite.png" id="favorite-button" width=25>
+      <img src="{{STATIC_URL}}img/download.png" id="download-button" width=25>
+      <img src="{{STATIC_URL}}img/upvote.png" id="upvote-button" width=50>
+      <img src="{{STATIC_URL}}img/downvote.png" id="skip-button" width=50>
+      <img src="{{STATIC_URL}}img/share.png" id="share-button" width=25>
+      <img src="{{STATIC_URL}}img/more.png" id="more-button" width=25>
+
+    </div>
+    
+  </div>
+</script>  
 
   <script type="text/template" id="search-result-template">
     <li>
