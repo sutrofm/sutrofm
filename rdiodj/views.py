@@ -11,6 +11,7 @@ from django.http import HttpResponse
 import subprocess
 import psutil
 import os
+from firebase_token_generator import create_token
 
 def home(request):
     c = RequestContext(request, {
@@ -225,6 +226,22 @@ def ajax(request):
 }
 
     return HttpResponse(json.dumps(data), content_type = "application/json")
+
+def createauthtoken(request):
+    response = None
+
+    rdio_user_key = request.GET.get('userKey')
+    if rdio_user_key is None:
+        response = {"error": "userKey is a required GET param"}
+
+    else:
+
+        custom_data = {'rdio_user_key': rdio_user_key}
+        options = {'debug': settings.DEBUG}
+        firebase_token = create_token(settings.FIREBASE_TOKEN, custom_data, options)
+        response = { "token": firebase_token }
+
+    return HttpResponse(json.dumps(response), content_type = "application/json")
 
 def make_room_daemon(room_name):
   child_processes = psutil.Process(os.getpid()).get_children()
