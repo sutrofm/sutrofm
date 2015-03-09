@@ -231,15 +231,13 @@ def createauthtoken(request):
     response = None
 
     rdio_user_key = request.GET.get('userKey')
-    if rdio_user_key is None:
-        response = {"error": "userKey is a required GET param"}
-
-    else:
-
+    if rdio_user_key:
         custom_data = {'rdio_user_key': rdio_user_key}
         options = {'debug': settings.DEBUG}
         firebase_token = create_token(settings.FIREBASE_TOKEN, custom_data, options)
         response = { "token": firebase_token }
+    else:
+        response = {"error": "userKey is a required GET param"}
 
     return HttpResponse(json.dumps(response), content_type = "application/json")
 
