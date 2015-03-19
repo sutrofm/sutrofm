@@ -220,6 +220,9 @@ app.FavoriteButton = Backbone.View.extend({
 
     initialize: function(isFavorited) {
         this.isFavorited = isFavorited;
+        if (this.isFavorited) {
+          $('#favorite-button').removeClass("not_favorited").addClass("was_favorited");
+        }
     },
 
     _clickFavorite: function() {
