@@ -302,6 +302,15 @@ app.NowPlayingView = Backbone.View.extend({
 
   },
 
+  getDuration: function(duration) {
+    var durationInSecs = duration;
+    var durationMins = Math.floor(duration / 60);
+    var durationSecs = String(duration % 60);
+    if (durationSecs.length < 2)
+      durationSecs = "0" + durationSecs;
+    return durationMins + ":" + durationSecs;
+  },
+
   _handleMuteClick: function() {
     if (R.player.volume() > 0.5) {
       R.player.volume(0);
@@ -370,6 +379,7 @@ app.NowPlayingView = Backbone.View.extend({
           }
           var data = _.extend({
             'track': response.result[self.rdioTrackKey],
+            'formattedDuration': self.getDuration(response.result[self.rdioTrackKey].duration),
             'masterUser': userName,
             'addedBy': addedByName,
             'favorited': favorited
