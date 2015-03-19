@@ -6,6 +6,7 @@ from rdioapi import Rdio
 import firebase
 import logging
 import time
+from dateutil import parser
 
 RDIO_OAUTH2_KEY='c2y48bscf6hpd768b6cwvafy'
 RDIO_OAUTH2_SECRET='sHf9GavUrP'
@@ -55,10 +56,22 @@ class Command(BaseCommand):
       downvotes = filter(lambda x: x == "dislike", votes)
       return len(upvotes) - len(downvotes)
 
+    def _track_comparator(self, track_a, track_b):
+        a_score = self._vote_score(track_a)
+        b_score = self._vote_score(track_b)
+        if a_score == b_score:
+          try:
+            a_time = parser.parse(track_a['timestamp'])
+            b_time = parser.parse(track_b['timestamp'])
+            return -cmp(a_time, b_time)
+          except KeyError:
+            pass
+        return cmp(a_score, b_score)
+
     def play_next_track(self):
         if 'queue' in self.party_data:
             queue = self.party_data['queue']
-            ordered_tracks = sorted(queue.values(), key=self._vote_score, reverse=True)
+            ordered_tracks = sorted(queue.values(), cmp=self._track_comparator, reverse=True)
             try:
                 next_track = ordered_tracks[0]
             except IndexError:
