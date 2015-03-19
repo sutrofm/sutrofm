@@ -172,6 +172,17 @@ app.TrackList = Backbone.Firebase.Collection.extend({
   comparator: function(a, b) {
     var aScore = a.getVoteCounts().totalVotes;
     var bScore = b.getVoteCounts().totalVotes;
+    if (aScore == bScore) {
+      var aTime = new Date(a.get('timestamp'));
+      var bTime = new Date(b.get('timestamp'));
+      if (aTime > bTime) {
+        return 1;
+      } else if (aTime < bTime) {
+        return -1;
+      } else {
+        return 0;
+      }
+    }
     return bScore - aScore;
   }
 
