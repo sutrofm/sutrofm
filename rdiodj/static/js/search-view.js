@@ -24,7 +24,8 @@
           app.queue.add({
             trackKey: $target.data('rdio-key'),
             userKey: app.currentUserKey,
-            votes: originalVote
+            votes: originalVote,
+            timestamp: (new Date()).toISOString()
           });
 
           self.close();
