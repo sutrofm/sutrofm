@@ -384,7 +384,10 @@ app.NowPlayingView = Backbone.View.extend({
           var activeUsers = self.activeUsers;
           var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
           var userName = null;
-          var favorited = response.result[self.rdioTrackKey].isInCollection;
+          var favorited = false;
+          if (self.rdioTrackKey && response.result[self.rdioTrackKey]) {
+            favorited = response.result[self.rdioTrackKey].isInCollection;
+          }
           if (masterUserObj.length > 0 && masterUserObj[0]) {
             userName = masterUserObj[0].get('fullName');
           }
