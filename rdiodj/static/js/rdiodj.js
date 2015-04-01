@@ -477,7 +477,6 @@ app.TrackView = Backbone.View.extend({
     this.listenTo(this.model, 'remove', this.remove);
     this.rdioTrack = null;
     this.rdioUser = null;
-    this.timerView = new app.TimerView();
 
     var self = this;
     R.request({
