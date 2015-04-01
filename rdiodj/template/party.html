@@ -234,7 +234,24 @@
       <input type="text" class="theme_text"/>
     <% } %>
     </p>
-</script>
+  </script>
+  <script type="text/template" id="not-a-paying-customer-template">
+    <div class="giant_popup_warning">
+      Ain't nothing in life that's free!
+      <br><br><br>
+      In order to listen to the party, you need to be a paying Rdio customer.  So why not
+      hop on over to <a href="http://www.rdio.com/settings/subscription/">Rdio.com</a>
+      and given them some of your money? (remember, subscribing through iTunes is a
+      sucker's game!)
+      <br><br><br>
+      Right now you can participate in the chat and aaaaAAAAHH-ffect the queue but you're only
+      going to hear 30s samples for each track.
+      <br><br><br>
+      <span class="close-it" onClick="$('.giant_popup_warning').remove()">
+        Click here to close this kill-joy pop-up & have some (limited) fun.
+      </span>
+    </div>
+  </script>
 
   <script type="text/javascript">
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';

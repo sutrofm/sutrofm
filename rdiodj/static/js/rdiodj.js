@@ -626,6 +626,12 @@ R.ready(function() {
       var themeView = new app.ThemeView({model: new app.ThemeInfo()});
       app.nowPlayingView.initSlaveStatus();
       var skipButton = new app.SkipButton();
+
+      if(!R.currentUser.get('canStreamHere')) {
+        var template = _.template($('#not-a-paying-customer-template').html());
+        var values = {}
+        $('body').append(template(values))
+      }
     }
   });
 });
