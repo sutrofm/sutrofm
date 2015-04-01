@@ -104,6 +104,16 @@ app.PlaylistView = Backbone.View.extend({
   }
 })
 
+formatDuration = function(duration) {
+  var durationInSecs = duration;
+  var durationMins = Math.floor(duration / 60);
+  var durationSecs = String(duration % 60);
+  if (durationSecs.length < 2)
+    durationSecs = "0" + durationSecs;
+  return durationMins + ":" + durationSecs;
+},
+
+
 app.Track = Backbone.Model.extend({
   LIKE: 'like',
   DISLIKE: 'dislike',
@@ -153,12 +163,7 @@ app.Track = Backbone.Model.extend({
   },
 
   getDuration: function(duration) {
-    var durationInSecs = duration;
-    var durationMins = Math.floor(duration / 60);
-    var durationSecs = String(duration % 60);
-    if (durationSecs.length < 2)
-      durationSecs = "0" + durationSecs;
-    return durationMins + ":" + durationSecs;
+    return formatDuration(duration);
   },
 
 });
@@ -295,6 +300,9 @@ app.NowPlayingView = Backbone.View.extend({
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
 
+    _.bindAll(this, '_onPositionChange');
+    R.player.on('change:position', this._onPositionChange);
+
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
     R.player.on('change:isMaster', function() {
       if (R.player.isMaster()) {
@@ -311,6 +319,12 @@ app.NowPlayingView = Backbone.View.extend({
       }
     }, this);
 
+  },
+
+  _onPositionChange: function(position) {
+    prettyPosition = formatDuration(position);
+    prettyDuration = formatDuration(R.player.playingTrack().get('duration'));
+    this.$(".timer").text(prettyPosition + "/" + prettyDuration);
   },
 
   getDuration: function(duration) {
@@ -468,6 +482,7 @@ app.TrackView = Backbone.View.extend({
     this.listenTo(this.model, 'remove', this.remove);
     this.rdioTrack = null;
     this.rdioUser = null;
+    this.timerView = new app.TimerView();
 
     var self = this;
     R.request({
@@ -505,12 +520,7 @@ app.TrackView = Backbone.View.extend({
   },
 
   getDuration: function(duration) {
-    var durationInSecs = duration;
-    var durationMins = Math.floor(duration / 60);
-    var durationSecs = String(duration % 60);
-    if (durationSecs.length < 2)
-      durationSecs = "0" + durationSecs;
-    return durationMins + ":" + durationSecs;
+    return formatDuration(duration);
   },
 
   upVote: function() {
