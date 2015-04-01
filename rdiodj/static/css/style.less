@@ -3,7 +3,9 @@ body {
   height: 100%;
   /* The html and body elements cannot have any padding or margin. */
 }
-
+::-webkit-scrollbar {
+    display: none;
+}
 #now-playing {
   .player-controls {
     float: right;
@@ -511,5 +513,23 @@ img {
     cursor: pointer;
     width: 20px;
     height: 19px;
+  }
+}
+.giant_popup_warning {
+  border: 5px solid black;
+  z-index: 1000;
+  position: absolute;
+  width: 50%;
+  background: rgba(50, 161, 194, 0.8);
+  left: 25%;
+  top: 25%;
+  color: black;
+  font-family: monospace;
+  padding: 10px;
+  vertical-align: middle;
+  text-align: center;
+  .close-it {
+    font-weight: bold;
+    text-transform: uppercase;
   }
 }
