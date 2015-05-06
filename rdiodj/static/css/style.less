@@ -134,21 +134,21 @@ body {
   height: 100%;
 }
 
-.no-space [class*="span"]{
-  margin-left: 0 !important;
-
-  &.span5{
-      width: 42%;
-  }
-  &.span4{
-      width: 30%;
-  }
-  &.span3{
-      width: 23%;
-  }
-
-  &.span1{
-      width: 5%;
+@media (min-width: 768px) {
+  .no-space [class*="span"]{
+    margin-left: 0 !important;
+    &.span5{
+        width: 42%;
+    }
+    &.span4{
+        width: 30%;
+    }
+    &.span3{
+        width: 23%;
+    }
+    &.span1{
+        width: 5%;
+    }
   }
 }
 
