@@ -66,6 +66,12 @@
     </div>
   </script>
 
+  <script type="text/template" id="spinner-template">
+    <div class="spinner">
+      <div class="spinner_caption">Looking for the party...</div>
+      <img class="spinner_image" src="{{STATIC_URL}}img/spinner.gif"/>
+    </div>
+  </script>
 
   <script type="text/javascript">
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';

@@ -11,7 +11,7 @@ app.Room = Backbone.Model.extend({
 app.RoomList = Backbone.Firebase.Collection.extend({
   model: app.Room,
 
-  firebase: app.firebaseUrl
+  firebase: app.firebaseUrl,
 });
 
 app.RoomView = Backbone.View.extend({
@@ -107,7 +107,11 @@ app.PartyRoomListView = Backbone.View.extend({
     //this.listenTo(app.partyRooms, 'change', this.onListChanged);
 
     // and draw the initial rooms
-    this.redraw(app.partyRooms, {});
+    if (app.partyRooms.length === 0) {
+      this.$el.html(_.template($("#spinner-template").html()));
+    } else {
+      this.redraw(app.partyRooms, {});
+    }
   },
 
   drawRoom: function(model, collection, options) {
