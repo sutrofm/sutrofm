@@ -14,4 +14,4 @@ wsgiref==0.1.2
 python-firebase==1.2
 Rdio==0.3.0
 psutil==2.2.0
-python-dateutils==2.4.1
+python-dateutil==2.4.1
