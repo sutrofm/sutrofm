@@ -1,4 +1,4 @@
-# Rdio DJ
+# Rdio Party
 
 Shared listening rooms powered by [Rdio](http://www.rdio.com/).
 
