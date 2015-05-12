@@ -51,17 +51,33 @@ Have no idea what all this means? Don't worry. I'm going to run you through the 
 
 You will be getting Python, Django, Postgres, and some Heroku tools set up during this process. 
 
+Before you get started, you will need to set up some additional services. 
+
+__Rdio js API__
+
+This is different from the web services API. You will need to request access. Once you've been granted access, go create an app at http://www.rdio.com/developers/ and add `RDIO_OAUTH2_KEY` and `RDIO_OAUTH2_SECRET` to your `.env` file.
+
+__FireBase__
+
+Go create an account (free) at https://www.firebase.com/. This will be your realtime service. Once you've logged in, go to your app (https://[name]-[id].firebaseio.com/) and select "secrets". Add your firebase secret to `FIREBASE_TOKEN` in the `.env` file.
+
+__Django Secret__
+
+Go create your django secret key here: http://www.miniwebtool.com/django-secret-key-generator/ and add it to `DJANGO_SECRET_KEY` in the `.env` file.
+
+__Python__
+
 Let's get pip set up first. This is your package manager for python
 
     $ sudo easy_install pip
+
+__Postgres__
 
 Install Postgres. I downloaded the PostGres app from http://postgresapp.com/
 
 Don't forget to add the correct postgres path to $PATH. For example:
 
     $ PATH=$PATH:/Applications/Postgres.app/Contents/Versions/[version number]/bin/
-
-Set up your .env file and define the keys listed above (under Develop). You'll change these later.
 
 For TEST_DB you will need to get access to a postgres database set up. Open Postgres.app.
 
@@ -73,7 +89,9 @@ For TEST_DB you will need to get access to a postgres database set up. Open Post
     -- Quit
     $ \q
 
-Add the following to `TEST_DB`: `'postgres://rp_user:1234@localhost/rdio_party'`
+Add the following to `TEST_DB`: `'postgres://rp_user:1234@localhost/rdio_party'` in your `.env` file.
+
+__Requirements__
 
 Now you're ready to pick up the requirements install
 
@@ -81,7 +99,14 @@ Now you're ready to pick up the requirements install
 
 Go download and install the Heroku toolkit. https://devcenter.heroku.com/articles/getting-started-with-python#set-up
 This will give you access to Foreman for the next couple steps.
-    
+
+A few modifications to `settings.py` are required to get things set up locally. 
+
+* Add `127.0.0.1` to `ALLOWED_HOSTS`.
+* Change `FIREBASE_URL` to use your new firebase instance.
+
+__The Environment__
+
 Now you're ready to start where this tutorial began! 
 
     $ mkdir webassets
