@@ -10,32 +10,32 @@
 
 
         {% if user.is_authenticated %}
-        <div class="page-header">
-            <h1>Welcome to the party, {{user.first_name}}!</h1>
-            <hr width="98%">
 
-        </div>
-        <p class="lead">Rdio Party is a social music discovery tool built to bring Rdio users together. We built this site so that people everywhere can enjoy the wonderful experience of social listening and discovery.</p>
+            <div class="page-header">
+                <h1>Welcome to the party, {{user.first_name}}!</h1>
+                <hr width="98%">
+            </div>
+            
+            <p>
+                <a class="btn btn-primary btn-large" href="{% url 'parties' %}">Party Time!</a>
+            </p>
 
-        <p class="lead">We're not affiliated with <a href="https://www.rdio.com">Rdio</a> itself, but we're a group of Rdio fans who want to bring social music discovery to a whole new level.  Plus, we're open source, so you can <a href="https://github.com/dasevilla/rdiodj">contribute</a> to the project too! Don't forget to follow us on Twitter at <a href="https://twitter.com/rdioparty">@rdioparty</a>.</p>
-
-        <p class="lead">This is going to be awesome.</p>
-        <p>
-            <a class="btn btn-primary btn-large"
-            href="{% url 'parties' %}">Party Time!</a>
-        </p>
         {% else %}
-        <div class="page-header">
-            <h1>Howdy stranger!</h1>
-        </div>
-        <p class="lead">This is going to be awesome.</p>
-        <p>
-            <a class="btn btn-primary btn-large"
-            href="{% url 'socialauth_begin' backend='rdio-oauth2' %}">Sign In</a>
-        </p>
+        
+            <p class="lead">Rdio Party is an social music discovery tool built to bring Rdio users together. Here, people everywhere can enjoy the wonderful experience of social listening and discovery.</p>
+
+            <p class="lead">We're not affiliated with <a href="https://www.rdio.com">Rdio</a> itself, but we're a group of Rdio fans who want to bring social music discovery to a whole new level.  Plus, we're open source, so you can <a href="https://github.com/dasevilla/rdiodj">contribute</a> to the project too! Don't forget to follow us on Twitter at <a href="https://twitter.com/rdioparty">@rdioparty</a>.</p>
+
+            <p class="lead">Welcome to the party. This is going to be awesome.</p>
+            
+            <p>
+                <a class="btn btn-primary btn-large" href="{% url 'socialauth_begin' backend='rdio-oauth2' %}">Sign In</a>
+            </p>
+
         {% endif %}
 
     </div>
 </div>
 </div>
+
 {% endblock %}
