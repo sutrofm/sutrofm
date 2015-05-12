@@ -12,8 +12,7 @@
         {% if user.is_authenticated %}
 
             <div class="page-header">
-                <h1>Welcome to the party, {{user.first_name}}!</h1>
-                <hr width="98%">
+                <h1>Welcome back to the party, {{user.first_name}}!</h1>
             </div>
             
             <p>
@@ -21,6 +20,10 @@
             </p>
 
         {% else %}
+
+            <div class="page-header">
+                <h1>Welcome to the party!</h1>
+            </div>
         
             <p class="lead">Rdio Party is an social music discovery tool built to bring Rdio users together. Here, people everywhere can enjoy the wonderful experience of social listening and discovery.</p>
 
