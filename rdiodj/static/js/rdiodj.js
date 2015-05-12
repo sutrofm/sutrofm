@@ -306,16 +306,20 @@ app.NowPlayingView = Backbone.View.extend({
     R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
     R.player.on('change:isMaster', function() {
       if (R.player.isMaster()) {
-        $('.player-controls .music').css('color', 'white');
+        $('.player-controls .music').css('background-position', '-25px 0');
+        $('.player-controls .music').attr('title', 'Resume playback');
       } else {
-        $('.player-controls .music').css('color', 'red');
+        $('.player-controls .music').css('background-position', '-336px -96px');
+        $('.player-controls .music').attr('title', 'Take master control');
       }
     }, this);
     R.player.on('change:volume', function() {
       if (R.player.volume() > 0.5) {
-        $('.player-controls .mute').css('color', 'white');
+        $('.player-controls .mute').css('background-position', '-408px -24px');
+        $('.player-controls .mute').attr('title', 'Mute');
       } else {
-        $('.player-controls .mute').css('color', 'red');
+        $('.player-controls .mute').css('background-position', '-360px -24px');
+        $('.player-controls .mute').attr('title', 'Unmute');
       }
     }, this);
 

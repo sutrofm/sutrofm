@@ -10,7 +10,7 @@
     }
 
     .not_favorited {
-        background-image: url("{{STATIC_URL}}img/favorite.png"); 
+        background-image: url("{{STATIC_URL}}img/favorite.png");
         background-size: 25px 25px;
     }
 </style>
@@ -47,7 +47,7 @@
     <div id="queue-stats"></div>
   </div>
 
-  
+
   <div class="span3 chat-box full-height">
     <div class="playlist"></div>
       <div class="col-title">
@@ -137,8 +137,8 @@
 
   <script type="text/template" id="now-playing-template">
     <div class="player-controls">
-      <div class="music" title="Resume playback / Take master">&#9836;</div>
-      <div class="mute" title="Mute / Un-Mute">&#9788;</div>
+      <a href="#" class="music" title="Resume playback"></a>
+      <a href="#" class="mute" title="Mute"></a>
     </div>
     <div class="col-title">
       Now Playing
@@ -157,7 +157,7 @@
     <div class="now-playing-details">
       <div style="float: left;"> Added by <%= addedBy %></div><div style="float: right;" class="np-duration"><div class="timer"></div></div>
     </div>
-    
+
     <div class="now-playing-buttons">
       <img src="{{STATIC_URL}}img/favorite.png" id="favorite-button" width=25>
       <img src="{{STATIC_URL}}img/download.png" id="download-button" width=25>
@@ -167,9 +167,9 @@
       <img src="{{STATIC_URL}}img/more.png" id="more-button" width=25>
 
     </div>
-    
+
   </div>
-</script>  
+</script>
 
   <script type="text/template" id="search-result-template">
     <li>
