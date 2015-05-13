@@ -4,35 +4,42 @@
 
 {% block content %}
 <div class="row">
-  <div class="span12">
-    <h4>Create a Party</h4>
+  <div class="span6 offset3">
+	  <h1>The Party Room</h1>
+	  <p>It's simple to get started. Either start your own part or select one that has already started without you.</p>
   </div>
 </div>
-
 <div class="row">
-  <div class="span12">
-    <div class="navbar-form pull-left">
-      <input type="text" name="room_name" id="room-name-input" class="span2" placeholder="Enter a room name" /> 
-      <button type="submit" class="btn" id="create-room-button">Create!</button>
-      <span class="help-block">Room names may only contain alphanumeric characters, dashes, and underscores.</span>
-    </div>
+  <div class="span6 offset3">
+    <h2>Start a Party</h2>
+    <form class="form-inline">
+	  <fieldset>
+		  <div class="input-append">
+		      <input type="text" name="room_name" id="room-name-input" class="input-xlarge" placeholder="Name your party">
+		      <button type="submit" class="btn btn-primary" id="create-room-button">Start the Party</button>
+		  </div>
+	      <span class="help-block">Make sure your Party name only uses letters, numbers, underscores, and dashes.</span>
+	  </fieldset>
+    </form>
   </div>
 </div>
 
+<!--
 <div class="row">
   <div class="span12">
     <div id="creation-feedback">
     </div>
   </div>
 </div>
+-->
 
 <div class="row existing-party-list">
 
-  <div class="span12">
-    <h4>Or join an existing one:</h4>
+  <div class="span6 offset3">
+    <h2>Parties Already Started</h2>
+    <p>Join one of the parties already in progress.</p>
     <div class="party-list-container">
       <ul id="party-list">
-
       </ul>
     </div>
   </div>
@@ -52,15 +59,15 @@
   <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
 
   <script type="text/template" id="room-template">
-    <div class="party-room">
+    <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">
       <div class="party-room-name">
         <a href="{% url 'party' %}<%= name %>"><%= name %></a>
       </div>
       <div class="party-room-population">
-        <%= population %> listening to
+        <%= population %>
       </div>
       <div class="party-room-now-playing">
-        <%= nowPlaying %>.
+        Now playing: <%= nowPlaying %>
       </div>
     </div>
   </script>

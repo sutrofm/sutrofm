@@ -53,11 +53,11 @@ app.RoomView = Backbone.View.extend({
     var populationStr = '';
 
     if (population === 0) {
-      populationStr = 'No one is';
+      populationStr = 'Empty';
     } else if (population === 1) {
-      populationStr = '1 person is';
+      populationStr = '1 person';
     } else {
-      populationStr = population + ' people are';
+      populationStr = population + ' people';
     }
 
     var data = _.extend({
@@ -73,12 +73,15 @@ app.RoomView = Backbone.View.extend({
           method: 'get',
           content: {
             keys: playingTrackKey,
-            extras: '-*,name,artist'
+            extras: '-*,name,artist,icon400'
           },
           success: function(response) {
             var track = response.result[playingTrackKey].name;
             var artist = response.result[playingTrackKey].artist;
             data.nowPlaying = '"' + track + '" by ' + artist;
+            data.icon = response.result[playingTrackKey].icon400;
+            data.has_icon = 'has_icon';
+            console.log(data.icon);
             self.$el.html(self.template(data));
             self.$el.show();
           },
@@ -87,7 +90,9 @@ app.RoomView = Backbone.View.extend({
           }
         });
       } else {
-        data.nowPlaying = "silence";
+        data.nowPlaying = "sadness";
+        data.icon = '';
+        data.has_icon = '';
         this.$el.html(this.template(data));
         this.$el.show();
       }
