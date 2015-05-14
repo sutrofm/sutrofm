@@ -90,7 +90,7 @@ app.RoomView = Backbone.View.extend({
           }
         });
       } else {
-        data.nowPlaying = "sadness";
+        data.nowPlaying = "silence";
         data.icon = '';
         data.has_icon = '';
         this.$el.html(this.template(data));
