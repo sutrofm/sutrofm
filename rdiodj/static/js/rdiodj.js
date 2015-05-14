@@ -21,16 +21,16 @@ app.PlaylistView = Backbone.View.extend({
     "click .playlist-room-history": "onPlaylistRoomHistoryClick"
   },
   initialize: function() {
-    this.snapped = false
-    this.render()
+    this.snapped = false;
+    this.render();
   },
   render: function() {
     values = {
       'snapped': this.snapped,
       'playlist': this.playlist
-    }
+    };
     this.$el.html(this.template(values));
-    return this
+    return this;
   },
   getDateString: function() {
     var today = new Date();
@@ -38,27 +38,27 @@ app.PlaylistView = Backbone.View.extend({
     var mm = today.getMonth()+1;
     var yyyy = today.getFullYear();
     if(dd<10) {
-        dd='0'+dd
+        dd='0'+dd;
     }
     if(mm<10) {
-        mm='0'+mm
+        mm='0'+mm;
     }
-    today = yyyy + '-' + mm + '-' + dd
-    return today
+    today = yyyy + '-' + mm + '-' + dd;
+    return today;
   },
   getRoomString: function() {
-    var roomUrlList = app.roomUrl.split('/')
-    var roomString = roomUrlList[roomUrlList.length-1].replace(/_/g, ' ')
-    return roomString
+    var roomUrlList = app.roomUrl.split('/');
+    var roomString = roomUrlList[roomUrlList.length-1].replace(/_/g, ' ');
+    return roomString;
   },
 
   onPlaylistTodayClick: function() {
-    var playlistName = 'Rdio Party "' + this.getRoomString() + '" ' + this.getDateString()
+    var playlistName = 'Rdio Party "' + this.getRoomString() + '" ' + this.getDateString();
     this.trackIds = chat.messageHistory.map(function(x) {
         var twelve_hours_in_ms = 43200000;
-        var today = new Date()
-        var timestamp = new Date(x.attributes.timestamp)
-        if (x.attributes.type == 'NewTrack' && x.attributes.type == 'NewTrack' && Math.abs(today - timestamp) < twelve_hours_in_ms) { return x.attributes.trackKey }; });
+        var today = new Date();
+        var timestamp = new Date(x.attributes.timestamp);
+        if (x.attributes.type == 'NewTrack' && x.attributes.type == 'NewTrack' && Math.abs(today - timestamp) < twelve_hours_in_ms) { return x.attributes.trackKey; } });
     R.request({
       method: 'createPlaylist',
       content: {
@@ -67,21 +67,21 @@ app.PlaylistView = Backbone.View.extend({
         tracks: this.trackIds
       },
       success: function(response) {
-        console.log('playlist created')
+        console.log('playlist created');
       },
       error: function(response) {
         console.log('playlist probably not created');
       }
     });
-    this.snapped = true
-    this.playlist = playlistName
-    this.render()
-    self = this
-    setTimeout(function () {self.snapped = false; self.render();}, 5000)
+    this.snapped = true;
+    this.playlist = playlistName;
+    this.render();
+    self = this;
+    setTimeout(function () {self.snapped = false; self.render();}, 5000);
   },
   onPlaylistRoomHistoryClick: function() {
-    var playlistName = 'Rdio Party "' + this.getRoomString() + '" ' + this.getDateString()
-    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey }; });
+    var playlistName = 'Rdio Party "' + this.getRoomString() + '" ' + this.getDateString();
+    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey; } });
     R.request({
       method: 'createPlaylist',
       content: {
@@ -90,19 +90,19 @@ app.PlaylistView = Backbone.View.extend({
         tracks: this.trackIds
       },
       success: function(response) {
-        console.log('playlist created')
+        console.log('playlist created');
       },
       error: function(response) {
         console.log('playlist probably not created');
       }
     });
-    this.snapped = true
-    this.playlist = playlistName
-    this.render()
-    self = this
-    setTimeout(function () {self.snapped = false; self.render();}, 5000)
+    this.snapped = true;
+    this.playlist = playlistName;
+    this.render();
+    self = this;
+    setTimeout(function () {self.snapped = false; self.render();}, 5000);
   }
-})
+});
 
 formatDuration = function(duration) {
   var durationInSecs = duration;
@@ -117,7 +117,6 @@ formatDuration = function(duration) {
 app.Track = Backbone.Model.extend({
   LIKE: 'like',
   DISLIKE: 'dislike',
-
   getVoteRef: function() {
     return this.collection.firebase.child(this.get('id')).child('votes');
   },
@@ -164,8 +163,7 @@ app.Track = Backbone.Model.extend({
 
   getDuration: function(duration) {
     return formatDuration(duration);
-  },
-
+  }
 });
 
 
@@ -200,7 +198,7 @@ app.SkipList = Backbone.Firebase.Collection.extend({
   firebase: app.roomUrl + '/skippers',
 
   containsUser: function(user) {
-    keys = this.map(function(user){return user.get('key')});
+    keys = this.map(function(user){ return user.get('key'); });
     return keys.indexOf(user.get('key')) !== -1;
   },
 
@@ -261,7 +259,7 @@ app.FavoriteButton = Backbone.View.extend({
         success: function(response) {
           chat.sendMessage("unfavorited this track");
         }
-      })
+      });
     },
 
     favoriteCurrentlyPlaying: function() {
@@ -275,7 +273,7 @@ app.FavoriteButton = Backbone.View.extend({
         success: function(response) {
           chat.sendMessage("favorited this track");
         }
-      })
+      });
     },
 });
 
@@ -329,6 +327,8 @@ app.NowPlayingView = Backbone.View.extend({
     prettyPosition = formatDuration(position);
     prettyDuration = formatDuration(R.player.playingTrack().get('duration'));
     this.$(".timer").text(prettyPosition + "/" + prettyDuration);
+    this.$(".duration-bar > span").animate({ width: ( position / R.player.playingTrack().get('duration') ) * 100+'%' }, 100);//attr("value", position);
+//    this.$(".duration-bar").attr("max", R.player.playingTrack().get('duration'));
   },
 
   getDuration: function(duration) {
@@ -347,7 +347,7 @@ app.NowPlayingView = Backbone.View.extend({
     R.player.startMasterTakeover();
     R.player.volume(1);
     if (app.playState.get('playingTrack') && app.playState.get('position')) {
-      console.log("Jumping player to track '"+app.playState.get('playingTrack')+"' @ "+app.playState.get('position')+"s")
+      console.log("Jumping player to track '"+app.playState.get('playingTrack')+"' @ "+app.playState.get('position')+"s");
       R.player.play({
         source: app.playState.get('playingTrack').trackKey,
         initialPosition: app.playState.get('position')
@@ -492,7 +492,7 @@ app.TrackView = Backbone.View.extend({
       success: function(response) {
         self.rdioTrack = response.result[self.model.get('trackKey')];
         self.rdioUser = response.result[self.model.get('userKey')];
-        self.trackDuration = self.getDuration(self.rdioTrack['duration']);
+        self.trackDuration = self.getDuration(self.rdioTrack.duration);
         self.render();
       },
       error: function(response) {
@@ -588,36 +588,36 @@ app.ThemeView = Backbone.View.extend({
   },
 
   initialize: function() {
-    this.editing = false
+    this.editing = false;
 
-    this.listenTo(this.model, "change", this.render)
-    this.render()
+    this.listenTo(this.model, "change", this.render);
+    this.render();
   },
 
   render: function() {
     var values = {
         'editing': this.editing,
-    }
+    };
     this.$el.html(this.template(values));
     if (!this.editing) {
       this.$el.find('.theme_name').text(this.model.get('themeText'));
     }
-    $(".theme_text").focus()
+    $(".theme_text").focus();
     return this;
   },
 
   onThemeTextSubmit: function(e) {
     if (e.keyCode == 13 && $(".theme_text").val()) {
-      this.model.set('themeText', $(".theme_text").val())
-      this.editing = false
-      this.render()
+      this.model.set('themeText', $(".theme_text").val());
+      this.editing = false;
+      this.render();
     }
   },
   onThemeClick: function() {
     this.editing = true;
     this.render();
   }
-})
+});
 
 R.ready(function() {
   firebaseRef.auth(firebaseToken, function(error) {
@@ -637,8 +637,8 @@ R.ready(function() {
 
       if(!R.currentUser.get('canStreamHere')) {
         var template = _.template($('#not-a-paying-customer-template').html());
-        var values = {}
-        $('body').append(template(values))
+        var values = {};
+        $('body').append(template(values));
       }
     }
   });
