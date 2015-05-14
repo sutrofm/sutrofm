@@ -83,6 +83,7 @@
   <script type='text/javascript' src="https://rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
   <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/underscore-min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
@@ -155,7 +156,6 @@
     </div>
     <div class="now-playing-details">
       <div style="float: left;"> Added by <%= addedBy %></div><div style="float: right;" class="np-duration"><div class="timer"></div></div>
-      <div class="duration-bar"><span></span></div>
     </div>
 
     <div class="now-playing-buttons">
