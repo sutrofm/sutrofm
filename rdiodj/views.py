@@ -16,6 +16,7 @@ from firebase_token_generator import create_token
 def home(request):
     c = RequestContext(request, {
         # Something good
+        'body_class': 'home'
     })
     return render_to_response('index.html', c)
 
@@ -52,7 +53,8 @@ def party(request, room_name):
 
     c = RequestContext(request, {
         'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),
-        'room_name': room_name
+        'room_name': room_name,
+        'body_class': 'party'
     })
     make_room_daemon(room_name)
     return render_to_response('party.html', c)
@@ -60,7 +62,8 @@ def party(request, room_name):
 
 def parties(request):
     c = RequestContext(request, {
-        'firebase_url': "%s/" % (settings.FIREBASE_URL,)
+        'firebase_url': "%s/" % (settings.FIREBASE_URL,),
+        'body_class': 'parties'
     })
     return render_to_response('partylist.html', c)
 
