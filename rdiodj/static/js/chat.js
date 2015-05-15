@@ -4,8 +4,8 @@ chat.firebasePeopleRef = new Firebase(firebaseRootUrl + '/people');
 chat.firebaseMessagesRef = new Firebase(firebaseRootUrl + '/messages');
 chat.UserList = Backbone.Firebase.Collection.extend({
 	model: chat.User,
-	firebase: chat.firebasePeopleRef,
 	// pass the ref here instead of string so we can listen for disconnect.
+	firebase: chat.firebasePeopleRef,
 	getOnlineUsers: function() {
 		return this.filter(function(user) {
 			return user.get('isOnline');
@@ -82,6 +82,7 @@ chat.UserMessageView = Backbone.View.extend({
 	template: _.template($('#chat-user-message-template').html()),
 	render: function() {
 		var user = chat.activeUsers.get(this.model.get('userKey'));
+		// Strip all tags from the message. Regex explanation: http://regexr.com/3b0rq
 		var message = this.model.get('message').replace(/<(?:.|\n)*?>/gm, '');
 		if (user) {
 			icon = user.attributes.icon;
@@ -93,7 +94,10 @@ chat.UserMessageView = Backbone.View.extend({
 			icon: icon
 		};
 		this.$el.html(this.template(data));
-		message = Autolinker.link(message);
+		// Replace any urls in the message with anchor markup.
+		// Options set are target="_blank", truncate link text, do not link email or phone
+		message = Autolinker.link(message, { newWindow: true, truncate: 30, email: false, phone: false, });
+		// Be careful in the future. Using html() instead of text() will allow a lot more to be passed through.
 		this.$el.find('.chat-message').html(message);
 		this.$el.show();
 		return this;
