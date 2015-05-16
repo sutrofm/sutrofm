@@ -537,7 +537,7 @@ app.TrackView = Backbone.View.extend({
     app.queue.remove(this.model);
   },
 
-});rdio
+});
 
 app.queueView = Backbone.View.extend({
   el: '#queue',
