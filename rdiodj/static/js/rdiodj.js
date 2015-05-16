@@ -473,7 +473,8 @@ app.TrackView = Backbone.View.extend({
 
   events: {
     'click .up-vote': 'upVote',
-    'click .down-vote': 'downVote'
+    'click .down-vote': 'downVote',
+    'click .remove-track': 'removeTrack'
   },
 
   initialize: function() {
@@ -529,9 +530,14 @@ app.TrackView = Backbone.View.extend({
   downVote: function() {
     this.model.downVote();
     app.queue.sort();
-  }
+  },
 
-});
+  removeTrack: function() {
+    console.log('Removing track ' + this.rdioTrack.name);
+    app.queue.remove(this.model);
+  },
+
+});rdio
 
 app.queueView = Backbone.View.extend({
   el: '#queue',
