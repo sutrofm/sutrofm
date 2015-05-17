@@ -127,8 +127,8 @@
   </script>
 
   <script type="text/template" id="user-presence-template">
-    <li class="">
-        <a class="" href="<%= user.shortUrl %>/" target="_blank"
+    <li>
+        <a href="<%= user.shortUrl %>/" target="_blank"
             title="<%= user.firstName %> <%= user.lastName %>">
           <img class="user-presence" src="<%= user.icon %>" width="50" height="50">
         </a>
@@ -197,8 +197,10 @@
   <script type="text/template" id="chat-user-message-template">
     <div class="presence">
       <li>
-        <img class="user-presence" src=<%= icon %> width=20 height=20>
-        <span class="chat-message-username"><%= fullName %></span>
+      	<div class="user-info">
+	        <img class="user-presence" src="<%= icon %>" width="20" height="20">
+	        <span class="chat-message-username"><%= fullName %></span>
+        </div>
         <span class="chat-message"></span>
       </li>
     </div>
