@@ -127,12 +127,10 @@
   </script>
 
   <script type="text/template" id="user-presence-template">
-    <li>
-        <a href="<%= user.shortUrl %>/" target="_blank"
-            title="<%= user.firstName %> <%= user.lastName %>">
-          <img class="user-presence" src="<%= user.icon %>" width="50" height="50">
-        </a>
-    </li>
+    <a href="<%= user.shortUrl %>/" target="_blank"
+        title="<%= user.firstName %> <%= user.lastName %>">
+      <img class="user-presence" src="<%= user.icon %>" width="50" height="50">
+    </a>
   </script>
 
   <script type="text/template" id="stats-template">
@@ -196,13 +194,11 @@
 
   <script type="text/template" id="chat-user-message-template">
     <div class="presence">
-      <li>
       	<div class="user-info">
 	        <img class="user-presence" src="<%= icon %>" width="20" height="20">
 	        <span class="chat-message-username"><%= fullName %></span>
         </div>
         <span class="chat-message"></span>
-      </li>
     </div>
   </script>
 
