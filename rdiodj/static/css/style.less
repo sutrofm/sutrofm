@@ -413,17 +413,29 @@ img {
 	vertical-align: bottom;
 	overflow-y: auto;
 	overflow-x: hidden;
-	padding: 0 20px;
 }
 
 .chat-messages {
 	margin: 0;
 	list-style-type: none;
 
-	li {
-		padding-left: 20px;
-		clear: both;
-		margin: 3% 0;
+	.presence {
+		margin: 2% 5%;
+	}
+
+	.chat-message-track {
+		margin: 1% 0;
+		padding: 1% 5%;
+		font-size: 10px;
+		color: white;
+		list-style: none;
+		background-color: rgba(0, 0, 0, 0.25);
+		line-height: 1.4;
+
+		img {
+			padding: 0.5em 0.5em 0.5em 0;
+			border: 0;
+		}
 	}
 }
 
@@ -442,24 +454,6 @@ img {
 	color: #FFF;
 	display: block;
 	float: left;
-}
-
-.chat-message-track {
-	margin: 0.5em;
-	padding: 0.75em;
-	font-size: 10px;
-	color: white;
-	list-style-type: disc;
-	background-color: rgba(0, 0, 0, .25);
-
-	span {
-		font-weight: 100;
-		letter-spacing: 1px;
-	}
-
-	.main {
-		width: 100%;
-	}
 }
 
 .chat-track-icon {
@@ -546,6 +540,7 @@ img {
 			margin-bottom: 0.3em;
 		}
 	}
+
 	&:hover .album-info {
 		visibility:visible;
 		opacity:1;
