@@ -115,3 +115,9 @@ Now you're ready to start where this tutorial began!
     $ sudo foreman run python manage.py runserver
     
 All done. Access your server from http://127.0.0.1:8000/
+
+## Coding Style
+
+1. Common sense
+2. 2 spaces
+
