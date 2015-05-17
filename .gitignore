@@ -33,9 +33,12 @@ nosetests.xml
 # OS X
 .DS_Store
 
+data
 test.db
 .env
 rdiodj.sublime-workspace
+rdiodj.sublime-project
+.idea
 
 # static web assets
 webassets
