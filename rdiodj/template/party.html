@@ -107,11 +107,11 @@
             <%= formattedDuration %>
           </div>
         </td>
-        {% if this.rdioUser.key == this.options.model.attributes.userKey %}
+        <% if (window.rdioUserKey == user.key) {%>
         <td>
           <div class="remove-track"></div>
         </td>
-        {% endif %}
+        <% } %>
         <td class="buttons">
 	  <div class="button-group">
             <div class="up-vote" style="background-image: url({{STATIC_URL}}img/vote-up.png)"></div>
