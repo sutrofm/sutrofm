@@ -53,7 +53,7 @@ app.PlaylistView = Backbone.View.extend({
   },
 
   onPlaylistTodayClick: function() {
-    var playlistName = 'Shindig for Rdio "' + this.getRoomString() + '" ' + this.getDateString();
+    var playlistName = 'Shindig "' + this.getRoomString() + '" ' + this.getDateString();
     this.trackIds = chat.messageHistory.map(function(x) {
         var twelve_hours_in_ms = 43200000;
         var today = new Date();
@@ -80,7 +80,7 @@ app.PlaylistView = Backbone.View.extend({
     setTimeout(function () {self.snapped = false; self.render();}, 5000);
   },
   onPlaylistRoomHistoryClick: function() {
-    var playlistName = 'Shindig for Rdio "' + this.getRoomString() + '" ' + this.getDateString();
+    var playlistName = 'Shindig "' + this.getRoomString() + '" ' + this.getDateString();
     this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey; } });
     R.request({
       method: 'createPlaylist',

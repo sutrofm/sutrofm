@@ -1,4 +1,4 @@
-# Shindig for Rdio
+# Shindig powered by Rdio
 
 Shared listening rooms powered by [Rdio](http://www.rdio.com/).
 
