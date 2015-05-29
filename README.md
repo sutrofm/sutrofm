@@ -1,4 +1,4 @@
-# Sutro.fm
+# sutro.fm
 
 Shared listening rooms powered by [Rdio](http://www.rdio.com/).
 
