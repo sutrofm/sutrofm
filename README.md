@@ -1,6 +1,9 @@
-# sutro.fm
+# Sutro.fm
 
 Shared listening rooms powered by [Rdio](http://www.rdio.com/).
+
+![Sutro Tower](https://c4.staticflickr.com/8/7313/10372185795_4dc8a9035f_k.jpg)
+Image by [Christian Arballo](https://www.flickr.com/photos/arballoimages)
 
 ## Develop
 
