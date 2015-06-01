@@ -63,7 +63,7 @@ app.PlaylistView = Backbone.View.extend({
       method: 'createPlaylist',
       content: {
         name: playlistName,
-        description: 'Lovingly created with http://rdioparty.com!',
+        description: 'Lovingly created with http://sutro.fm!',
         tracks: this.trackIds
       },
       success: function(response) {
@@ -86,7 +86,7 @@ app.PlaylistView = Backbone.View.extend({
       method: 'createPlaylist',
       content: {
         name: playlistName,
-        description: 'Lovingly created with http://rdioparty.com!',
+        description: 'Lovingly created with http://sutro.fm!',
         tracks: this.trackIds
       },
       success: function(response) {
