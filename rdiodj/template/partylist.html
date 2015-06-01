@@ -51,8 +51,8 @@
   {{ block.super }}
 
   {% if user.is_authenticated %}
-  <script type='text/javascript' src="https://rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
-  <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
+  <script type='text/javascript' src='//cdn.firebase.com/v0/firebase.js'></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
