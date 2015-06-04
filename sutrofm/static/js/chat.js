@@ -175,7 +175,7 @@ R.ready(function() {
 			chatEntryText.val('');
 		}
 	});
-	// we set up track change messages in rdiodj.js
+	// we set up track change messages in sutrofm.js
 	chat.messageHistory = new chat.MessageHistoryList();
 	var chatView = new chat.MessagesView();
 });

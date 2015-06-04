@@ -7,19 +7,19 @@ admin.autodiscover()
 
 
 urlpatterns = patterns('',
-    url(r'^$', 'rdiodj.views.home', name='index'),
-    url(r'^p/((?P<room_name>[A-Za-z0-9\-_]+)/)?$', 'rdiodj.views.party', name='party'),
-    url(r'^parties/$', 'rdiodj.views.parties', name='parties'),
+    url(r'^$', 'sutrofm.views.home', name='index'),
+    url(r'^p/((?P<room_name>[A-Za-z0-9\-_]+)/)?$', 'sutrofm.views.party', name='party'),
+    url(r'^parties/$', 'sutrofm.views.parties', name='parties'),
 
     url(r'^sign-out/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name='sign-out'),
 
-    url(r'^player/helper/', 'rdiodj.views.player_helper', name='player-helper'),
+    url(r'^player/helper/', 'sutrofm.views.player_helper', name='player-helper'),
 
     url(r'^auth/', include('social_auth.urls')),
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^create-auth/', 'rdiodj.views.createauthtoken')
+    url(r'^create-auth/', 'sutrofm.views.createauthtoken')
 )
 
 

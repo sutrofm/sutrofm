@@ -113,10 +113,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'rdiodj.urls'
+ROOT_URLCONF = 'sutrofm.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'rdiodj.wsgi.application'
+WSGI_APPLICATION = 'sutrofm.wsgi.application'
 
 TEMPLATE_DIRS = (
     '%s/template' % os.path.abspath(os.path.split(__file__)[0])
@@ -134,7 +134,7 @@ INSTALLED_APPS = (
     'social_auth',
     'storages',
     'library',
-    'rdiodj'
+    'sutrofm'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -146,7 +146,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.contrib.messages.context_processors.messages',
     'social_auth.context_processors.social_auth_by_name_backends',
-    'rdiodj.context_processors.rdio',
+    'sutrofm.context_processors.rdio',
 )
 
 # A sample logging configuration. The only tangible logging
