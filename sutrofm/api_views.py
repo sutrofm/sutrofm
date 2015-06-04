@@ -15,7 +15,20 @@ def parties(request):
     data = [
         {
             "id": party.id,
-            "name": party.name
+            "name": party.name,
+            "people": [
+              {
+                  "isOnline": False
+              },
+              {
+                  "isOnline": True
+              }
+            ],
+            "player": {
+                "playingTrack": {
+                    "trackKey": "t5411995"
+                }
+            }
         } for party in parties
     ]
     json_string = simplejson.dumps(data)
