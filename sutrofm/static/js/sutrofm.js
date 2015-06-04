@@ -580,7 +580,7 @@ app.queueView = Backbone.View.extend({
 
 app.ThemeInfo = Backbone.Firebase.Model.extend({
   firebase: app.roomUrl + '/meta',
-  defaults: { themeText: 'Play whatever your heart desires' }
+  defaults: { themeText: 'Click me to set a theme for this party!' }
 }),
 
 app.ThemeView = Backbone.View.extend({

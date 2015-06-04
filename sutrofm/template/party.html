@@ -23,9 +23,10 @@
   </div>
 
   <div class="span4 queue-box full-height">
-    <div class="col-title">
-      Queue
+    <div class="col-title" style="display: inline">
+      Queue:
     </div>
+    <div id="theme" style="display: inline"></div>
     <div class="track-input">
       <table class="text-input">
         <tr>
@@ -46,7 +47,6 @@
     </ul>
     <div id="queue-stats"></div>
   </div>
-
 
   <div class="span3 chat-box full-height">
     <div class="playlist"></div>
@@ -234,8 +234,7 @@
   </script>
 
   <script type="text/template" id="theme-template">
-    <div class="col-title">Party theme</div>
-    <p class='theme_name' style='cursor:pointer; color: #FFFFFF'>
+    <p class='theme_name' style='cursor:pointer; color: #FFFFFF; display: inline'>
     <% if (editing) { %>
       <input type="text" class="theme_text"/>
     <% } %>
