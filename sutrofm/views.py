@@ -1,14 +1,18 @@
-from django.conf import settings
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
-import json
-from django.http import HttpResponse
-
 import subprocess
 import psutil
 import os
+import json
+
+from django.conf import settings
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.shortcuts import redirect, render, render_to_response
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.base import TemplateView
 from firebase_token_generator import create_token
+from ws4redis.publisher import RedisPublisher
+from ws4redis.redis_store import RedisMessage
 
 
 def home(request):
@@ -69,4 +73,26 @@ def sign_out(request):
 
 
 def player_helper(request):
-    return render(request, 'player-helper.html')
+    return render_to_response('player-helper.html')
+
+
+class UserChatView(TemplateView):
+    template_name = 'user_chat.html'
+
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(UserChatView, self).dispatch(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        redis_publisher = RedisPublisher(facility='foobar', users=[request.POST.get('user')])
+        message = RedisMessage(request.POST.get('message'))
+        redis_publisher.publish_message(message)
+        return HttpResponse('OK')
+
+class BroadcastChatView(TemplateView):
+    template_name = 'broadcast_chat.html'
+
+    def get(self, request, *args, **kwargs):
+        welcome = RedisMessage('Hello everybody')  # create a welcome message to be sent to everybody
+        RedisPublisher(facility='foobar', broadcast=True).publish_message(welcome)
+        return super(BroadcastChatView, self).get(request, *args, **kwargs)

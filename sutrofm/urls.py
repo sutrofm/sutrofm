@@ -4,6 +4,8 @@ from django.contrib.auth import logout
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rdiodj import views
 
+from views import UserChatView, BroadcastChatView
+
 
 admin.autodiscover()
 
