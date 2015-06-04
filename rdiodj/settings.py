@@ -119,7 +119,7 @@ ROOT_URLCONF = 'rdiodj.urls'
 WSGI_APPLICATION = 'rdiodj.wsgi.application'
 
 TEMPLATE_DIRS = (
-    '%s/template' % os.path.abspath(os.path.split(__file__)[0])
+    '%s/template' % os.path.abspath(os.path.split(__file__)[0]),
 )
 
 INSTALLED_APPS = (
@@ -138,11 +138,11 @@ INSTALLED_APPS = (
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.request',
+    'django.template.context_processors.debug',
+    'django.template.context_processors.i18n',
+    'django.template.context_processors.media',
+    'django.template.context_processors.static',
+    'django.template.context_processors.request',
     'django.contrib.auth.context_processors.auth',
     'django.contrib.messages.context_processors.messages',
     'social_auth.context_processors.social_auth_by_name_backends',
