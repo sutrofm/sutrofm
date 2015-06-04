@@ -226,4 +226,11 @@ WS4REDIS_EXPIRE = 3600
 
 WS4REDIS_HEARTBEAT = '--heartbeat--'
 
-WS4REDIS_PREFIX = 'demo'
+WS4REDIS_PREFIX = 'sutrofm'
+
+WS4REDIS_CONNECTION = {
+    'host': 'localhost',
+    'port': 6379,
+    'db': 0,
+    'password': None,
+}
