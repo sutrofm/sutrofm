@@ -118,7 +118,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'rdiodj.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'rdiodj.wsgi.application'
+WSGI_APPLICATION = 'ws4redis.django_runserver.application'
 
 TEMPLATE_DIRS = (
     '%s/template' % os.path.abspath(os.path.split(__file__)[0]),
