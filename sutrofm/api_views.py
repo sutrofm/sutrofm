@@ -4,7 +4,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from redis import ConnectionPool, StrictRedis
 
-from rdiodj.redis_models import Party
+from sutrofm.redis_models import Party
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
