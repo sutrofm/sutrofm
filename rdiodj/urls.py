@@ -4,6 +4,8 @@ from django.contrib.auth import logout
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rdiodj import views
 
+from views import UserChatView, BroadcastChatView
+
 
 admin.autodiscover()
 
@@ -21,7 +23,12 @@ urlpatterns = [
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^create-auth/', views.createauthtoken)
+    url(r'^create-auth/', views.createauthtoken),
+
+    url(r'^userchat/$', UserChatView.as_view(), name='user_chat'),
+    url(r'^broadcastchat/$', BroadcastChatView.as_view(), name='broadcast_chat'),
+    url(r'^gg/$', UserChatView.as_view(), name='group_chat'),
+    url(r'^ll/$', UserChatView.as_view(), name='login'),
 ]
 
 
