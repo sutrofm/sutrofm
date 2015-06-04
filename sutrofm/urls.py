@@ -4,7 +4,7 @@ from django.contrib.auth import logout
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rdiodj import views
 
-from views import UserChatView, BroadcastChatView
+import api_views
 
 
 admin.autodiscover()
@@ -19,7 +19,9 @@ urlpatterns = [
     url(r'^auth/', include('social_auth.urls')),
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^create-auth/', 'sutrofm.views.createauthtoken')
+    url(r'^create-auth/', 'sutrofm.views.createauthtoken'),
+
+    url(r'^api/parties', api_views.parties, name='parties'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
