@@ -15,6 +15,9 @@ WAIT_FOR_USERS = timedelta(minutes=5)
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument('room_name', type=str)
+
     def handle(self, room_name, *args, **kwargs):
         self.firebase = firebase.FirebaseApplication(settings.FIREBASE_URL)
         auth = firebase.FirebaseAuthentication(settings.FIREBASE_TOKEN, 'mkapolk@gmail.com')
