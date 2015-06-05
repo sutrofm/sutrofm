@@ -13,7 +13,7 @@ class Party(object):
     data = connection.hgetall('parties:%s' % id)
     if data:
         output = Party()
-        output.id = id
+        output.id = int(id)
         output.name = data.get('name', 'No name')
         output.playingTrackId = data.get('playingTrackId', None)
         output.playingTrackPosition = data.get('playingTrackId', 0)
@@ -35,7 +35,7 @@ class Party(object):
     ]
 
   def save(self, connection):
-    if not hasattr(self, 'id'):
+    if not self.id:
       self.id = connection.scard('parties')+1
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
