@@ -16,14 +16,7 @@ def parties(request):
         {
             "id": party.id,
             "name": party.name,
-            "people": [
-              {
-                  "isOnline": False
-              },
-              {
-                  "isOnline": True
-              }
-            ],
+            "people": [], #TODO 
             "player": {
                 "playingTrack": {
                     "trackKey": party.playing_track_id
