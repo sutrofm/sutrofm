@@ -22,6 +22,8 @@ urlpatterns = [
     url(r'^create-auth/', 'sutrofm.views.createauthtoken'),
 
     url(r'^api/parties', api_views.parties, name='parties'),
+    url(r'^api/users/$', api_views.users, name='users'),
+    url(r'^api/user/((?P<user_id>[0-9]+)/)', api_views.get_user_by_id),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
