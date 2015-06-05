@@ -1,6 +1,7 @@
 import datetime
 from dateutil import parser
 import simplejson as json
+import uuid
 
 class Party(object):
   def __init__(self):
@@ -58,8 +59,8 @@ class Party(object):
     ]
 
   def save(self, connection):
-    if not hasattr(self, 'id'):
-      self.id = connection.scard('parties')+1
+    if not self.id:
+      self.id = uuid.uuid4().hex
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
       "playing_track_id": self.playing_track_id,
