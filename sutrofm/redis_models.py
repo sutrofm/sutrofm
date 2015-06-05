@@ -4,8 +4,8 @@ class Party(object):
   def __init__(self):
     self.id = None
     self.name = "unnamed"
-    self.playingTrackId = None
-    self.playingTrackPosition = 0
+    self.playing_track_id = None
+    self.playing_track_position = 0
     self.users = []
 
   @staticmethod
@@ -15,8 +15,8 @@ class Party(object):
         output = Party()
         output.id = id
         output.name = data.get('name', 'No name')
-        output.playingTrackId = data.get('playingTrackId', None)
-        output.playingTrackPosition = data.get('playingTrackId', 0)
+        output.playing_track_id = data.get('playing_track_id', None)
+        output.playing_track_position = data.get('playing_track_position', 0)
 
         # Get users
         user_keys = connection.smembers('party:users:%s' % id)
@@ -39,8 +39,8 @@ class Party(object):
       self.id = connection.scard('parties')+1
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
-      "playingTrackPosition": self.playingTrackPosition,
-      "playingTrackId": self.playingTrackId
+      "playing_track_id": self.playing_track_id,
+      "playing_track_position": self.playing_track_position,
     })
     # Save users
     for user in self.users:

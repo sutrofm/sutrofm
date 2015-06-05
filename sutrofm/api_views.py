@@ -25,9 +25,9 @@ def parties(request):
               }
             ],
             "player": {
-                "playingTrack": ({
-                    "trackKey": party.playingTrackId
-                } if party.playingTrackId else None)
+                "playingTrack": {
+                    "trackKey": party.playing_track_id
+                }
             } 
         } for party in parties
     ]
