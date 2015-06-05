@@ -13,7 +13,7 @@ app.Player = Backbone.Model.extend({
   setState: function(data) {
     console.log(data);
     this.set('playingTrack', {
-      'trackKey': data['playing_track_id'],
+      'trackKey': data['playing_track_key'],
       'userKey': ''
     })
     this.set('position', data['playing_track_position'])
