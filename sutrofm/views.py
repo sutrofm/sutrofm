@@ -9,7 +9,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render, render_to_response
 from firebase_token_generator import create_token
-
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party
