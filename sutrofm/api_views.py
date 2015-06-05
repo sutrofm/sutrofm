@@ -2,6 +2,7 @@ import simplejson
 
 from django.conf import settings
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, User, Messages
@@ -55,11 +56,24 @@ def get_user_by_id(request, user_id):
     json_string = simplejson.dumps(data)
     return HttpResponse(json_string, content_type='text/json')
 
+@csrf_exempt
 def messages(request, room_id):
+    if request.method == "POST":
+        post_message(request)
+
     redis = StrictRedis(connection_pool=redis_connection_pool)
     messages = Messages.get_recent(redis, room_id)
     json_string = simplejson.dumps(messages)
-    return HttpResponse(json_string, content_type='text/json')  
+    return HttpResponse(json_string, content_type='text/json')
 
+def post_message(request, *args, **kwargs):
+    party_id = request.POST.get('partyId')
+    message = request.POST.get('message')
+    message_type = request.POST.get('messageType')
+    user = request.POST.get('userId')
 
+    m = Messages()
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    m.save_message(redis, message, message_type, user, party_id)
 
+    # return HttpResponse('OK')
