@@ -8,6 +8,7 @@ from sutrofm.redis_models import Party, User
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
+JSON_MEDIA_TYPE = 'application/json'
 
 def parties(request):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -25,7 +26,7 @@ def parties(request):
         } for party in parties
     ]
     json_string = simplejson.dumps(data)
-    return HttpResponse(json_string, content_type='text/json')
+    return HttpResponse(json_string, content_type=JSON_MEDIA_TYPE)
 
 def users(request):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -40,7 +41,7 @@ def users(request):
         } for user in users
     ]
     json_string = simplejson.dumps(data)
-    return HttpResponse(json_string, content_type='text/json')
+    return HttpResponse(json_string, content_type=JSON_MEDIA_TYPE)
 
 def get_user_by_id(request, user_id):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -53,7 +54,7 @@ def get_user_by_id(request, user_id):
         "rdioKey": user.rdioKey,
     }
     json_string = simplejson.dumps(data)
-    return HttpResponse(json_string, content_type='text/json')
+    return HttpResponse(json_string, content_type=JSON_MEDIA_TYPE)
 
 
 
