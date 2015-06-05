@@ -1,3 +1,4 @@
+import uuid
 
 
 class Party(object):
@@ -13,7 +14,7 @@ class Party(object):
     data = connection.hgetall('parties:%s' % id)
     if data:
         output = Party()
-        output.id = int(id)
+        output.id = id
         output.name = data.get('name', 'No name')
         output.playingTrackId = data.get('playingTrackId', None)
         output.playingTrackPosition = data.get('playingTrackId', 0)
@@ -36,7 +37,7 @@ class Party(object):
 
   def save(self, connection):
     if not self.id:
-      self.id = connection.scard('parties')+1
+      self.id = uuid.uuid4().hex
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
       "playingTrackPosition": self.playingTrackPosition,
