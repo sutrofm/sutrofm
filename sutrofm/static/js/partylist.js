@@ -8,10 +8,18 @@ app.firebaseUrl = firebaseRootUrl;
 app.Room = Backbone.Model.extend({
 });
 
-app.RoomList = Backbone.Firebase.Collection.extend({
+app.RoomList = Backbone.Collection.extend({
   model: app.Room,
 
-  firebase: app.firebaseUrl,
+  initialize: function() {
+    var self = this;
+    $.ajax({
+      url: '/api/parties',
+      success: function(result) {
+        self.add(result);
+      }
+    })
+  },
 });
 
 app.RoomView = Backbone.View.extend({
@@ -34,7 +42,7 @@ app.RoomView = Backbone.View.extend({
 
   render: function() {
     var self = this;
-    var roomName = this.model.get('id');
+    var roomName = this.model.get('name');
 
     var people = this.model.get('people');
     var population = _.reduce(people, function (memo, obj) {
@@ -62,6 +70,7 @@ app.RoomView = Backbone.View.extend({
 
     var data = _.extend({
       name: roomName,
+      id: this.model.get('id'),
       population: populationStr
     });
 
@@ -76,12 +85,18 @@ app.RoomView = Backbone.View.extend({
             extras: '-*,name,artist,icon400'
           },
           success: function(response) {
-            var track = response.result[playingTrackKey].name;
-            var artist = response.result[playingTrackKey].artist;
-            data.nowPlaying = '"' + track + '" by ' + artist;
-            data.icon = response.result[playingTrackKey].icon400;
-            data.has_icon = 'has_icon';
-            console.log(data.icon);
+            var track = response.result[playingTrackKey];
+            if (track) {
+              var track = response.result[playingTrackKey].name;
+              var artist = response.result[playingTrackKey].artist;
+              data.nowPlaying = '"' + track + '" by ' + artist;
+              data.icon = response.result[playingTrackKey].icon400;
+              data.has_icon = 'has_icon';
+            } else {
+              data.nowPlaying = 'Something unknown';
+              data.icon = '';
+              data.has_icon = '';
+            }
             self.$el.html(self.template(data));
             self.$el.show();
           },
@@ -139,16 +154,8 @@ app.PartyRoomListView = Backbone.View.extend({
 });
 
 R.ready(function() {
-  firebaseRef.auth(firebaseToken, function(error) {
-    if (error) {
-      window.alert('Login Failed!', error);
-    } else {
-      console.log('Login Succeeded!');
-
-      app.partyRooms = new app.RoomList();
-      var partyRoomListView = new app.PartyRoomListView();
-    }
-  });
+  app.partyRooms = new app.RoomList();
+  var partyRoomListView = new app.PartyRoomListView();
 
   $('#create-room-button').click(function(e){
     e.preventDefault();

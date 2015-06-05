@@ -23,9 +23,10 @@
   </div>
 
   <div class="span4 queue-box full-height">
-    <div class="col-title">
-      Queue
+    <div class="col-title" style="display: inline">
+      Queue:
     </div>
+    <div id="theme" style="display: inline"></div>
     <div class="track-input">
       <table class="text-input">
         <tr>
@@ -46,7 +47,6 @@
     </ul>
     <div id="queue-stats"></div>
   </div>
-
 
   <div class="span3 chat-box full-height">
     <div class="playlist"></div>
@@ -80,8 +80,8 @@
   {{ block.super }}
 
   {% if user.is_authenticated %}
-  <script type='text/javascript' src="https://rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
-  <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
+  <script type='text/javascript' src='//cdn.firebase.com/v0/firebase.js'></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
@@ -114,14 +114,14 @@
         </td>
         <% } %>
         <td class="buttons">
-	  <div class="button-group">
+    <div class="button-group">
             <div class="up-vote" style="background-image: url({{STATIC_URL}}img/vote-up.png)"></div>
             <span class="votes"><%= upVotes %></span>
-	  </div>
-	  <div class="button-group">
+    </div>
+    <div class="button-group">
             <div class="down-vote" style="background-image: url({{STATIC_URL}}img/vote-down.png)"></div>
-	    <span class="votes"><%= downVotes %></span>
-	  </div>
+      <span class="votes"><%= downVotes %></span>
+    </div>
         </td>
       </tr>
     </table>
@@ -234,8 +234,7 @@
   </script>
 
   <script type="text/template" id="theme-template">
-    <div class="col-title">Party theme</div>
-    <p class='theme_name' style='cursor:pointer; color: #FFFFFF'>
+    <p class='theme_name' style='cursor:pointer; color: #FFFFFF; display: inline'>
     <% if (editing) { %>
       <input type="text" class="theme_text"/>
     <% } %>
@@ -267,7 +266,7 @@
   var firebaseRef = new Firebase(firebaseRootUrl);
   </script>
   <script type="text/javascript" src="{{STATIC_URL}}js/chat.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/rdiodj.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/sutrofm.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/search-view.js"></script>
   {% endif %}
 

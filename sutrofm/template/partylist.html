@@ -5,33 +5,24 @@
 {% block content %}
 <div class="row">
   <div class="span6 offset3">
-	  <h1>The Party Room</h1>
-	  <p>It's simple to get started. Either start your own part or select one that has already started without you.</p>
+    <h1>The Party Room</h1>
+    <p>It's simple to get started. Either start your own part or select one that has already started without you.</p>
   </div>
 </div>
 <div class="row">
   <div class="span6 offset3">
     <h2>Start a Party</h2>
     <form class="form-inline">
-	  <fieldset>
-		  <div class="input-append">
-		      <input type="text" name="room_name" id="room-name-input" class="input-xlarge" placeholder="Name your party">
-		      <button type="submit" class="btn btn-primary" id="create-room-button">Start the Party</button>
-		  </div>
-	      <span class="help-block">Make sure your Party name only uses letters, numbers, underscores, and dashes.</span>
-	  </fieldset>
+    <fieldset>
+      <div class="input-append">
+          <input type="text" name="room_name" id="room-name-input" class="input-xlarge" placeholder="Name your party">
+          <button type="submit" class="btn btn-primary" id="create-room-button">Start the Party</button>
+      </div>
+        <span class="help-block">Make sure your Party name only uses letters, numbers, underscores, and dashes.</span>
+    </fieldset>
     </form>
   </div>
 </div>
-
-<!--
-<div class="row">
-  <div class="span12">
-    <div id="creation-feedback">
-    </div>
-  </div>
-</div>
--->
 
 <div class="row existing-party-list">
 
@@ -51,8 +42,8 @@
   {{ block.super }}
 
   {% if user.is_authenticated %}
-  <script type='text/javascript' src="https://rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
-  <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
+  <script type='text/javascript' src='//cdn.firebase.com/v0/firebase.js'></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
@@ -61,7 +52,7 @@
   <script type="text/template" id="room-template">
     <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">
       <div class="party-room-name">
-        <a href="{% url 'party' %}<%= name %>"><%= name %></a>
+        <a href="{% url 'party' %}<%= id %>"><%= name %></a>
       </div>
       <div class="party-room-population">
         <%= population %>

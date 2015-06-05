@@ -115,7 +115,7 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'rdiodj.urls'
+ROOT_URLCONF = 'sutrofm.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'ws4redis.django_runserver.application'
@@ -137,7 +137,7 @@ INSTALLED_APPS = (
     'storages',
     'library',
     'ws4redis',
-    'rdiodj',
+    'sutrofm'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -149,7 +149,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.contrib.messages.context_processors.messages',
     'social_auth.context_processors.social_auth_by_name_backends',
-    'rdiodj.context_processors.rdio',
+    'sutrofm.context_processors.rdio',
     'ws4redis.context_processors.default',
 )
 
