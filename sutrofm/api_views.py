@@ -28,7 +28,7 @@ def parties(request):
                 "playingTrack": {
                     "trackKey": party.playing_track_id
                 }
-            } 
+            }
         } for party in parties
     ]
     json_string = simplejson.dumps(data)

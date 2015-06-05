@@ -64,7 +64,9 @@ def party(request, room_name):
     context = {
         'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),
         'room_name': room_name,
-        'body_class': 'party'
+        'body_class': 'party',
+        'room_id': room_name,
+        'initial_player_state_json': json.dumps(party.get_player_state_payload())
     }
     make_room_daemon(room_name)
     return render(request, 'party.html', context)

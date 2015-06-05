@@ -6,10 +6,18 @@ app.currentUserKey = rdioUserKey;
 
 app.roomUrl = firebaseRootUrl;
 
-app.Player = Backbone.Firebase.Model.extend({
-
-  firebase: app.roomUrl + '/player'
-
+app.Player = Backbone.Model.extend({
+  initialize: function() {
+    var self = this
+  },
+  setState: function(data) {
+    console.log(data);
+    this.set('playingTrack', {
+      'trackKey': data['playing_track_id'],
+      'userKey': ''
+    })
+    this.set('position', data['playing_track_position'])
+  }
 });
 
 app.PlaylistView = Backbone.View.extend({
@@ -625,7 +633,25 @@ app.ThemeView = Backbone.View.extend({
   }
 });
 
+app.receiveMessage = function(msg) {
+  if (msg !== window.heartbeat_msg) {
+    var payload = JSON.parse(msg);
+    var type = payload['type'];
+    switch (type) {
+      case "player":
+        app.playState.setState(payload['data']);
+      break;
+    }
+  }
+}
+
 R.ready(function() {
+  self.redis = WS4Redis({
+    uri: window.websocket_uri + "parties:" + window.roomId + "?subscribe-broadcast&publish-broadcast&echo",
+    receive_message: app.receiveMessage,
+    heartbeat_msg: window.heartbeat_msg
+  })
+
   firebaseRef.auth(firebaseToken, function(error) {
     if (error) {
       console.log('Login Failed!', error);
@@ -640,6 +666,8 @@ R.ready(function() {
       var themeView = new app.ThemeView({model: new app.ThemeInfo()});
       app.nowPlayingView.initSlaveStatus();
       var skipButton = new app.SkipButton();
+
+      app.playState.setState(window.initial_player_state);
 
       if(!R.currentUser.get('canStreamHere')) {
         var template = _.template($('#not-a-paying-customer-template').html());
