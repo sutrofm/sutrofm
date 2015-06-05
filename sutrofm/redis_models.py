@@ -21,7 +21,7 @@ class Party(object):
         # Get users
         user_keys = connection.smembers('party:users:%s' % id)
         output.users = [
-            User.get(key) for key in user_keys
+            User.get(connection, key) for key in user_keys
         ]
         return output
     else:
@@ -39,8 +39,8 @@ class Party(object):
       self.id = connection.scard('parties')+1
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
-      "playingTrackId": self.playingTrackId,
-      "playingTrackPosition": self.playingTrackPosition
+      "playingTrackPosition": self.playingTrackPosition,
+      "playingTrackId": self.playingTrackId
     })
     # Save users
     for user in self.users:

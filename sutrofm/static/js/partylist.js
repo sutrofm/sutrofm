@@ -85,11 +85,18 @@ app.RoomView = Backbone.View.extend({
             extras: '-*,name,artist,icon400'
           },
           success: function(response) {
-            var track = response.result[playingTrackKey].name;
-            var artist = response.result[playingTrackKey].artist;
-            data.nowPlaying = '"' + track + '" by ' + artist;
-            data.icon = response.result[playingTrackKey].icon400;
-            data.has_icon = 'has_icon';
+            var track = response.result[playingTrackKey];
+            if (track) {
+              var track = response.result[playingTrackKey].name;
+              var artist = response.result[playingTrackKey].artist;
+              data.nowPlaying = '"' + track + '" by ' + artist;
+              data.icon = response.result[playingTrackKey].icon400;
+              data.has_icon = 'has_icon';
+            } else {
+              data.nowPlaying = 'Something unknown';
+              data.icon = '';
+              data.has_icon = '';
+            }
             self.$el.html(self.template(data));
             self.$el.show();
           },

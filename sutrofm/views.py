@@ -10,7 +10,9 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render, render_to_response
 from firebase_token_generator import create_token
 
-from redis import ConnectionPool
+from redis import ConnectionPool, StrictRedis
+
+from sutrofm.redis_models import Party
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
@@ -50,6 +52,15 @@ def make_room_daemon(room_name):
 def party(request, room_name):
     if room_name is None:
         return redirect('/p/rdio')
+
+    connection = StrictRedis(connection_pool=redis_connection_pool)
+    party = Party.get(connection, room_name)
+    if not party:
+      party = Party()
+      party.id = room_name
+      party.name = room_name
+      party.save(connection)
+
     context = {
         'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),
         'room_name': room_name,

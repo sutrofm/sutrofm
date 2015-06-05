@@ -25,10 +25,10 @@ def parties(request):
               }
             ],
             "player": {
-                "playingTrack": {
-                    "trackKey": "t5411995"
-                }
-            }
+                "playingTrack": ({
+                    "trackKey": party.playingTrackId
+                } if party.playingTrackId else None)
+            } 
         } for party in parties
     ]
     json_string = simplejson.dumps(data)
