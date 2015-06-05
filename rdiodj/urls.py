@@ -26,6 +26,8 @@ urlpatterns = [
     url(r'^create-auth/', views.createauthtoken),
 
     url(r'^api/parties', api_views.parties, name='parties'),
+
+    url(r'^api/messages/((?P<room_id>[0-9]+)/)?$', api_views.messages, name='messages'),
 ]
 
 
