@@ -1,4 +1,4 @@
-
+import datetime
 
 class Party(object):
   @staticmethod
@@ -35,8 +35,9 @@ class Messages(object):
     if not hasattr(self, 'party_messages_id'):
       self.party_messages_id = party_id
          
-    connection.lpush("messages:%s" % party_messages_id, {
+    connection.lpush("messages:%s" % self.party_messages_id, {
       "message": message,
       "type": message_type,
-      "user": user
+      "user": user,
+      "timestamp": datetime.datetime.utcnow()
     })
