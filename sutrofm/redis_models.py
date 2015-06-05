@@ -13,20 +13,20 @@ class Party(object):
   def get(connection, id):
     data = connection.hgetall('parties:%s' % id)
     if data:
-        output = Party()
-        output.id = id
-        output.name = data.get('name', 'No name')
-        output.playingTrackId = data.get('playingTrackId', None)
-        output.playingTrackPosition = data.get('playingTrackId', 0)
+      output = Party()
+      output.id = id
+      output.name = data.get('name', 'No name')
+      output.playingTrackId = data.get('playingTrackId', None)
+      output.playingTrackPosition = data.get('playingTrackId', 0)
 
-        # Get users
-        user_keys = connection.smembers('party:users:%s' % id)
-        output.users = [
-            User.get(connection, key) for key in user_keys
-        ]
-        return output
+      # Get users
+      user_keys = connection.smembers('parties:%s:users' % id)
+      output.users = [
+        User.get(connection, key) for key in user_keys
+      ]
+      return output
     else:
-        return None
+      return None
 
   @staticmethod
   def getall(connection):
@@ -44,45 +44,61 @@ class Party(object):
       "playingTrackId": self.playingTrackId
     })
     # Save users
-    for user in self.users:
-        connection.sadd('party:users:%s' % self.id, user.id)
+    def _save_users(pipe):
+      old_users = pipe.smembers('parties:%s:users' % self.id)
+      for old_user_id in old_users:
+        if old_user_id not in self.users:
+          pipe.srem('parties:%s:users' % self.id, old_user_id)
+
+      for user in self.users:
+        pipe.sadd('parties:%s:users' % self.id, user.id)
+    connection.transaction(_save_users, 'parties:%s:users' % self.id)
+
     connection.sadd('parties', self.id)
 
   def add_user(self, user):
     if user not in self.users:
-        self.users.append(user)
+      self.users.append(user)
 
   def remove_user(self, user):
     if user in self.users:
       self.users.remove(user)
 
+
 class User(object):
-    @staticmethod
-    def get(connection, id):
-        data = connection.hgetall('users:%s' % id)
-        output = User()
-        output.id = id
-        output.displayName = data.get('displayName', '')
-        output.iconUrl = data.get('iconUrl', '')
-        output.userUrl = data.get('userUrl', '')
-        output.rdioKey = data.get('rdioKey', '')
-        return output
+  def __init__(self):
+    self.id = None
+    self.display_name = None
+    self.icon_url = None
+    self.user_url = None
+    self.rdio_key = None
 
-    @staticmethod
-    def getall(connection):
-      ids = connection.smembers('users')
-      return [
-        User.get(connection, i) for i in ids
-      ]
+  @staticmethod
+  def get(connection, id):
+    data = connection.hgetall('users:%s' % id)
+    output = User()
+    output.id = id
+    output.display_name = data.get('displayName', '')
+    output.icon_url = data.get('iconUrl', '')
+    output.user_url = data.get('userUrl', '')
+    output.rdio_key = data.get('rdioKey', '')
+    return output
 
-    def save(self, connection):
-      if not hasattr(self, 'id'):
-        self.id = connection.scard('users') + 1
-      connection.hmset("users:%s" % self.id, {
-        "displayName": self.displayName,
-        "iconUrl": self.iconUrl,
-        "userUrl": self.userUrl,
-        "rdioKey": self.rdioKey
-      })
-      connection.sadd('users', self.id)
+  @staticmethod
+  def getall(connection):
+    ids = connection.smembers('users')
+    return [
+      User.get(connection, i) for i in ids
+    ]
+
+  def save(self, connection):
+    if not self.id:
+      self.id = connection.scard('users') + 1
+    connection.hmset("users:%s" % self.id, {
+      "displayName": self.display_name,
+      "iconUrl": self.icon_url,
+      "userUrl": self.user_url,
+      "rdioKey": self.rdio_key
+    })
+    connection.sadd('users', self.id)
 

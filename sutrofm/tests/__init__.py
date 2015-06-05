@@ -1,1 +1,1 @@
-from .tests import PartiesTestCase
+from .parties import PartiesTestCase
