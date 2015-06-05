@@ -76,4 +76,4 @@ def post_message(request, *args, **kwargs):
     redis = StrictRedis(connection_pool=redis_connection_pool)
     m.save_message(redis, message, message_type, user, party_id)
 
-    # return HttpResponse('OK')
+    return HttpResponse('OK')
