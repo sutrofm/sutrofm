@@ -16,7 +16,7 @@ def parties(request):
         {
             "id": party.id,
             "name": party.name,
-            "people": [], #TODO 
+            "people": [{'id': user.id, 'displayName': user.display_name} for user in party.users],
             "player": {
                 "playingTrack": {
                     "trackKey": party.playing_track_id
