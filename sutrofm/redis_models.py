@@ -1,12 +1,35 @@
-
+import datetime
+from dateutil import parser
+import simplejson as json
 
 class Party(object):
   def __init__(self):
     self.id = None
     self.name = "unnamed"
-    self.playingTrackId = None
-    self.playingTrackPosition = 0
+    self.playing_track_id = None
+    self.playing_track_start_time = datetime.datetime.utcnow()
     self.users = []
+
+  def get_player_state_payload(self):
+    return {
+        'type': 'player',
+        'data': {
+            'playing_track_id': self.playing_track_id,
+            'playing_track_position': self.current_track_position,
+            'playing_track_user_added': ''
+        }
+    }
+    
+  def broadcast_player_state(self, connection):
+    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_player_state_payload()))
+
+  @property
+  def current_track_position(self):
+    return (datetime.datetime.utcnow() - self.playing_track_start_time).seconds
+
+  def play_track(self, track_id):
+    self.playing_track_id = track_id
+    self.playing_track_start_time = datetime.datetime.utcnow()
 
   @staticmethod
   def get(connection, id):
@@ -15,8 +38,8 @@ class Party(object):
         output = Party()
         output.id = id
         output.name = data.get('name', 'No name')
-        output.playingTrackId = data.get('playingTrackId', None)
-        output.playingTrackPosition = data.get('playingTrackId', 0)
+        output.playing_track_id = data.get('playing_track_id', None)
+        output.playing_track_start_time = parser.parse(data.get('playing_track_start_time', datetime.datetime.utcnow().isoformat()))
 
         # Get users
         user_keys = connection.smembers('party:users:%s' % id)
@@ -39,8 +62,8 @@ class Party(object):
       self.id = connection.scard('parties')+1
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
-      "playingTrackPosition": self.playingTrackPosition,
-      "playingTrackId": self.playingTrackId
+      "playing_track_id": self.playing_track_id,
+      "playing_track_start_time": self.playing_track_start_time,
     })
     # Save users
     for user in self.users:
