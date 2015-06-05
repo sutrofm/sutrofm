@@ -28,8 +28,8 @@ class PartiesTestCase(TestCase):
 
     json_response = json.loads(response.content)
 
-    self.assertEqual(json_response[0]['id'], 1)
-
-
-
+    self.assertIsInstance(json_response[0]['id'], unicode)
+    self.assertEqual(len(json_response[0]['id']), 32)
+    self.assertEqual(json_response[0]['name'], party.name)
+    self.assertEqual(len(json_response[0]['people']), 0)
 
