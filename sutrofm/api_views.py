@@ -25,7 +25,7 @@ def parties(request):
             }
         } for party in parties
     ]
-    json_string = simplejson.dumps(data)
+    json_string = simplejson.dumps({'results': data})
     return HttpResponse(json_string, content_type='text/json')
 
 def users(request):
