@@ -36,11 +36,11 @@ class Party(object):
   def get(connection, id):
     data = connection.hgetall('parties:%s' % id)
     if data:
-        output = Party()
-        output.id = id
-        output.name = data.get('name', 'No name')
-        output.playing_track_id = data.get('playing_track_id', None)
-        output.playing_track_start_time = parser.parse(data.get('playing_track_start_time', datetime.datetime.utcnow().isoformat()))
+      output = Party()
+      output.id = id
+      output.name = data.get('name', 'No name')
+      output.playing_track_id = data.get('playing_track_id', None)
+      output.playing_track_start_time = parser.parse(data.get('playing_track_start_time', datetime.datetime.utcnow().isoformat()))
 
       # Get users
       user_keys = connection.smembers('parties:%s:users' % id)
