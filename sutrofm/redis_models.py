@@ -1,7 +1,9 @@
 import datetime
+import uuid
+
 from dateutil import parser
 import simplejson as json
-import uuid
+
 
 class Party(object):
   def __init__(self):
@@ -13,14 +15,14 @@ class Party(object):
 
   def get_player_state_payload(self):
     return {
-        'type': 'player',
-        'data': {
-            'playing_track_id': self.playing_track_id,
-            'playing_track_position': self.current_track_position,
-            'playing_track_user_added': ''
-        }
+      'type': 'player',
+      'data': {
+        'playing_track_id': self.playing_track_id,
+        'playing_track_position': self.current_track_position,
+        'playing_track_user_added': ''
+      }
     }
-    
+
   def broadcast_player_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_player_state_payload()))
 
@@ -40,7 +42,8 @@ class Party(object):
       output.id = id
       output.name = data.get('name', 'No name')
       output.playing_track_id = data.get('playing_track_id', None)
-      output.playing_track_start_time = parser.parse(data.get('playing_track_start_time', datetime.datetime.utcnow().isoformat()))
+      output.playing_track_start_time = parser.parse(
+        data.get('playing_track_start_time', datetime.datetime.utcnow().isoformat()))
 
       # Get users
       user_keys = connection.smembers('parties:%s:users' % id)
@@ -75,6 +78,7 @@ class Party(object):
 
       for user in self.users:
         pipe.sadd('parties:%s:users' % self.id, user.id)
+
     connection.transaction(_save_users, 'parties:%s:users' % self.id)
 
     connection.sadd('parties', self.id)
@@ -135,7 +139,7 @@ class Messages(object):
   def save_message(self, connection, message, message_type, user, party_id):
     if not hasattr(self, 'party_messages_id'):
       self.party_messages_id = party_id
-         
+
     connection.lpush("messages:%s" % self.party_messages_id, {
       "message": message,
       "type": message_type,

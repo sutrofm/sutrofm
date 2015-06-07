@@ -15,11 +15,11 @@ app.RoomList = Backbone.Collection.extend({
     var self = this;
     $.ajax({
       url: '/api/parties',
-      success: function(result) {
-        self.add(result);
+      success: function(response) {
+        self.add(response.results);
       }
     })
-  },
+  }
 });
 
 app.RoomView = Backbone.View.extend({

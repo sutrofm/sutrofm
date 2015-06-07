@@ -1,1 +1,1 @@
-from .parties import PartiesTestCase
+from sutrofm.tests.parties import PartiesTestCase
