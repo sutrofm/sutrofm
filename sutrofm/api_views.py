@@ -9,6 +9,7 @@ from sutrofm.redis_models import Party, User, Messages
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
+
 def parties(request):
     redis = StrictRedis(connection_pool=redis_connection_pool)
     parties = Party.getall(redis)
@@ -26,6 +27,7 @@ def parties(request):
     ]
     return JsonResponse({'results': data})
 
+
 def users(request):
     redis = StrictRedis(connection_pool=redis_connection_pool)
     users = User.getall(redis)
@@ -38,7 +40,7 @@ def users(request):
             "rdioKey": user.rdioKey,
         } for user in users
     ]
-    return JsonResponse(data)
+    return JsonResponse({'results': data})
 
 def get_user_by_id(request, user_id):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -52,6 +54,7 @@ def get_user_by_id(request, user_id):
     }
     return JsonResponse(data)
 
+
 @csrf_exempt
 def messages(request, room_id):
     if request.method == "POST":
@@ -60,7 +63,8 @@ def messages(request, room_id):
     redis = StrictRedis(connection_pool=redis_connection_pool)
     messages = Messages.get_recent(redis, room_id)
 
-    return JsonResponse(messages)
+    return JsonResponse({'results': messages})
+
 
 def post_message(request):
     party_id = request.POST.get('partyId')
