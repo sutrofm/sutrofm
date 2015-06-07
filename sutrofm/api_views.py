@@ -1,7 +1,5 @@
-import simplejson
-
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import JsonResponse
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, User
@@ -25,8 +23,7 @@ def parties(request):
             } 
         } for party in parties
     ]
-    json_string = simplejson.dumps(data)
-    return HttpResponse(json_string, content_type=JSON_MEDIA_TYPE)
+    return JsonResponse(data)
 
 def users(request):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -40,8 +37,7 @@ def users(request):
             "rdioKey": user.rdioKey,
         } for user in users
     ]
-    json_string = simplejson.dumps(data)
-    return HttpResponse(json_string, content_type=JSON_MEDIA_TYPE)
+    return JsonResponse(data)
 
 def get_user_by_id(request, user_id):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -53,8 +49,7 @@ def get_user_by_id(request, user_id):
         "userUrl": user.userUrl,
         "rdioKey": user.rdioKey,
     }
-    json_string = simplejson.dumps(data)
-    return HttpResponse(json_string, content_type=JSON_MEDIA_TYPE)
+    return JsonResponse(data)
 
 
 
