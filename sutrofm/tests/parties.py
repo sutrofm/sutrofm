@@ -25,17 +25,17 @@ class PartiesTestCase(TestCase):
 
   def test_returns_empty_list_of_parties(self):
     c = Client()
-    response = c.get('/api/parties')
+    response = c.get('/api/parties', follow=True)
     self.assertJSONEqual(response.content, {'results': []})
 
-  def create_a_party(self, name):
+  def create_a_party(self, party_id, name):
     party = Party()
     party.name = name
     party.save(self.redis)
     return party
 
   def test_returns_the_list_of_parties(self):
-    party = self.create_a_party('party-lives-on')
+    party = self.create_a_party('party-lives-on', 'Party lives one!')
     user_shindiger = self.create_a_user('shindiger')
     user_bob = self.create_a_user('bob')
     party.add_user(user_shindiger)
@@ -43,13 +43,12 @@ class PartiesTestCase(TestCase):
     party.save(self.redis)
 
     c = Client()
-    response = c.get('/api/parties')
+    response = c.get('/api/parties', follow=True)
 
     json_response = json.loads(response.content)
     json_parties = json_response['results']
 
-    self.assertIsInstance(json_parties[0]['id'], unicode)
-    self.assertEqual(len(json_parties[0]['id']), 32)
+    self.assertEqual(json_parties[0]['id'], party.id)
     self.assertEqual(json_parties[0]['name'], party.name)
     self.assertEqual(len(json_parties[0]['people']), 2)
 
@@ -61,6 +60,27 @@ class PartiesTestCase(TestCase):
     party.remove_user(user_bob)
     party.save(self.redis)
 
-    response = c.get('/api/parties')
+    response = c.get('/api/parties', follow=True)
     json_response = json.loads(response.content)
     self.assertEqual(len(json_response['results'][0]['people']), 1)
+
+  def test_get_a_party_by_id(self):
+    party = self.create_a_party('party-lives-on', 'Party lives one!')
+    user_shindiger = self.create_a_user('shindiger')
+    user_bob = self.create_a_user('bob')
+    party.add_user(user_shindiger)
+    party.add_user(user_bob)
+    party.save(self.redis)
+
+    c = Client()
+    response = c.get('/api/parties/%s' % party.id, follow=True)
+
+    json_response = json.loads(response.content)
+
+    self.assertEqual(json_response['id'], party.id)
+    self.assertEqual(json_response['name'], party.name)
+    self.assertEqual(len(json_response['people']), 2)
+
+
+
+
