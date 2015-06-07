@@ -1,14 +1,13 @@
-import simplejson
-
+import httplib
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, User, Messages
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
-
 
 def parties(request):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -25,8 +24,7 @@ def parties(request):
             }
         } for party in parties
     ]
-    json_string = simplejson.dumps({'results': data})
-    return HttpResponse(json_string, content_type='text/json')
+    return JsonResponse({'results': data})
 
 def users(request):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -40,8 +38,7 @@ def users(request):
             "rdioKey": user.rdioKey,
         } for user in users
     ]
-    json_string = simplejson.dumps(data)
-    return HttpResponse(json_string, content_type='text/json')
+    return JsonResponse(data)
 
 def get_user_by_id(request, user_id):
     redis = StrictRedis(connection_pool=redis_connection_pool)
@@ -53,8 +50,7 @@ def get_user_by_id(request, user_id):
         "userUrl": user.userUrl,
         "rdioKey": user.rdioKey,
     }
-    json_string = simplejson.dumps(data)
-    return HttpResponse(json_string, content_type='text/json')
+    return JsonResponse(data)
 
 @csrf_exempt
 def messages(request, room_id):
@@ -63,10 +59,10 @@ def messages(request, room_id):
 
     redis = StrictRedis(connection_pool=redis_connection_pool)
     messages = Messages.get_recent(redis, room_id)
-    json_string = simplejson.dumps(messages)
-    return HttpResponse(json_string, content_type='text/json')
 
-def post_message(request, *args, **kwargs):
+    return JsonResponse(messages)
+
+def post_message(request):
     party_id = request.POST.get('partyId')
     message = request.POST.get('message')
     message_type = request.POST.get('messageType')
@@ -76,4 +72,4 @@ def post_message(request, *args, **kwargs):
     redis = StrictRedis(connection_pool=redis_connection_pool)
     m.save_message(redis, message, message_type, user, party_id)
 
-    return HttpResponse('OK')
+    return HttpResponse(status=httplib.CREATED)
