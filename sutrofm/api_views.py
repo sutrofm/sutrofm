@@ -1,7 +1,7 @@
 import httplib
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from redis import ConnectionPool, StrictRedis
@@ -12,22 +12,34 @@ from sutrofm.redis_models import Party, User, Messages
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
 
+def get_party_by_id(request, party_id):
+  redis = StrictRedis(connection_pool=redis_connection_pool)
+  party = Party.get(redis, party_id)
+
+  if party:
+    return JsonResponse(convert_party_to_dict(party))
+  else:
+    return HttpResponseNotFound()
+
+
 def parties(request):
   redis = StrictRedis(connection_pool=redis_connection_pool)
   parties = Party.getall(redis)
-  data = [
-    {
-      "id": party.id,
-      "name": party.name,
-      "people": [{'id': user.id, 'displayName': user.display_name} for user in party.users],
-      "player": {
-        "playingTrack": {
-          "trackKey": party.playing_track_id
-        }
-      }
-    } for party in parties
-  ]
+  data = [convert_party_to_dict(party) for party in parties]
   return JsonResponse({'results': data})
+
+
+def convert_party_to_dict(party):
+  return {
+    "id": party.id,
+    "name": party.name,
+    "people": [{'id': user.id, 'displayName': user.display_name} for user in party.users],
+    "player": {
+      "playingTrack": {
+        "trackKey": party.playing_track_id
+      }
+    }
+  }
 
 
 def users(request):
