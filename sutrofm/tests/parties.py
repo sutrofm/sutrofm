@@ -64,8 +64,3 @@ class PartiesTestCase(TestCase):
     response = c.get('/api/parties')
     json_response = json.loads(response.content)
     self.assertEqual(len(json_response['results'][0]['people']), 1)
-
-
-
-
-

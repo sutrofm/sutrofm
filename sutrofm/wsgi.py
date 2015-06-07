@@ -29,6 +29,6 @@ _websocket_app = uWSGIWebsocketServer()
 
 
 def application(environ, start_response):
-    if environ.get('PATH_INFO').startswith(settings.WEBSOCKET_URL):
-        return _websocket_app(environ, start_response)
-    return _django_app(environ, start_response)
+  if environ.get('PATH_INFO').startswith(settings.WEBSOCKET_URL):
+    return _websocket_app(environ, start_response)
+  return _django_app(environ, start_response)
