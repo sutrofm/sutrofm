@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from rdioapi import Rdio
 import firebase
-from dateutil import parser
+from dateutil import parser as date_parser
 
 
 RDIO_OAUTH2_KEY = 'c2y48bscf6hpd768b6cwvafy'
@@ -17,6 +17,19 @@ WAIT_FOR_USERS = timedelta(minutes=5)
 
 
 class Command(BaseCommand):
+  def __init__(self, *args, **kwargs):
+    super(Command, self).__init__(*args, **kwargs)
+    self.firebase = None
+    self.party_name = None
+    self.party_data = None
+    self.last_saw_users = None
+    self.currently_playing = None
+    self.current_track_duration = None
+    self.current_start_time = None
+    self.keep_running = True
+
+    self.rdio = Rdio(RDIO_OAUTH2_KEY, RDIO_OAUTH2_SECRET, {})
+
   def add_arguments(self, parser):
     parser.add_argument('room_name', type=str)
 
@@ -24,20 +37,14 @@ class Command(BaseCommand):
     self.firebase = firebase.FirebaseApplication(settings.FIREBASE_URL)
     auth = firebase.FirebaseAuthentication(settings.FIREBASE_TOKEN, 'mkapolk@gmail.com')
     self.firebase.authentication = auth
-    self.rdio = Rdio(RDIO_OAUTH2_KEY, RDIO_OAUTH2_SECRET, {})
     self.party_name = room_name
     self.party_data = self.get_party_data()
-    self.currently_playing = None
     self.last_saw_users = datetime.now()
 
-    self.currently_playing = None
     if 'player' in self.party_data and 'playingTrack' in self.party_data['player']:
       track_key = self.party_data['player']['playingTrack']['trackKey']
       self.current_track_duration = self.rdio.get(keys=track_key)[track_key]['duration']
       self.current_start_time = datetime.now() - timedelta(seconds=self.party_data['player']['position'])
-    else:
-      self.current_track_duration = None
-      self.current_start_time = None
 
     self.run()
 
@@ -47,7 +54,6 @@ class Command(BaseCommand):
     return pd
 
   def run(self):
-    self.keep_running = True
     while self.keep_running:
       try:
         self.keep_running = self.tick()
@@ -55,19 +61,20 @@ class Command(BaseCommand):
         logging.exception("AH DAEMON PROBLEM")
       time.sleep(1)
 
-  def _vote_score(self, track):
+  @staticmethod
+  def _vote_score(track):
     votes = track['votes'].values()
-    upvotes = filter(lambda x: x == "like", votes)
-    downvotes = filter(lambda x: x == "dislike", votes)
-    return len(upvotes) - len(downvotes)
+    up_votes = [vote for vote in votes if vote == 'like']
+    down_votes = [vote for vote in votes if vote == 'dislike']
+    return len(up_votes) - len(down_votes)
 
   def _track_comparator(self, track_a, track_b):
     a_score = self._vote_score(track_a)
     b_score = self._vote_score(track_b)
     if a_score == b_score:
       try:
-        a_time = parser.parse(track_a['timestamp'])
-        b_time = parser.parse(track_b['timestamp'])
+        a_time = date_parser.parse(track_a['timestamp'])
+        b_time = date_parser.parse(track_b['timestamp'])
         return -cmp(a_time, b_time)
       except KeyError:
         pass
@@ -139,7 +146,7 @@ class Command(BaseCommand):
   def tick(self):
     self.party_data = self.get_party_data()
     position = (datetime.now() - (self.current_start_time or datetime.now())).seconds
-    if (not self.currently_playing or position > self.current_track_duration or self.should_skip()):
+    if not self.currently_playing or position > self.current_track_duration or self.should_skip():
       self.play_next_track()
     else:
       self.firebase.put(self.party_name + '/player/', 'position', position)

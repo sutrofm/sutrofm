@@ -28,15 +28,14 @@ class RdioTokens(object):
 
 
 def rdio(request):
+  rdio_token = None
   if request.user.is_authenticated():
     try:
       rdio_auth = request.user.social_auth.filter(provider='rdio-oauth2').get()
-      rdio = RdioTokens(rdio_auth)
+      rdio_token = RdioTokens(rdio_auth)
     except UserSocialAuth.DoesNotExist:
-      rdio = None
-  else:
-    rdio = None
+      pass
 
   return {
-    'rdio': rdio
+    'rdio': rdio_token
   }
