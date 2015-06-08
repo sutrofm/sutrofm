@@ -1,73 +1,81 @@
 import httplib
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, User, Messages
 
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
+redis = StrictRedis(connection_pool=redis_connection_pool)
 
 
 def get_party_by_id(request, party_id):
-  redis = StrictRedis(connection_pool=redis_connection_pool)
   party = Party.get(redis, party_id)
 
   if party:
-    return JsonResponse(convert_party_to_dict(party))
+    return JsonResponse({'results': party.to_dict()})
   else:
     return HttpResponseNotFound()
 
 
 def parties(request):
-  redis = StrictRedis(connection_pool=redis_connection_pool)
   parties = Party.getall(redis)
-  data = [convert_party_to_dict(party) for party in parties]
+  data = [party.to_dict() for party in parties]
   return JsonResponse({'results': data})
 
+def users(request):
+    users = User.getall(redis)
+    data = [
+        {
+            "id": user.id,
+            "displayName": user.display_name,
+            "iconUrl": user.icon_url,
+            "userUrl": user.user_url,
+            "rdioKey": user.rdio_key,
+        } for user in users
+    ]
 
-def convert_party_to_dict(party):
-  return {
-    "id": party.id,
-    "name": party.name,
-    "people": [{'id': user.id, 'displayName': user.display_name} for user in party.users],
-    "player": {
-      "playingTrack": {
-        "trackKey": party.playing_track_id
-      }
+    return JsonResponse({'results': data})
+
+def get_user_by_id(request, user_id):
+    user = User.get(redis, user_id)
+    data = {
+        "id": user.id,
+        "displayName": user.display_name,
+        "iconUrl": user.icon_url,
+        "userUrl": user.user_url,
+        "rdioKey": user.rdio_key,
     }
-  }
+    return JsonResponse({'results': data})
 
 
 def users(request):
-  redis = StrictRedis(connection_pool=redis_connection_pool)
   users = User.getall(redis)
   data = [
     {
       "id": user.id,
-      "displayName": user.displayName,
-      "iconUrl": user.iconUrl,
-      "userUrl": user.userUrl,
-      "rdioKey": user.rdioKey,
+      "displayName": user.display_name,
+      "iconUrl": user.icon_url,
+      "userUrl": user.user_url,
+      "rdioKey": user.rdio_key,
     } for user in users
   ]
   return JsonResponse({'results': data})
 
 
 def get_user_by_id(request, user_id):
-  redis = StrictRedis(connection_pool=redis_connection_pool)
   user = User.get(redis, user_id)
   data = {
     "id": user.id,
-    "displayName": user.displayName,
-    "iconUrl": user.iconUrl,
-    "userUrl": user.userUrl,
-    "rdioKey": user.rdioKey,
+    "displayName": user.display_name,
+    "iconUrl": user.icon_url,
+    "userUrl": user.user_url,
+    "rdioKey": user.rdio_key,
   }
-  return JsonResponse(data)
+  return JsonResponse({'results': data})
 
 
 @csrf_exempt
@@ -75,7 +83,6 @@ def messages(request, room_id):
   if request.method == "POST":
     post_message(request)
 
-  redis = StrictRedis(connection_pool=redis_connection_pool)
   messages = Messages.get_recent(redis, room_id)
 
   return JsonResponse({'results': messages})
@@ -88,7 +95,6 @@ def post_message(request):
   user = request.POST.get('userId')  # TODO this should come from the session
 
   m = Messages()
-  redis = StrictRedis(connection_pool=redis_connection_pool)
   m.save_message(redis, message, message_type, user, party_id)
 
   return HttpResponse(status=httplib.CREATED)

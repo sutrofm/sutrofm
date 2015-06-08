@@ -140,6 +140,22 @@ class Party(object):
     else:
       return None
 
+  def to_dict(self):
+    party_dict = {
+      'id': self.id,
+      'name': self.name,
+      'people': [{'id': user.id, 'displayName': user.display_name} for user in self.users],
+      'player': {
+        'playingTrack': {
+          'trackKey': self.playing_track_key,
+        },
+      },
+    }
+    return party_dict
+
+  def to_json(self):
+    return json.dumps(self.to_dict())
+
 
 class QueueEntry(object):
   def __init__(self):
@@ -200,6 +216,18 @@ class QueueEntry(object):
     else:
       return -1
 
+  def to_dict(self):
+    queue_dict = {
+      'track_key': self.track_key,
+      'submitter': self.submitter.id,
+      'upvotes': ",".join(self.upvotes),
+      'downvotes': ",".join(self.downvotes),
+      'timestamp': self.timestamp
+    }
+    return queue_dict
+
+  def to_json(self):
+    return json.dumps(self.to_dict())
 
 
 class User(object):
@@ -239,6 +267,19 @@ class User(object):
     })
     connection.sadd('users', self.id)
 
+  def to_dict(self):
+    user_dict = {
+      'id': self.id,
+      'displayName': self.display_name,
+      'iconUrl': self.icon_url,
+      'userUrl': self.user_url,
+      'rdioKey': self.rdio_key
+    }
+    return user_dict
+
+  def to_json(self):
+    return json.dumps(self.to_dict())
+
 
 class Messages(object):
   @staticmethod
@@ -257,3 +298,15 @@ class Messages(object):
       "timestamp": datetime.datetime.utcnow()
     })
 
+  def to_dict(self):
+    message_dict = {
+      'party_messages_id': self.party_messages_id,
+      'message': self.message,
+      'type': self.message_type,
+      'user': self.user,
+      'timestamp': self.timestamp
+    }
+    return message_dict
+
+  def to_json(self):
+    return json.dumps(self.to_dict())
