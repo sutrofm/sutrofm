@@ -125,6 +125,16 @@ class User(object):
     })
     connection.sadd('users', self.id)
 
+  def to_json(self):
+    user_dict = {
+      'id': self.id,
+      'displayName': self.display_name,
+      'iconUrl': self.icon_url,
+      'userUrl': self.user_url,
+      'rdioKey': self.rdio_key
+    }
+    return json.dumps(user_dict)
+
 
 class Messages(object):
   @staticmethod
