@@ -1,14 +1,19 @@
-from django.conf import settings
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
-import json
-from django.http import HttpResponse
-
 import subprocess
 import psutil
 import os
+import json
+
+from django.conf import settings
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.shortcuts import redirect, render, render_to_response
 from firebase_token_generator import create_token
+from redis import ConnectionPool, StrictRedis
+
+from sutrofm.redis_models import Party
+
+redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
 
 def home(request):
@@ -46,6 +51,15 @@ def make_room_daemon(room_name):
 def party(request, room_name):
     if room_name is None:
         return redirect('/p/rdio')
+
+    connection = StrictRedis(connection_pool=redis_connection_pool)
+    party = Party.get(connection, room_name)
+    if not party:
+      party = Party()
+      party.id = room_name
+      party.name = room_name
+      party.save(connection)
+
     context = {
         'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),
         'room_name': room_name,
@@ -69,4 +83,4 @@ def sign_out(request):
 
 
 def player_helper(request):
-    return render(request, 'player-helper.html')
+    return render_to_response('player-helper.html')

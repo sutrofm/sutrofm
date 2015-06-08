@@ -25,15 +25,6 @@
   </div>
 </div>
 
-<!--
-<div class="row">
-  <div class="span12">
-    <div id="creation-feedback">
-    </div>
-  </div>
-</div>
--->
-
 <div class="row existing-party-list">
 
   <div class="span6 offset3">
@@ -62,7 +53,7 @@
   <script type="text/template" id="room-template">
     <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">
       <div class="party-room-name">
-        <a href="{% url 'party' %}<%= name %>"><%= name %></a>
+        <a href="{% url 'party' %}<%= id %>"><%= name %></a>
       </div>
       <div class="party-room-population">
         <%= population %>

@@ -96,6 +96,8 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
+SESSION_ENGINE = 'redis_sessions.session'
+
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -116,7 +118,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'sutrofm.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'sutrofm.wsgi.application'
+WSGI_APPLICATION = 'ws4redis.django_runserver.application'
 
 TEMPLATE_DIRS = (
     '%s/template' % os.path.abspath(os.path.split(__file__)[0]),
@@ -134,6 +136,7 @@ INSTALLED_APPS = (
     'social_auth',
     'storages',
     'library',
+    'ws4redis',
     'sutrofm'
 )
 
@@ -147,6 +150,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'social_auth.context_processors.social_auth_by_name_backends',
     'sutrofm.context_processors.rdio',
+    'ws4redis.context_processors.default',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -213,3 +217,20 @@ SENTRY_DSN = os.environ.get('SENTRY_DSN')
 FIREBASE_TOKEN = os.environ.get('FIREBASE_TOKEN')
 
 FIREBASE_URL = 'https://rdioparty.firebaseio.com'
+
+# URL that distinguishes websocket connections from normal requests
+WEBSOCKET_URL = '/ws/'
+
+# Set the number of seconds each message shall persited
+WS4REDIS_EXPIRE = 3600
+
+WS4REDIS_HEARTBEAT = '--heartbeat--'
+
+WS4REDIS_PREFIX = 'sutrofm'
+
+WS4REDIS_CONNECTION = {
+    'host': 'localhost',
+    'port': 6379,
+    'db': 0,
+    'password': None,
+}
