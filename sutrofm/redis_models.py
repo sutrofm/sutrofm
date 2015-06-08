@@ -292,7 +292,7 @@ class User(object):
       "id": self.id,
       "displayName": self.display_name,
       "iconUrl": self.icon_url,
-      "user": self.user_url,
+      "userUrl": self.user_url,
       "rdioKey": self.rdio_key,
     }
 
