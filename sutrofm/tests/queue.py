@@ -60,3 +60,10 @@ class QueueTestCase(SutroTestCase):
     self.party.save(self.redis)
     p = Party.get(self.redis, self.party.id)
     self.assertEquals(p.queue[0].id, q1.id)
+
+  def test_empty_votes_serialized_correctly(self):
+    """ Do we dequeue the right song from the party? Does that song get properly removed? """
+    self.party.enqueue_song(self.user, 't123')
+    self.party.save(self.redis)
+    p = Party.get(self.redis, self.party.id)
+    self.assertEquals(p.queue[0].downvotes, set([]))

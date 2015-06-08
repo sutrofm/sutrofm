@@ -197,8 +197,11 @@ class QueueEntry(object):
       output.party_id = party_id
       output.track_key = data.get('track_key', '')
       output.submitter = User.get(connection, data.get('submitter', ''))
-      output.upvotes = set(data.get('upvotes', '').split(","))
-      output.downvotes = set(data.get('downvotes', '').split(","))
+      output.upvotes = data.get('upvotes', '').split(",")
+      output.downvotes = data.get('downvotes', '').split(",")
+      # Filter out empty strings
+      output.upvotes = set(filter(None, output.upvotes))
+      output.downvotes = set(filter(None, output.downvotes))
       output.timestamp = parser.parse(data.get('timestmap', datetime.datetime.utcnow().isoformat()))
       return output
     else:
@@ -210,8 +213,8 @@ class QueueEntry(object):
     connection.hmset('parties:%s:queue:%s' % (self.party_id, self.id), {
       'track_key': self.track_key,
       'submitter': self.submitter.id,
-      'upvotes': ",".join(self.upvotes),
-      'downvotes': ",".join(self.downvotes),
+      'upvotes': ",".join(map(str, self.upvotes)),
+      'downvotes': ",".join(map(str, self.downvotes)),
       'timestamp': self.timestamp.isoformat()
     })
 

@@ -122,8 +122,6 @@ formatDuration = function(duration) {
 
 
 app.Track = Backbone.Model.extend({
-  LIKE: 'like',
-  DISLIKE: 'dislike',
   getVoteRef: function() {
     return this.collection.firebase.child(this.get('id')).child('votes');
   },
@@ -141,25 +139,9 @@ app.Track = Backbone.Model.extend({
     this.vote(this.DISLIKE);
   },
 
-  getVoteCount: function(voteType) {
-    var voteArray = this.get('votes');
-    if (voteArray === undefined) {
-      return 0;
-    }
-    var votes = _.values(voteArray);
-    var count = _.reduce(votes, function(num, vote) {
-      if (vote === voteType) {
-        return num + 1;
-      } else {
-        return num;
-      }
-    }, 0);
-    return count;
-  },
-
   getVoteCounts: function() {
-    var likeCount = this.getVoteCount(this.LIKE);
-    var dislikeCount = this.getVoteCount(this.DISLIKE);
+    var likeCount = this.get('upvotes').length;
+    var dislikeCount = this.get('downvotes').length;
 
     return {
       upVotes: likeCount,
