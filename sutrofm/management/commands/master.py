@@ -5,9 +5,6 @@ import time
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from rdioapi import Rdio
-import logging
-import time
-from dateutil import parser
 
 from redis import ConnectionPool, StrictRedis
 
@@ -43,13 +40,7 @@ class Command(BaseCommand):
     self.current_track_duration = None
     self.current_start_time = None
 
-    if self.party.playing_track_key:
-      track_key = self.party.playing_track_key
-      rdio_response = self.rdio.get(keys=track_key)
-      if track_key in rdio_response:
-        self.current_track_duration = rdio_response[track_key]['duration']
-        self.current_start_time = self.party.playing_track_start_time
-        self.currently_playing = track_key
+    self.play_track(self.party.playing_track_key)
 
     self.run()
 
@@ -61,24 +52,27 @@ class Command(BaseCommand):
         logging.exception("AH DAEMON PROBLEM")
       time.sleep(1)
 
+  def play_track(self, track_key):
+    self.current_track_duration = None
+    self.current_start_time = None
+    self.currently_playing = None
+
+    if track_key:
+      rdio_response = self.rdio.get(keys=track_key)
+      if track_key in rdio_response:
+          self.currently_playing = track_key
+          self.current_track_duration = rdio_response[track_key]['duration']
+          self.current_start_time = self.party.playing_track_start_time
+          self.send_play_track_message(rdio_response)
+
   def play_next_track(self):
     # Refresh party data
     self.party.play_next_track()
     self.party.save(self.redis)
     self.party.broadcast_player_state(self.redis)
+    self.party.broadcast_queue_state(self.redis)
 
-    # TODO replace with redis messages when that patch lands
-    if self.party.playing_track_key:
-      track_key = self.party.playing_track_key
-      rdio_track = self.rdio.get(keys=track_key)[track_key]
-      self.currently_playing = track_key
-      self.current_track_duration = rdio_track['duration']
-      self.current_start_time = self.party.playing_track_start_time
-      self.send_play_track_message(rdio_track)
-    else:
-      self.current_track_duration = None
-      self.current_start_time = None
-      self.currently_playing = None
+    self.play_track(self.party.playing_track_key)
 
   def send_play_track_message(self, rdio_track):
     pass # TODO

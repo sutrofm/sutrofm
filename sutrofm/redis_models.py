@@ -95,7 +95,7 @@ class Party(object):
       self.id = uuid.uuid4().hex
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
-      "playing_track_key": self.playing_track_key,
+      "playing_track_key": self.playing_track_key or '',
       "playing_track_start_time": self.playing_track_start_time,
     })
     # Save users
