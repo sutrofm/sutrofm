@@ -582,14 +582,11 @@ app.queueView = Backbone.View.extend({
   },
 
   addAll: function (collection, options) {
-    console.log("ADDALL");
-    console.log(collection);
     this.$el.empty();
     collection.each(this.addOne, this);
   },
 
   sortQueue: function() {
-    console.log("SORT QUEUE");
     app.queue.sort();
   }
 });
