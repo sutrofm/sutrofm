@@ -5,7 +5,7 @@ from sutrofm.tests.sutro_test_case import SutroTestCase
 
 class UsersTestCase(SutroTestCase):
     def test_returns_empty_list_of_users(self):
-        response = self.client.get('/api/users')
+        response = self.client.get('/api/users', follow=True)
         self.assertJSONEqual(response.content, {'results':[]})
 
     def test_returns_list_of_users(self):
@@ -33,7 +33,10 @@ class UsersTestCase(SutroTestCase):
                                          rdio_key=x['rdio_key']), users)
 
         # Retrieve users via api and verify their attributes are as expected
-        json_users = json.loads(self.client.get('/api/users').content)['results']
+        response = self.client.get('/api/users', follow=True)
+        json_response = json.loads(response.content)
+        json_users = json_response['results']
+
         for user in json_users:
             user_to_check = {
                 'display_name': user.get('displayName'),

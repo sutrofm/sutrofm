@@ -37,8 +37,9 @@ class SutroTestCase(TestCase):
         user.save(self.redis)
         return user
 
-    def create_a_party(self, name):
+    def create_a_party(self, party_id, name):
         party = Party()
+        party.id = party_id
         party.name = name
         party.save(self.redis)
         return party
