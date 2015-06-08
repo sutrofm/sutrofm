@@ -48,6 +48,19 @@ def get_party_queue(request, party_id):
     return HttpResponseNotFound()
 
 @csrf_exempt
+def add_to_queue(request, party_id):
+  if request.method == "POST":
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    user = User.getall(redis)[0]
+    party = Party.get(redis, party_id)
+    party.enqueue_song(user, request.POST.get('trackKey'))
+
+    party.save(redis)
+    party.broadcast_queue_state(redis)
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
 def messages(request, room_id):
   if request.method == "POST":
     post_message(request)
