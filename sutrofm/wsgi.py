@@ -21,8 +21,14 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sutrofm.settings")
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.
 from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
+from django.conf import settings
+from ws4redis.uwsgi_runserver import uWSGIWebsocketServer
 
-# Apply WSGI middleware here.
-# from helloworld.wsgi import HelloWorldApplication
-# application = HelloWorldApplication(application)
+_django_app = get_wsgi_application()
+_websocket_app = uWSGIWebsocketServer()
+
+
+def application(environ, start_response):
+  if environ.get('PATH_INFO').startswith(settings.WEBSOCKET_URL):
+    return _websocket_app(environ, start_response)
+  return _django_app(environ, start_response)
