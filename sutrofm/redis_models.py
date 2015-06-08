@@ -177,7 +177,7 @@ class QueueEntry(object):
       output.track_key = data.get('track_key', '')
       output.submitter = User.get(connection, data.get('submitter', ''))
       output.upvotes = set(data.get('upvotes', '').split(","))
-      output.downvotes = set(data.get('upvotes', '').split(","))
+      output.downvotes = set(data.get('downvotes', '').split(","))
       output.timestamp = parser.parse(data.get('timestmap', datetime.datetime.utcnow().isoformat()))
       return output
     else:
@@ -228,7 +228,6 @@ class QueueEntry(object):
 
   def to_json(self):
     return json.dumps(self.to_dict())
-
 
 class User(object):
   def __init__(self):

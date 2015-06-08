@@ -51,31 +51,46 @@ def get_user_by_id(request, user_id):
     }
     return JsonResponse({'results': data})
 
+def get_party_queue(request, party_id):
+  redis = StrictRedis(connection_pool=redis_connection_pool)
+  party = Party.get(redis, party_id)
 
-def users(request):
-  users = User.getall(redis)
-  data = [
-    {
+  if party:
+    results_list = [
+        {
+            'trackKey': entry.track_key,
+            'submitter': convert_user_to_dict(entry.submitter),
+            'upvotes': list(entry.upvotes),
+            'downvotes': list(entry.downvotes),
+            'timestamp': entry.timestamp.isoformat()
+        } for entry in party.queue
+    ]
+    return JsonResponse({'results': results_list})
+  else:
+    return HttpResponseNotFound()
+
+
+def convert_user_to_dict(user):
+    return {
       "id": user.id,
       "displayName": user.display_name,
       "iconUrl": user.icon_url,
       "userUrl": user.user_url,
       "rdioKey": user.rdio_key,
-    } for user in users
+    }
+
+def users(request):
+  users = User.getall(redis)
+  data = [
+    convert_user_to_dict(user) for user in users
   ]
   return JsonResponse({'results': data})
 
 
 def get_user_by_id(request, user_id):
   user = User.get(redis, user_id)
-  data = {
-    "id": user.id,
-    "displayName": user.display_name,
-    "iconUrl": user.icon_url,
-    "userUrl": user.user_url,
-    "rdioKey": user.rdio_key,
-  }
-  return JsonResponse({'results': data})
+  data = convert_user_to_dict(user)
+  return JsonResponse(data)
 
 
 @csrf_exempt
