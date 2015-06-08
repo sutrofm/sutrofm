@@ -25,8 +25,17 @@ class Party(object):
       }
     }
 
+  def get_queue_state_payload(self):
+    return {
+        'type': 'queue',
+        'data': self.queue_to_dict()
+    }
+
   def broadcast_player_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_player_state_payload()))
+
+  def broadcast_queue_state(self, connection):
+    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_queue_state_payload()))
 
   @property
   def current_track_position(self):
@@ -141,20 +150,32 @@ class Party(object):
       return None
 
   def to_dict(self):
-    party_dict = {
-      'id': self.id,
-      'name': self.name,
-      'people': [{'id': user.id, 'displayName': user.display_name} for user in self.users],
-      'player': {
-        'playingTrack': {
-          'trackKey': self.playing_track_key,
-        },
-      },
+    return {
+      "id": self.id,
+      "name": self.name,
+      "people": [{'id': user.id, 'displayName': user.display_name} for user in self.users],
+      "player": {
+        "playingTrack": {
+          "trackKey": self.playing_track_key
+        }
+      }
     }
-    return party_dict
 
   def to_json(self):
     return json.dumps(self.to_dict())
+
+
+  def queue_to_dict(self):
+    return [
+        {
+            'trackKey': entry.track_key,
+            'submitter': entry.submitter.to_dict(),
+            'upvotes': list(entry.upvotes),
+            'downvotes': list(entry.downvotes),
+            'timestamp': entry.timestamp.isoformat(),
+            'userKey': entry.submitter.rdio_key
+        } for entry in self.queue
+    ]
 
 
 class QueueEntry(object):
@@ -267,14 +288,13 @@ class User(object):
     connection.sadd('users', self.id)
 
   def to_dict(self):
-    user_dict = {
-      'id': self.id,
-      'displayName': self.display_name,
-      'iconUrl': self.icon_url,
-      'userUrl': self.user_url,
-      'rdioKey': self.rdio_key
+    return {
+      "id": self.id,
+      "displayName": self.display_name,
+      "iconUrl": self.icon_url,
+      "user": self.user_url,
+      "rdioKey": self.rdio_key,
     }
-    return user_dict
 
   def to_json(self):
     return json.dumps(self.to_dict())
