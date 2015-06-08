@@ -13,7 +13,6 @@ chat.UserList = Backbone.Firebase.Collection.extend({
 	}
 });
 chat.activeUsers = new chat.UserList();
-chat.redisActiveUsers = new chat.UserList();
 chat.UserView = Backbone.View.extend({
 	tagName: 'li',
 	template: _.template($('#user-presence-template').html()),
@@ -48,11 +47,11 @@ chat.UserListView = Backbone.View.extend({
 	initialize: function() {
 		this.presenceStats = $('#presence-stats');
 		// listen to when new users are added
-		this.listenTo(chat.redisActiveUsers, 'add', this.onListChanged);
+		this.listenTo(chat.activeUsers, 'add', this.onListChanged);
 		// and to when users change from online to offline
-		this.listenTo(chat.redisActiveUsers, 'change', this.onListChanged);
+		this.listenTo(chat.activeUsers, 'change', this.onListChanged);
 		//probably should render the activeUsers  on init so we have a starting point too.
-		this.redraw(chat.redisActiveUsers, {});
+		this.redraw(chat.activeUsers, {});
 	},
 	drawUser: function(model, collection, options) {
 		if (model.get('isOnline')) {
@@ -70,7 +69,7 @@ chat.UserListView = Backbone.View.extend({
 	onListChanged: function(model, options) {
 		console.log("list changed with model: ", model);
 		// this is inefficient, but we don't have another hook to the dom element.
-		this.redraw(chat.redisActiveUsers, {});
+		this.redraw(chat.activeUsers, {});
 	}
 }); /* chat messages! */
 chat.Message = Backbone.Model.extend({});
@@ -82,7 +81,7 @@ chat.UserMessageView = Backbone.View.extend({
 	tagName: 'li',
 	template: _.template($('#chat-user-message-template').html()),
 	render: function() {
-		var user = chat.redisActiveUsers.get(this.model.get('userKey'));
+		var user = chat.activeUsers.get(this.model.get('userKey'));
 		// Strip all tags from the message. Regex explanation: http://regexr.com/3b0rq
 		var message = this.model.get('message').replace(/<(?:.|\n)*?>/gm, '');
 		if (user) {
@@ -158,25 +157,6 @@ R.ready(function() {
 		});
 		console.log("added user ", chat.activeUsers.get(userKey), " to chat");
 	}
-
-	// add current user to redisActiveUsers
-	userId = '1';
-	$.ajax({
-		url: '/api/users',
-		success: function(result) {
-			var user = chat.redisActiveUsers.get(userId);
-			if (user === undefined) {
-				chat.redisActiveUsers.add({
-					id: userId,
-					isOnline: true,
-					icon: R.currentUser.get('icon'),
-					fullName: R.currentUser.get('firstName') + ' ' + R.currentUser.get('lastName')
-				});
-				console.log("ADDED TO REDISACTIVEUSERS ", chat.redisActiveUsers.get(userId), " to fake chat");
-			}
-		}
-	})
-
 	var isOnlineRef = chat.activeUsers.firebase.child(userKey).child('isOnline');
 	console.log('online presence:', isOnlineRef.toString());
 	// Mark yourself as offline on disconnect

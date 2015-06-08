@@ -70,12 +70,12 @@ def get_user_by_id(request, user_id):
   user = User.get(redis, user_id)
   data = {
     "id": user.id,
-    "displayName": user.displayName,
-    "iconUrl": user.iconUrl,
-    "userUrl": user.userUrl,
-    "rdioKey": user.rdioKey,
+    "displayName": user.display_name,
+    "iconUrl": user.icon_url,
+    "userUrl": user.user_url,
+    "rdioKey": user.rdio_key,
   }
-  return JsonResponse(data)
+  return JsonResponse({'results': data})
 
 
 @csrf_exempt

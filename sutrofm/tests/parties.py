@@ -57,6 +57,3 @@ class PartiesTestCase(SutroTestCase):
     self.assertEqual(json_party['name'], party.name)
     self.assertEqual(len(json_party['people']), 2)
 
-
-
-
