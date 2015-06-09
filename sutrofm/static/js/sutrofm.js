@@ -11,7 +11,6 @@ app.Player = Backbone.Model.extend({
     var self = this
   },
   setState: function(data) {
-    console.log(data);
     this.set('position', data['playing_track_position'])
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
@@ -123,8 +122,6 @@ formatDuration = function(duration) {
 
 
 app.Track = Backbone.Model.extend({
-  LIKE: 'like',
-  DISLIKE: 'dislike',
   getVoteRef: function() {
     return this.collection.firebase.child(this.get('id')).child('votes');
   },
@@ -142,25 +139,9 @@ app.Track = Backbone.Model.extend({
     this.vote(this.DISLIKE);
   },
 
-  getVoteCount: function(voteType) {
-    var voteArray = this.get('votes');
-    if (voteArray === undefined) {
-      return 0;
-    }
-    var votes = _.values(voteArray);
-    var count = _.reduce(votes, function(num, vote) {
-      if (vote === voteType) {
-        return num + 1;
-      } else {
-        return num;
-      }
-    }, 0);
-    return count;
-  },
-
   getVoteCounts: function() {
-    var likeCount = this.getVoteCount(this.LIKE);
-    var dislikeCount = this.getVoteCount(this.DISLIKE);
+    var likeCount = this.get('upvotes').length;
+    var dislikeCount = this.get('downvotes').length;
 
     return {
       upVotes: likeCount,
@@ -175,10 +156,16 @@ app.Track = Backbone.Model.extend({
 });
 
 
-app.TrackList = Backbone.Firebase.Collection.extend({
+app.TrackList = Backbone.Collection.extend({
   model: app.Track,
 
-  firebase: app.roomUrl + '/queue',
+  setQueue: function(data) {
+    var queue = data.map(function(value) {
+      return new app.Track(value);
+    })
+    this.reset(queue);
+    this.sort();
+  },
 
   comparator: function(a, b) {
     var aScore = a.getVoteCounts().totalVotes;
@@ -335,8 +322,7 @@ app.NowPlayingView = Backbone.View.extend({
     prettyPosition = formatDuration(position);
     prettyDuration = formatDuration(R.player.playingTrack().get('duration'));
     this.$(".timer").text(prettyPosition + "/" + prettyDuration);
-    this.$(".duration-bar > span").animate({ width: ( position / R.player.playingTrack().get('duration') ) * 100+'%' }, 100);//attr("value", position);
-//    this.$(".duration-bar").attr("max", R.player.playingTrack().get('duration'));
+    this.$(".duration-bar > span").animate({ width: ( position / R.player.playingTrack().get('duration') ) * 100+'%' }, 100);
   },
 
   getDuration: function(duration) {
@@ -556,10 +542,11 @@ app.queueView = Backbone.View.extend({
     this.queueStats = $('#queue-stats');
 
     this.listenTo(app.queue, 'add', this.addOne);
+    this.listenTo(app.queue, 'reset', this.addAll);
     this.listenTo(app.queue, 'sort', this.addAll);
     this.listenTo(app.queue, 'change', this.sortQueue);
     this.listenTo(app.queue, 'all', this.render);
-    this.addAll(app.queue, {});
+    //this.addAll(app.queue, {});
   },
 
   render: function() {
@@ -641,6 +628,10 @@ app.receiveMessage = function(msg) {
       case "player":
         app.playState.setState(payload['data']);
       break;
+
+      case "queue":
+        app.queue.setQueue(payload['data']);
+      break;
     }
   }
 }
@@ -668,6 +659,7 @@ R.ready(function() {
       var skipButton = new app.SkipButton();
 
       app.playState.setState(window.initial_player_state);
+      app.queue.setQueue(window.initial_queue_state);
 
       if(!R.currentUser.get('canStreamHere')) {
         var template = _.template($('#not-a-paying-customer-template').html());

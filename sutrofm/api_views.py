@@ -27,56 +27,38 @@ def parties(request):
   return JsonResponse({'results': data})
 
 def users(request):
-    users = User.getall(redis)
-    data = [
-        {
-            "id": user.id,
-            "displayName": user.display_name,
-            "iconUrl": user.icon_url,
-            "userUrl": user.user_url,
-            "rdioKey": user.rdio_key,
-        } for user in users
-    ]
-
-    return JsonResponse({'results': data})
-
-def get_user_by_id(request, user_id):
-    user = User.get(redis, user_id)
-    data = {
-        "id": user.id,
-        "displayName": user.display_name,
-        "iconUrl": user.icon_url,
-        "userUrl": user.user_url,
-        "rdioKey": user.rdio_key,
-    }
-    return JsonResponse({'results': data})
-
-
-def users(request):
   users = User.getall(redis)
   data = [
-    {
-      "id": user.id,
-      "displayName": user.display_name,
-      "iconUrl": user.icon_url,
-      "userUrl": user.user_url,
-      "rdioKey": user.rdio_key,
-    } for user in users
+    user.to_dict() for user in users
   ]
   return JsonResponse({'results': data})
 
-
 def get_user_by_id(request, user_id):
-  user = User.get(redis, user_id)
-  data = {
-    "id": user.id,
-    "displayName": user.display_name,
-    "iconUrl": user.icon_url,
-    "userUrl": user.user_url,
-    "rdioKey": user.rdio_key,
-  }
-  return JsonResponse({'results': data})
+    user = User.get(redis, user_id)
+    return JsonResponse({'results': user.to_dict()})
 
+def get_party_queue(request, party_id):
+  redis = StrictRedis(connection_pool=redis_connection_pool)
+  party = Party.get(redis, party_id)
+
+  if party:
+    results_list = party.queue_to_dict()
+    return JsonResponse({'results': results_list})
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
+def add_to_queue(request, party_id):
+  if request.method == "POST":
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    user = User.getall(redis)[0]
+    party = Party.get(redis, party_id)
+    party.enqueue_song(user, request.POST.get('trackKey'))
+
+    party.save(redis)
+    party.broadcast_queue_state(redis)
+  else:
+    return HttpResponseNotFound()
 
 @csrf_exempt
 def messages(request, room_id):

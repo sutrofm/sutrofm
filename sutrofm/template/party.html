@@ -274,6 +274,7 @@
   <script type="text/javascript" src="{{STATIC_URL}}js/ws4redis.js"></script>
   <script type="text/javascript">
     var initial_player_state = {{ initial_player_state_json|safe }}['data']
+    var initial_queue_state = {{ initial_queue_state_json|safe }}['data']
   </script>
   {% endif %}
 

@@ -68,7 +68,8 @@ def party(request, room_name):
     'room_name': room_name,
     'body_class': 'party',
     'room_id': room_name,
-    'initial_player_state_json': json.dumps(party.get_player_state_payload())
+    'initial_player_state_json': json.dumps(party.get_player_state_payload()),
+    'initial_queue_state_json': json.dumps(party.get_queue_state_payload())
   }
   make_room_daemon(room_name)
   return render(request, 'party.html', context)
