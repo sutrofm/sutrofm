@@ -264,10 +264,17 @@
   var firebaseToken = '{{ rdio.firebase_token }}';
   var firebaseRootUrl = '{{ firebase_url }}';
   var firebaseRef = new Firebase(firebaseRootUrl);
+  var roomId = "{{ room_id }}";
+  var websocket_uri = '{{ WEBSOCKET_URI }}';
+  var heartbeat_msg = {{ WS4REDIS_HEARTBEAT }};
   </script>
   <script type="text/javascript" src="{{STATIC_URL}}js/chat.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/sutrofm.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/search-view.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/ws4redis.js"></script>
+  <script type="text/javascript">
+    var initial_player_state = {{ initial_player_state_json|safe }}['data']
+  </script>
   {% endif %}
 
 {% endblock%}

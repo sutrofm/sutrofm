@@ -17,3 +17,5 @@ psutil==2.2.0
 python-dateutil==2.4.1
 django-websocket-redis==0.4.4
 simplejson==3.6.5
+django-websocket-redis==0.4.4
+django-redis-sessions==0.4.0
