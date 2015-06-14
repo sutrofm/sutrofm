@@ -234,3 +234,6 @@ WS4REDIS_CONNECTION = {
   'db': 0,
   'password': None,
 }
+
+# RDIO_OAUTH2_KEY = 'c2y48bscf6hpd768b6cwvafy'
+# RDIO_OAUTH2_SECRET = 'sHf9GavUrP'

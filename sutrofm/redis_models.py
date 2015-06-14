@@ -2,7 +2,11 @@ import datetime
 import uuid
 
 from dateutil import parser
+from django.conf import settings
+from rdioapi import Rdio
 import simplejson as json
+from sutrofm.context_processors import rdio
+
 
 
 class Party(object):
@@ -264,13 +268,16 @@ class User(object):
   @staticmethod
   def get(connection, id):
     data = connection.hgetall('users:%s' % id)
-    output = User()
-    output.id = id
-    output.display_name = data.get('displayName', '')
-    output.icon_url = data.get('iconUrl', '')
-    output.user_url = data.get('userUrl', '')
-    output.rdio_key = data.get('rdioKey', '')
-    return output
+    if data:
+      output = User()
+      output.id = id
+      output.display_name = data.get('displayName', '')
+      output.icon_url = data.get('iconUrl', '')
+      output.user_url = data.get('userUrl', '')
+      output.rdio_key = data.get('rdioKey', '')
+      return output
+    else:
+      return None
 
   @staticmethod
   def getall(connection):
@@ -278,6 +285,17 @@ class User(object):
     return [
       User.get(connection, i) for i in ids
     ]
+
+  @staticmethod
+  def from_request(connection, request):
+    rdio_token = rdio(request)['rdio']
+    user = User.get(connection, rdio_token.id)
+    if not user:
+      user = User()
+      user.id = rdio_token.id
+      user.display_name = rdio_token.username
+      user.save(connection)
+    return user
 
   def save(self, connection):
     if not self.id:

@@ -14,12 +14,10 @@ redis = StrictRedis(connection_pool=redis_connection_pool)
 
 def get_party_by_id(request, party_id):
   party = Party.get(redis, party_id)
-
   if party:
     return JsonResponse({'results': party.to_dict()})
   else:
     return HttpResponseNotFound()
-
 
 def parties(request):
   parties = Party.getall(redis)
@@ -51,7 +49,7 @@ def get_party_queue(request, party_id):
 def add_to_queue(request, party_id):
   if request.method == "POST":
     redis = StrictRedis(connection_pool=redis_connection_pool)
-    user = User.getall(redis)[0]
+    user = User.from_request(redis, request)
     party = Party.get(redis, party_id)
     party.enqueue_song(user, request.POST.get('trackKey'))
 
