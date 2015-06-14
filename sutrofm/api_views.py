@@ -55,6 +55,7 @@ def add_to_queue(request, party_id):
 
     party.save(redis)
     party.broadcast_queue_state(redis)
+    return JsonResponse({'success': True})
   else:
     return HttpResponseNotFound()
 

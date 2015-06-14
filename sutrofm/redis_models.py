@@ -294,6 +294,7 @@ class User(object):
       user = User()
       user.id = rdio_token.id
       user.display_name = rdio_token.username
+      user.rdio_key = rdio_token.id
       user.save(connection)
     return user
 
