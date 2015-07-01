@@ -60,6 +60,35 @@ def add_to_queue(request, party_id):
     return HttpResponseNotFound()
 
 @csrf_exempt
+def upvote(request, party_id):
+  if request.method == "POST":
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    user = User.from_request(redis, request)
+    party = Party.get(redis, party_id)
+    queue_entry = party.get_queue_entry(request.POST.get('id'))
+    queue_entry.upvote(user)
+    party.save(redis)
+    party.broadcast_queue_state(redis)
+    return JsonResponse({'success': True})
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
+def downvote(request, party_id):
+  if request.method == "POST":
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    user = User.from_request(redis, request)
+    party = Party.get(redis, party_id)
+    queue_entry = party.get_queue_entry(request.POST.get('id'))
+    queue_entry.downvote(user)
+    party.save(redis)
+    party.broadcast_queue_state(redis)
+    return JsonResponse({'success': True})
+  else:
+    return HttpResponseNotFound()
+
+
+@csrf_exempt
 def messages(request, room_id):
   if request.method == "POST":
     post_message(request)

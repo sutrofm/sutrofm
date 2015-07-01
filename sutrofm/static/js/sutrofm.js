@@ -122,21 +122,24 @@ formatDuration = function(duration) {
 
 
 app.Track = Backbone.Model.extend({
-  getVoteRef: function() {
-    return this.collection.firebase.child(this.get('id')).child('votes');
-  },
-
-  vote: function(newVote) {
-    console.info('Voting', newVote, 'for', this.get('trackKey'));
-    this.getVoteRef().child(app.currentUserKey).set(newVote);
-  },
-
   upVote: function() {
-    this.vote(this.LIKE);
+    $.ajax({
+      'url': '/api/party/'+window.roomId+'/queue/upvote',
+      'method': 'POST',
+      'data': {
+        'id': this.get('queueEntryId')
+      }
+    });
   },
 
   downVote: function() {
-    this.vote(this.DISLIKE);
+    $.ajax({
+      'url': '/api/party/'+window.roomId+'/queue/downvote',
+      'method': 'POST',
+      'data': {
+        'id': this.get('queueEntryId')
+      }
+    });
   },
 
   getVoteCounts: function() {
