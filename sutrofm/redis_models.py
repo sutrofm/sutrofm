@@ -148,7 +148,7 @@ class Party(object):
 
   def dequeue_next_song(self):
     if self.queue:
-      self.queue.sort(reverse=True)
+      self.queue.sort()
       return self.queue.pop()
     else:
       return None
@@ -168,10 +168,16 @@ class Party(object):
   def to_json(self):
     return json.dumps(self.to_dict())
 
+  def get_queue_entry(self, queue_entry_id):
+    for queue_entry in self.queue:
+      if queue_entry.id == queue_entry_id:
+        return queue_entry
+    return None
 
   def queue_to_dict(self):
     return [
         {
+            'queueEntryId': entry.id,
             'trackKey': entry.track_key,
             'submitter': entry.submitter.to_dict(),
             'upvotes': list(entry.upvotes),
@@ -206,7 +212,7 @@ class QueueEntry(object):
       # Filter out empty strings
       output.upvotes = set(filter(None, output.upvotes))
       output.downvotes = set(filter(None, output.downvotes))
-      output.timestamp = parser.parse(data.get('timestmap', datetime.datetime.utcnow().isoformat()))
+      output.timestamp = parser.parse(data.get('timestamp', datetime.datetime.utcnow().isoformat()))
       return output
     else:
       return None
@@ -240,7 +246,7 @@ class QueueEntry(object):
     if isinstance(other, QueueEntry):
       if other.score == self.score:
         return cmp(self.timestamp, other.timestamp)
-      return cmp(other.score, self.score)
+      return cmp(self.score, other.score)
     else:
       return -1
 
