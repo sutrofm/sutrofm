@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import logout
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from rdiodj import views
+from sutrofm import views
 
 
 admin.autodiscover()
