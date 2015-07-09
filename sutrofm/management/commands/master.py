@@ -104,7 +104,7 @@ class Command(BaseCommand):
         response = requests.post('https://services.rdio.com/api/1/get', {
             'keys': track_key,
             'method': 'get',
-            'access_token': 'AAAAAWEAAAAAAMDi3QAAAABVlXtVVZYkFQAAABZsZVF0VGpnYWRpUUFMejdUZ0hKY0RnISHtHrD2NZvZR4XJaplrsBttlcDPLYo5Pm-wWkYvKWM'
+            'access_token': 'AAAAAWEAAAAAAMDi3QAAAABVnsGjV3_1IwAAABZsZVF0VGpnYWRpUUFMejdUZ0hKY0RnJu-QXOiZq2IbKDNw-IigziKzSdv4NA0KY9Ei-Ov5LkM'
         })
         return json.loads(response.text)['result'][track_key]
 
