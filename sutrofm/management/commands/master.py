@@ -2,10 +2,11 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from rdioapi import Rdio
 import firebase
 import logging
 import time
+import requests
+import json
 from dateutil import parser
 
 RDIO_OAUTH2_KEY='c2y48bscf6hpd768b6cwvafy'
@@ -22,7 +23,6 @@ class Command(BaseCommand):
         self.firebase = firebase.FirebaseApplication(settings.FIREBASE_URL)
         auth = firebase.FirebaseAuthentication(settings.FIREBASE_TOKEN, 'mkapolk@gmail.com')
         self.firebase.authentication = auth
-        self.rdio = Rdio(RDIO_OAUTH2_KEY, RDIO_OAUTH2_SECRET, {})
         self.party_name = room_name
         self.party_data = self.get_party_data()
         self.currently_playing = None
@@ -31,7 +31,8 @@ class Command(BaseCommand):
         self.currently_playing = None
         if 'player' in self.party_data and 'playingTrack' in self.party_data['player']:
             track_key = self.party_data['player']['playingTrack']['trackKey']
-            self.current_track_duration = self.rdio.get(keys=track_key)[track_key]['duration']
+            rdio_info = self.get_rdio_info(track_key)
+            self.current_track_duration = rdio_info['duration']
             self.current_start_time = datetime.now() - timedelta(seconds=self.party_data['player']['position'])
         else:
             self.current_track_duration = None
@@ -99,6 +100,14 @@ class Command(BaseCommand):
         }
         self.firebase.post(self.party_name + "/messages/", message)
 
+    def get_rdio_info(self, track_key):
+        response = requests.post('https://services.rdio.com/api/1/get', {
+            'keys': track_key,
+            'method': 'get',
+            'access_token': 'AAAAAWEAAAAAAMDi3QAAAABVlXtVVZYkFQAAABZsZVF0VGpnYWRpUUFMejdUZ0hKY0RnISHtHrD2NZvZR4XJaplrsBttlcDPLYo5Pm-wWkYvKWM'
+        })
+        return json.loads(response.text)['result'][track_key]
+
     def play_track(self, track):
         self.currently_playing = track
         player_object = {
@@ -109,7 +118,7 @@ class Command(BaseCommand):
         self.firebase.put(self.party_name, 'player', player_object)
         if track:
             track_key = track['trackKey']
-            rdio_track = self.rdio.get(keys=track_key)[track_key]
+            rdio_track = self.get_rdio_info(track_key)
             self.current_track_duration = rdio_track['duration']
             self.current_start_time = datetime.now()
             self.send_play_track_message(rdio_track)
