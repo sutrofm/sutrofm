@@ -4,7 +4,6 @@ import time
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from rdioapi import Rdio
 import requests
 import simplejson as json
 
@@ -33,7 +32,6 @@ class Command(BaseCommand):
     self.keep_running = True
 
   def handle(self, room_id, *args, **kwargs):
-    self.rdio = Rdio(RDIO_OAUTH2_KEY, RDIO_OAUTH2_SECRET, {})
     self.party_id = room_id
     self.redis = StrictRedis(connection_pool=redis_connection_pool)
     self.party = Party.get(self.redis, room_id)
@@ -58,7 +56,7 @@ class Command(BaseCommand):
         response = requests.post('https://services.rdio.com/api/1/get', {
             'keys': track_key,
             'method': 'get',
-            'access_token': 'AAAAAWEAAAAAAMDi3QAAAABVlXtVVZYkFQAAABZsZVF0VGpnYWRpUUFMejdUZ0hKY0RnISHtHrD2NZvZR4XJaplrsBttlcDPLYo5Pm-wWkYvKWM'
+            'access_token': 'AAAAAWEAAAAAAMDi3QAAAABVnsGjV3_1IwAAABZsZVF0VGpnYWRpUUFMejdUZ0hKY0RnJu-QXOiZq2IbKDNw-IigziKzSdv4NA0KY9Ei-Ov5LkM'
         })
         return json.loads(response.text)['result'][track_key]['duration']
 
