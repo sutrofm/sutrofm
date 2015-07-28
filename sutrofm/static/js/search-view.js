@@ -14,7 +14,7 @@
 
     enqueueTrack: function(trackKey) {
       $.ajax({
-        'url': '/api/party/'+window.roomId+'/queue/enqueue',
+        'url': '/api/party/'+window.roomId+'/queue/add',
         'method': 'POST',
         'data': {
           'trackKey': trackKey

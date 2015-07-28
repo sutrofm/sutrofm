@@ -60,6 +60,33 @@ def add_to_queue(request, party_id):
     return HttpResponseNotFound()
 
 @csrf_exempt
+def remove_from_queue(request, party_id):
+  if request.method == "POST":
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    user = User.from_request(redis, request)
+    party = Party.get(redis, party_id)
+    queue_entry = party.get_queue_entry(request.POST.get('id'))
+    if queue_entry.submitter.id == user.id:
+      party.remove_queue_entry(queue_entry)
+    party.save(redis)
+    party.broadcast_queue_state(redis)
+    return JsonResponse({'success': True})
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
+def vote_to_skip(request, party_id):
+  if request.method == "POST":
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    user = User.from_request(redis, request)
+    party = Party.get(redis, party_id)
+    party.vote_to_skip(user)
+    party.save(redis)
+    return JsonResponse({'success': True})
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
 def upvote(request, party_id):
   if request.method == "POST":
     redis = StrictRedis(connection_pool=redis_connection_pool)

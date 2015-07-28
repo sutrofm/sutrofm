@@ -11,7 +11,7 @@ from django.shortcuts import redirect, render, render_to_response
 from firebase_token_generator import create_token
 from redis import ConnectionPool, StrictRedis
 
-from sutrofm.redis_models import Party
+from sutrofm.redis_models import Party, User
 
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
@@ -62,6 +62,9 @@ def party(request, room_name):
     party.id = room_name
     party.name = room_name
     party.save(connection)
+
+  user = User.from_request(connection, request)
+  party.add_user(user)
 
   context = {
     'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),

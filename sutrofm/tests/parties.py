@@ -48,7 +48,7 @@ class PartiesTestCase(SutroTestCase):
     party.add_user(user_bob)
     party.save(self.redis)
 
-    response = self.client.get('/api/parties/%s' % party.id, follow=True)
+    response = self.client.get('/api/party/%s' % party.id, follow=True)
 
     json_response = json.loads(response.content)
     json_party = json_response['results']
@@ -57,3 +57,23 @@ class PartiesTestCase(SutroTestCase):
     self.assertEqual(json_party['name'], party.name)
     self.assertEqual(len(json_party['people']), 2)
 
+  def test_skippers(self):
+    party = self.create_a_party('party-lives-on', 'Party lives one!')
+    user_shindiger = self.create_a_user('shindiger')
+    user_bob = self.create_a_user('bob')
+    user_sally = self.create_a_user('sally')
+    party.add_user(user_shindiger)
+    party.add_user(user_bob)
+    party.add_user(user_sally)
+    party.save(self.redis)
+
+    self.assertFalse(party.should_skip())
+
+    party.vote_to_skip(user_bob)
+    self.assertFalse(party.should_skip())
+
+    party.vote_to_skip(user_bob)
+    self.assertFalse(party.should_skip())
+
+    party.vote_to_skip(user_sally)
+    self.assertTrue(party.should_skip())

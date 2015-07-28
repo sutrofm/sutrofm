@@ -23,10 +23,12 @@ urlpatterns = [
 
   url(r'^api/parties/$', api_views.parties, name='api_parties'),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/?$', api_views.get_party_by_id),
+  url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/vote_to_skip$', api_views.vote_to_skip),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue$', api_views.get_party_queue),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/upvote$', api_views.upvote),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/downvote$', api_views.downvote),
-  url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/enqueue$', api_views.add_to_queue),
+  url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/add$', api_views.add_to_queue),
+  url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/remove$', api_views.remove_from_queue),
 
   url(r'^api/users/$', api_views.users, name='api_users'),
   url(r'^api/user/((?P<user_id>[0-9]+)/)', api_views.get_user_by_id),

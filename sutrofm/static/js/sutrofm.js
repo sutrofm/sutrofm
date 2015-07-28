@@ -191,26 +191,6 @@ app.TrackList = Backbone.Collection.extend({
 
 app.queue = new app.TrackList();
 
-app.SkipList = Backbone.Firebase.Collection.extend({
-  model: chat.User,
-  firebase: app.roomUrl + '/skippers',
-
-  containsUser: function(user) {
-    keys = this.map(function(user){ return user.get('key'); });
-    return keys.indexOf(user.get('key')) !== -1;
-  },
-
-  voteToSkip: function() {
-    if (!this.containsUser(chat.currentUser)) {
-      this.add(chat.currentUser, {
-        success: function() {
-          chat.sendMessage("Voted to skip");
-        }
-      });
-    }
-  }
-});
-
 app.SkipButton = Backbone.View.extend({
     el: "#skip-button",
 
@@ -219,7 +199,10 @@ app.SkipButton = Backbone.View.extend({
     },
 
     _clickSkip: function() {
-        app.skipList.voteToSkip();
+      $.ajax({
+        'url': '/api/party/'+window.roomId+'/vote_to_skip',
+        'method': 'POST',
+      });
     }
 });
 
@@ -274,8 +257,6 @@ app.FavoriteButton = Backbone.View.extend({
       });
     },
 });
-
-app.skipList = new app.SkipList();
 
 app.NowPlayingView = Backbone.View.extend({
   model: app.Track,
@@ -531,7 +512,13 @@ app.TrackView = Backbone.View.extend({
 
   removeTrack: function() {
     console.log('Removing track ' + this.rdioTrack.name);
-    app.queue.remove(this.model);
+    $.ajax({
+      'url': '/api/party/'+window.roomId+'/queue/remove',
+      'method': 'POST',
+      'data': {
+        'id': this.model.get('queueEntryId')
+      }
+    });
   },
 
 });

@@ -2,8 +2,6 @@ import datetime
 import uuid
 
 from dateutil import parser
-from django.conf import settings
-from rdioapi import Rdio
 import simplejson as json
 from sutrofm.context_processors import rdio
 
@@ -18,6 +16,7 @@ class Party(object):
     self.playing_track_user = None
     self.users = []
     self.queue = []
+    self.skippers = []
 
   def get_player_state_payload(self):
     return {
@@ -58,8 +57,16 @@ class Party(object):
     else:
       self.play_track(None, None)
 
+  def clear_skippers(self):
+    self.skippers = []
+
+  def vote_to_skip(self, user):
+    if user.id not in self.skippers:
+      self.skippers.append(user.id)
+
   def should_skip(self):
-    return False # TODO
+    # return len(self.skippers) > len(self.users) / 2
+    return False
 
   @staticmethod
   def get(connection, id):
@@ -83,6 +90,9 @@ class Party(object):
       output.queue = filter(None, [
         QueueEntry.get(connection, id, key) for key in queue_keys
       ])
+
+      # Get skippers
+      output.skippers = data.get('skippers', '').split(',')
       return output
     else:
       return None
@@ -101,6 +111,7 @@ class Party(object):
       "name": self.name,
       "playing_track_key": self.playing_track_key or '',
       "playing_track_start_time": self.playing_track_start_time,
+      "skippers": ",".join(self.skippers)
     })
     # Save users
     def _save_users(pipe):
@@ -146,9 +157,12 @@ class Party(object):
     self.queue.append(qe)
     return qe
 
+  def remove_queue_entry(self, queue_entry):
+    self.queue.remove(queue_entry)
+
   def dequeue_next_song(self):
     if self.queue:
-      self.queue.sort()
+      self.queue.sort(reverse=True)
       return self.queue.pop()
     else:
       return None
@@ -246,7 +260,7 @@ class QueueEntry(object):
     if isinstance(other, QueueEntry):
       if other.score == self.score:
         return cmp(self.timestamp, other.timestamp)
-      return cmp(self.score, other.score)
+      return cmp(other.score, self.score)
     else:
       return -1
 
