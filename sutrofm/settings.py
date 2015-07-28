@@ -13,7 +13,7 @@ ADMINS = (
   ('Rebecca Stecker', 'rebecca.stecker@rdio.com'),
   ('Emily Stumpf', 'emily.stumpf@rdio.com'),
   ('Marek Kapolka', 'marek.kapolka@rd.io'),
-  ('holly.french@rd.io', 'Holly French'),
+  ('Holly French', 'holly.french@rd.io'),
 )
 
 MANAGERS = ADMINS
