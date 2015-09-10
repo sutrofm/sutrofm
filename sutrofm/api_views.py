@@ -1,3 +1,4 @@
+import datetime
 import httplib
 
 from django.conf import settings
@@ -111,6 +112,26 @@ def downvote(request, party_id):
     party.save(redis)
     party.broadcast_queue_state(redis)
     return JsonResponse({'success': True})
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
+def ping(request):
+  user = User.from_request(redis, request)
+  if user:
+    user.last_check_in = datetime.datetime.utcnow()
+    user.save(redis)
+    return JsonResponse({'success': True})
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
+def get_party_users(request, party_id):
+  party = Party.get(redis, party_id)
+
+  if party:
+    results = party.users_to_dict()
+    return JsonResponse({'results': results})
   else:
     return HttpResponseNotFound()
 

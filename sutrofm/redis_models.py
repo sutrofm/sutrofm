@@ -201,6 +201,19 @@ class Party(object):
         } for entry in self.queue
     ]
 
+  def users_to_dict(self):
+    return [
+      {
+        'userId': user.id,
+        'displayName': user.display_name,
+        'iconUrl': user.icon_url,
+        'userUrl': user.user_url,
+        'rdioKey': user.rdio_key,
+        'lastCheckIn': user.last_check_in,
+        'active': user.active
+      } for user in self.users
+    ]
+
 
 class QueueEntry(object):
   def __init__(self):
@@ -284,6 +297,11 @@ class User(object):
     self.icon_url = None
     self.user_url = None
     self.rdio_key = None
+    self.last_check_in = None
+
+  @property
+  def active(self):
+    return  datetime.datetime.utcnow() - self.last_check_in > datetime.timedelta(minutes=5)
 
   @staticmethod
   def get(connection, id):
@@ -295,6 +313,7 @@ class User(object):
       output.icon_url = data.get('iconUrl', '')
       output.user_url = data.get('userUrl', '')
       output.rdio_key = data.get('rdioKey', '')
+      output.last_check_in = data.get('lastCheckIn', '')
       return output
     else:
       return None
@@ -315,6 +334,7 @@ class User(object):
       user.id = rdio_token.id
       user.display_name = rdio_token.username
       user.rdio_key = rdio_token.id
+      user.last_check_in = datetime.datetime.utcnow()
       user.save(connection)
     return user
 
@@ -325,7 +345,8 @@ class User(object):
       "displayName": self.display_name,
       "iconUrl": self.icon_url,
       "userUrl": self.user_url,
-      "rdioKey": self.rdio_key
+      "rdioKey": self.rdio_key,
+      "lastCheckIn": self.last_check_in,
     })
     connection.sadd('users', self.id)
 
@@ -336,6 +357,7 @@ class User(object):
       "iconUrl": self.icon_url,
       "userUrl": self.user_url,
       "rdioKey": self.rdio_key,
+      "lastCheckIn": self.last_check_in
     }
 
   def to_json(self):
