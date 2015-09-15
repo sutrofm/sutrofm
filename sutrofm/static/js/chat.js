@@ -12,7 +12,17 @@ chat.UserList = Backbone.Firebase.Collection.extend({
 		});
 	}
 });
-chat.activeUsers = new chat.UserList();
+chat.RedisUserList = Backbone.Collection.extend({
+    model: chat.User,
+    setUserList: function(data) {
+      var user_list = data.map(function(value) {
+        return new chat.User(value);
+      })
+      this.update(user_list);
+    }
+
+})
+chat.activeUsers = new chat.RedisUserList();
 chat.UserView = Backbone.View.extend({
 	tagName: 'li',
 	template: _.template($('#user-presence-template').html()),
@@ -157,12 +167,7 @@ R.ready(function() {
 		});
 		console.log("added user ", chat.activeUsers.get(userKey), " to chat");
 	}
-	var isOnlineRef = chat.activeUsers.firebase.child(userKey).child('isOnline');
-	console.log('online presence:', isOnlineRef.toString());
-	// Mark yourself as offline on disconnect
-	isOnlineRef.onDisconnect().set(false);
-	// Mark yourself as online
-	isOnlineRef.set(true);
+
 	// draw user list view (after marking yourself as online)
 	var userListView = new chat.UserListView();
 	// Set up chat

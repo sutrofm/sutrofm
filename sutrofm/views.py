@@ -65,6 +65,8 @@ def party(request, room_name):
 
   user = User.from_request(connection, request)
   party.add_user(user)
+  party.broadcast_user_list(connection)
+  party.save(connection)
 
   context = {
     'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),
@@ -72,7 +74,8 @@ def party(request, room_name):
     'body_class': 'party',
     'room_id': room_name,
     'initial_player_state_json': json.dumps(party.get_player_state_payload()),
-    'initial_queue_state_json': json.dumps(party.get_queue_state_payload())
+    'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
+    'initial_user_list_state_json': json.dumps(party.get_user_list_payload()),
   }
   make_room_daemon(room_name)
   return render(request, 'party.html', context)

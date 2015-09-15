@@ -34,11 +34,21 @@ class Party(object):
         'data': self.queue_to_dict()
     }
 
+  def get_user_list_payload(self):
+    return {
+      'type': 'user_list',
+      'data': self.users_to_dict()
+    }
+
   def broadcast_player_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_player_state_payload()))
 
   def broadcast_queue_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_queue_state_payload()))
+
+  def broadcast_user_list(self, connection):
+    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_user_list_payload()))
+
 
   @property
   def current_track_position(self):
@@ -203,15 +213,7 @@ class Party(object):
 
   def users_to_dict(self):
     return [
-      {
-        'userId': user.id,
-        'displayName': user.display_name,
-        'iconUrl': user.icon_url,
-        'userUrl': user.user_url,
-        'rdioKey': user.rdio_key,
-        'lastCheckIn': user.last_check_in,
-        'active': user.active
-      } for user in self.users
+      user.to_dict() for user in self.users
     ]
 
 
@@ -313,7 +315,7 @@ class User(object):
       output.icon_url = data.get('iconUrl', '')
       output.user_url = data.get('userUrl', '')
       output.rdio_key = data.get('rdioKey', '')
-      output.last_check_in = data.get('lastCheckIn', '')
+      output.last_check_in = parser.parse(data.get('lastCheckIn', datetime.datetime.utcnow().isoformat()))
       return output
     else:
       return None
@@ -353,11 +355,12 @@ class User(object):
   def to_dict(self):
     return {
       "id": self.id,
-      "displayName": self.display_name,
-      "iconUrl": self.icon_url,
+      "fullName": self.display_name,
+      "icon": self.icon_url,
       "userUrl": self.user_url,
       "rdioKey": self.rdio_key,
-      "lastCheckIn": self.last_check_in
+      "lastCheckIn": self.last_check_in.isoformat(),
+      "isOnline": True
     }
 
   def to_json(self):

@@ -622,6 +622,11 @@ app.receiveMessage = function(msg) {
       case "queue":
         app.queue.setQueue(payload['data']);
       break;
+
+      case "user_list":
+        chat.activeUsers.setUserList(payload['data']);
+      break;
+
     }
   }
 }
@@ -650,6 +655,7 @@ R.ready(function() {
 
       app.playState.setState(window.initial_player_state);
       app.queue.setQueue(window.initial_queue_state);
+      chat.activeUsers.setUserList(window.initial_user_list_state);
 
       if(!R.currentUser.get('canStreamHere')) {
         var template = _.template($('#not-a-paying-customer-template').html());
