@@ -2,16 +2,6 @@ var chat = chat || {};
 chat.User = Backbone.Model.extend({});
 chat.firebasePeopleRef = new Firebase(firebaseRootUrl + '/people');
 chat.firebaseMessagesRef = new Firebase(firebaseRootUrl + '/messages');
-chat.UserList = Backbone.Firebase.Collection.extend({
-	model: chat.User,
-	// pass the ref here instead of string so we can listen for disconnect.
-	firebase: chat.firebasePeopleRef,
-	getOnlineUsers: function() {
-		return this.filter(function(user) {
-			return user.get('isOnline');
-		});
-	}
-});
 chat.RedisUserList = Backbone.Collection.extend({
     model: chat.User,
     setUserList: function(data) {
@@ -83,6 +73,23 @@ chat.UserListView = Backbone.View.extend({
 	}
 }); /* chat messages! */
 chat.Message = Backbone.Model.extend({});
+chat.RedisMessageHistoryList = Backbone.Collection.extend({
+  model: chat.Message,
+  setMessages: function(messages) {
+    // Gets a list from the API
+    var message_list = messages.map(function(value) {
+      var dict = {
+        'message': value['text'],
+        'messageType': value['message_type'],
+        'userKey': value['user_key'],
+        'fullName': value['user_key']
+      }
+      return new chat.Message(dict);
+    });
+    this.update(message_list);
+  }
+});
+
 chat.MessageHistoryList = Backbone.Firebase.Collection.extend({
 	model: chat.Message,
 	firebase: chat.firebaseMessagesRef
@@ -137,8 +144,8 @@ chat.MessagesView = Backbone.View.extend({
 		console.log('chat view initialized');
 	},
 	onMessageAdded: function(model, options) {
-		var messageType = model.get('type');
-		if (messageType == 'User') {
+		var messageType = model.get('messageType');
+		if (messageType == 'chat') {
 			var messageView = new chat.UserMessageView({
 				model: model
 			});
@@ -181,7 +188,7 @@ R.ready(function() {
 		}
 	});
 	// we set up track change messages in sutrofm.js
-	chat.messageHistory = new chat.MessageHistoryList();
+	chat.messageHistory = new chat.RedisMessageHistoryList();
 	var chatView = new chat.MessagesView();
 });
 chat.sendMessage = function(text) {

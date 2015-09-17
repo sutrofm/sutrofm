@@ -627,6 +627,9 @@ app.receiveMessage = function(msg) {
         chat.activeUsers.setUserList(payload['data']);
       break;
 
+      case "messages":
+        chat.messageHistory.setMessages(payload['data']);
+      break;
     }
   }
 }
@@ -656,6 +659,7 @@ R.ready(function() {
       app.playState.setState(window.initial_player_state);
       app.queue.setQueue(window.initial_queue_state);
       chat.activeUsers.setUserList(window.initial_user_list_state);
+      chat.messageHistory.setMessages(window.initial_messages_state);
 
       if(!R.currentUser.get('canStreamHere')) {
         var template = _.template($('#not-a-paying-customer-template').html());

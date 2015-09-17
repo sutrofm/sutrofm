@@ -46,6 +46,15 @@ class Party(object):
       'data': self.users_to_dict()
     }
 
+  def get_messages_state_payload(self, redis):
+    recent_messages = Message.get_recent(redis, self.id)
+    return {
+        'type': 'messages',
+        'data': [
+            message.to_dict() for message in recent_messages
+        ]
+    }
+
   def broadcast_player_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_player_state_payload()))
 
@@ -54,6 +63,9 @@ class Party(object):
 
   def broadcast_user_list_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_user_list_state_payload()))
+
+  def broadcast_messages_state(self, connection):
+    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_messages_state_payload()))
 
   @property
   def current_track_position(self):
@@ -225,6 +237,11 @@ class Party(object):
   def users_to_dict(self):
     return [
       user.to_dict() for user in self.users
+    ]
+
+  def messages_to_dict(self):
+    return [
+        m.to_dict() for m in self.messages
     ]
 
 
@@ -418,7 +435,6 @@ class Message(object):
     values = connection.hmget('parties:%s:messages:%s' % (party_id, message_id), schema.keys())
     for index, key in enumerate(schema.keys()):
         data[key] = values[index]
-    print data
     output = Message()
     output.id = message_id
     output.message_type = data['message_type']
