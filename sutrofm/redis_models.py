@@ -17,6 +17,10 @@ class Party(object):
     self.users = []
     self.queue = []
     self.skippers = []
+    self.messages = []
+
+  def add_message(self, message):
+    self.messages.append(message)
 
   def get_player_state_payload(self):
     return {
@@ -48,7 +52,6 @@ class Party(object):
 
   def broadcast_user_list_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_user_list_state_payload()))
-
 
   @property
   def current_track_position(self):
@@ -144,8 +147,14 @@ class Party(object):
         queue_entry.save(pipe)
         pipe.sadd('parties:%s:queue' % self.id, queue_entry.id)
 
+    # Save messages
+    def _save_messages(pipe):
+      for message in self.messages:
+        pipe.zadd('parties:%s:messages' % self.id, message.id)
+
     connection.transaction(_save_users, 'parties:%s:users' % self.id)
     connection.transaction(_save_queue, 'parties:%s:queue' % self.id)
+    connection.transaction(_save_messages, 'parties:%s:messages' % self.id)
 
     connection.sadd('parties', self.id)
 
@@ -367,21 +376,37 @@ class User(object):
     return json.dumps(self.to_dict())
 
 
-class Messages(object):
+class Message(object):
+  def __init__(self):
+    self.message_type = None
+    self.text = None
+    self.user = None
+    self.track = None
+    self.timestamp = datetime.datetime.utcnow()
+
   @staticmethod
   def get_recent(connection, party_messages_id, count=50):
     messages = connection.lrange('messages:%s' % party_messages_id, 0, count)
     return messages
 
-  def save_message(self, connection, message, message_type, user, party_id):
-    if not hasattr(self, 'party_messages_id'):
-      self.party_messages_id = party_id
+  @staticmethod
+  def for_party(connection, party):
+    m = Message()
+    m.id = Message.get_next_message_id(connection, party)
+    m.party_id = party.id
+    return m
 
-    connection.lpush("messages:%s" % self.party_messages_id, {
-      "message": message,
-      "type": message_type,
-      "user": user,
-      "timestamp": datetime.datetime.utcnow()
+  @staticmethod
+  def get_next_message_id(connection, party):
+    return connection.incr('parties:%s:message_id' % party.id)
+
+  def save(self, connection):
+    connection.hmset('parties:%s:messages:%s' % (self.party_id, self.id), {
+      'message_type': self.message_type,
+      'text': self.text,
+      'user': self.user,
+      'track': self.track,
+      'timestamp': self.timestamp
     })
 
   def to_dict(self):

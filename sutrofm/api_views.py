@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 from redis import ConnectionPool, StrictRedis
 
-from sutrofm.redis_models import Party, User, Messages
+from sutrofm.redis_models import Party, User, Message
 
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
@@ -137,22 +137,39 @@ def get_party_users(request, party_id):
 
 
 @csrf_exempt
-def messages(request, room_id):
+def messages(request, party_id):
   if request.method == "POST":
-    post_message(request)
+    post_message(request, party_id)
 
-  messages = Messages.get_recent(redis, room_id)
+  messages = Message.get_recent(redis, party_id)
 
   return JsonResponse({'results': messages})
 
 
-def post_message(request):
-  party_id = request.POST.get('partyId')  # TODO This should come from the url
-  message = request.POST.get('message')
+def post_message(request, party_id):
   message_type = request.POST.get('messageType')
-  user = request.POST.get('userId')  # TODO this should come from the session
+  user = User.from_request(redis, request)
+  party = Party.get(redis, party_id)
 
-  m = Messages()
-  m.save_message(redis, message, message_type, user, party_id)
+  m = Message.for_party(party)
+
+  if message_type == 'chat':
+    text = request.POST.get('text')
+    m.text = text
+
+  if message_type == 'favorite':
+    track = request.POST.get('trackKey')
+    m.track = track
+
+  if message_type == 'vote_to_skip':
+    track = request.POST.get('trackKey')
+    m.track = track
+
+  m.user = user
+  m.message_type = message_type
+  m.save(redis)
+
+  party.add_message(m)
+  party.save(redis)
 
   return HttpResponse(status=httplib.CREATED)
