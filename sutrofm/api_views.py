@@ -142,8 +142,11 @@ def messages(request, party_id):
     post_message(request, party_id)
 
   messages = Message.get_recent(redis, party_id)
+  dict_messages = [
+    message.to_dict() for message in messages
+  ]
 
-  return JsonResponse({'results': messages})
+  return JsonResponse({'results': dict_messages})
 
 
 def post_message(request, party_id):
@@ -151,7 +154,7 @@ def post_message(request, party_id):
   user = User.from_request(redis, request)
   party = Party.get(redis, party_id)
 
-  m = Message.for_party(party)
+  m = Message.for_party(redis, party)
 
   if message_type == 'chat':
     text = request.POST.get('text')
@@ -165,7 +168,7 @@ def post_message(request, party_id):
     track = request.POST.get('trackKey')
     m.track = track
 
-  m.user = user
+  m.user_key = user.rdio_key
   m.message_type = message_type
   m.save(redis)
 

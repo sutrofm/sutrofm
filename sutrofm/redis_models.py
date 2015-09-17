@@ -1,4 +1,6 @@
+import calendar
 import datetime
+import time
 import uuid
 
 from dateutil import parser
@@ -150,7 +152,7 @@ class Party(object):
     # Save messages
     def _save_messages(pipe):
       for message in self.messages:
-        pipe.zadd('parties:%s:messages' % self.id, message.id)
+        pipe.zadd('parties:%s:messages' % self.id, calendar.timegm(time.gmtime()), message.id)
 
     connection.transaction(_save_users, 'parties:%s:users' % self.id)
     connection.transaction(_save_queue, 'parties:%s:queue' % self.id)
@@ -380,13 +382,16 @@ class Message(object):
   def __init__(self):
     self.message_type = None
     self.text = None
-    self.user = None
+    self.user_key = None
     self.track = None
     self.timestamp = datetime.datetime.utcnow()
 
   @staticmethod
-  def get_recent(connection, party_messages_id, count=50):
-    messages = connection.lrange('messages:%s' % party_messages_id, 0, count)
+  def get_recent(connection, party_id, count=50):
+    message_ids = connection.zrange('parties:%s:messages' % party_id, 0, count)
+    messages = [
+        Message.get(connection, party_id, message_id) for message_id in message_ids
+    ]
     return messages
 
   @staticmethod
@@ -400,24 +405,40 @@ class Message(object):
   def get_next_message_id(connection, party):
     return connection.incr('parties:%s:message_id' % party.id)
 
+  @staticmethod
+  def get(connection, party_id, message_id):
+    schema = {
+        'message_type': None,
+        'text': None,
+        'user': None,
+        'track': None,
+        'timestamp': None
+    }
+    data = {}
+    values = connection.hmget('parties:%s:messages:%s' % (party_id, message_id), schema.keys())
+    for index, key in enumerate(schema.keys()):
+        data[key] = values[index]
+    print data
+    output = Message()
+    output.id = message_id
+    output.message_type = data['message_type']
+    output.text = data['text']
+    output.user_key = data['user']
+    output.track = data['track']
+    output.timestamp = data['timestamp']
+    return output
+
   def save(self, connection):
-    connection.hmset('parties:%s:messages:%s' % (self.party_id, self.id), {
-      'message_type': self.message_type,
-      'text': self.text,
-      'user': self.user,
-      'track': self.track,
-      'timestamp': self.timestamp
-    })
+    connection.hmset('parties:%s:messages:%s' % (self.party_id, self.id), self.to_dict())
 
   def to_dict(self):
-    message_dict = {
-      'party_messages_id': self.party_messages_id,
-      'message': self.message,
-      'type': self.message_type,
-      'user': self.user,
+    return {
+      'message_type': self.message_type,
+      'text': self.text,
+      'user': self.user_key,
+      'track': self.track,
       'timestamp': self.timestamp
     }
-    return message_dict
 
   def to_json(self):
     return json.dumps(self.to_dict())

@@ -184,14 +184,14 @@ R.ready(function() {
 	chat.messageHistory = new chat.MessageHistoryList();
 	var chatView = new chat.MessagesView();
 });
-chat.sendMessage = function(message) {
-	var fullName = chat.currentUser.get('firstName') + ' ' + chat.currentUser.get('lastName');
-	var messageData = {
-		type: 'User',
-		fullName: fullName,
-		userKey: chat.currentUser.get('key'),
-		message: message,
-		timestamp: (new Date()).toISOString()
-	};
-	chat.messageHistory.add(messageData);
+chat.sendMessage = function(text) {
+	$.ajax({
+    'url': '/api/party/'+window.roomId+'/messages/',
+    'method': 'POST',
+    'data': {
+      messageType: 'chat',
+      user: chat.currentUser.get('key'),
+      text: text
+    }
+  })
 };
