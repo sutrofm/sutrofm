@@ -55,6 +55,12 @@ class Party(object):
         ]
     }
 
+  def get_message_added_payload(self, message):
+    return {
+      'type': 'message_added',
+      'data': message.to_dict()
+    }
+
   def broadcast_player_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_player_state_payload()))
 
@@ -66,6 +72,9 @@ class Party(object):
 
   def broadcast_messages_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_messages_state_payload()))
+
+  def broadcast_message_added(self, connection, message):
+    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_message_added_payload(message)))
 
   @property
   def current_track_position(self):
@@ -313,7 +322,7 @@ class QueueEntry(object):
       'submitter': self.submitter.id,
       'upvotes': ",".join(self.upvotes),
       'downvotes': ",".join(self.downvotes),
-      'timestamp': self.timestamp
+      'timestamp': self.timestamp.isoformat()
     }
     return queue_dict
 
@@ -441,7 +450,7 @@ class Message(object):
     output.text = data['text']
     output.user_key = data['user']
     output.track = data['track']
-    output.timestamp = data['timestamp']
+    output.timestamp = parser.parse(data['timestamp'])
     return output
 
   def save(self, connection):
@@ -453,7 +462,7 @@ class Message(object):
       'text': self.text,
       'user': self.user_key,
       'track': self.track,
-      'timestamp': self.timestamp
+      'timestamp': self.timestamp.isoformat()
     }
 
   def to_json(self):

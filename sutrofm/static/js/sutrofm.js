@@ -630,6 +630,11 @@ app.receiveMessage = function(msg) {
       case "messages":
         chat.messageHistory.setMessages(payload['data']);
       break;
+
+      case "message_added":
+        chat.messageHistory.addMessage(payload['data']);
+     break;
+
     }
   }
 }

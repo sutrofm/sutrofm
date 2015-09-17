@@ -87,8 +87,18 @@ chat.RedisMessageHistoryList = Backbone.Collection.extend({
       return new chat.Message(dict);
     });
     this.update(message_list);
+  },
+  addMessage: function(value) {
+  var dict = {
+      'message': value['text'],
+      'messageType': value['message_type'],
+      'userKey': value['user_key'],
+      'fullName': value['user_key']
   }
-});
+  message = new chat.Message(dict)
+  this.add(message)
+
+}});
 
 chat.MessageHistoryList = Backbone.Firebase.Collection.extend({
 	model: chat.Message,

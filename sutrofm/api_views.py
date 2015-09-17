@@ -175,4 +175,6 @@ def post_message(request, party_id):
   party.add_message(m)
   party.save(redis)
 
+  party.broadcast_message_added(redis, m)
+
   return HttpResponse(status=httplib.CREATED)
