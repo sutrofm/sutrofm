@@ -34,7 +34,7 @@ class Party(object):
         'data': self.queue_to_dict()
     }
 
-  def get_user_list_payload(self):
+  def get_user_list_state_payload(self):
     return {
       'type': 'user_list',
       'data': self.users_to_dict()
@@ -46,8 +46,8 @@ class Party(object):
   def broadcast_queue_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_queue_state_payload()))
 
-  def broadcast_user_list(self, connection):
-    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_user_list_payload()))
+  def broadcast_user_list_state(self, connection):
+    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_user_list_state_payload()))
 
 
   @property
