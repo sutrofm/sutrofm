@@ -92,6 +92,7 @@ class Party(object):
       self.play_track(next_track_entry.track_key, next_track_entry.submitter)
     else:
       self.play_track(None, None)
+    self.clear_skippers()
 
   def clear_skippers(self):
     self.skippers = []
@@ -101,8 +102,7 @@ class Party(object):
       self.skippers.append(user.id)
 
   def should_skip(self):
-    # return len(self.skippers) > len(self.users) / 2
-    return False
+    return len(self.skippers) > (len(self.users) / 2)
 
   @staticmethod
   def get(connection, id):
@@ -128,7 +128,8 @@ class Party(object):
       ])
 
       # Get skippers
-      output.skippers = data.get('skippers', '').split(',')
+      skippers = data.get('skippers', None)
+      output.skippers = skippers.split(',') if skippers else []
       return output
     else:
       return None

@@ -199,6 +199,7 @@ app.SkipButton = Backbone.View.extend({
     },
 
     _clickSkip: function() {
+      chat.sendMessage('voted to skip')
       $.ajax({
         'url': '/api/party/'+window.roomId+'/vote_to_skip',
         'method': 'POST',

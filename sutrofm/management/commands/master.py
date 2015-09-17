@@ -88,7 +88,7 @@ class Command(BaseCommand):
     self.party = Party.get(self.redis, self.party_id)
 
     position = (datetime.utcnow() - (self.current_start_time or datetime.utcnow())).seconds
-    if not self.currently_playing or position > self.current_track_duration or self.party.should_skip():
+    if not self.currently_playing or (position > self.current_track_duration) or self.party.should_skip():
       self.play_next_track()
     return self.should_keep_running()
 
