@@ -49,7 +49,7 @@ def party(request, room_name):
     party.save(connection)
 
   user = User.from_request(connection, request)
-  party.add_user(user)
+  party.add_user(connection, user, False)
   party.broadcast_user_list_state(connection)
   party.save(connection)
 

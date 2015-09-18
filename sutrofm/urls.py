@@ -30,6 +30,7 @@ urlpatterns = [
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/remove$', api_views.remove_from_queue),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/users$', api_views.get_party_users),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/messages/?$', api_views.messages, name='messages'),
+  url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/ping/?$', api_views.ping_party),
 
   url(r'^api/users/$', api_views.users, name='api_users'),
   url(r'^api/user/((?P<user_id>[A-Za-z0-9]+)/)', api_views.get_user_by_id),

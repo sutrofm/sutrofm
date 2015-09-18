@@ -1,5 +1,6 @@
 import datetime
 import httplib
+import logging
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -7,6 +8,8 @@ from django.views.decorators.csrf import csrf_exempt
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Message, Party, User
+
+logger = logging.getLogger(__name__)
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
@@ -22,8 +25,8 @@ def get_party_by_id(request, party_id):
 
 def parties(request):
   redis = StrictRedis(connection_pool=redis_connection_pool)
-  parties = Party.getall(redis)
-  data = [party.to_dict() for party in parties]
+  all_parties = Party.getall(redis)
+  data = [party.to_dict() for party in all_parties]
   return JsonResponse({'results': data})
 
 
@@ -63,6 +66,7 @@ def get_theme(request, party_id):
   else:
     return HttpResponseNotFound()
 
+
 @csrf_exempt
 def set_theme(request, party_id):
   if request.method == "POST":
@@ -76,6 +80,7 @@ def set_theme(request, party_id):
     return JsonResponse({'success': True})
   else:
     return HttpResponseNotFound()
+
 
 @csrf_exempt
 def add_to_queue(request, party_id):
@@ -158,6 +163,24 @@ def ping(request):
   if user:
     user.last_check_in = datetime.datetime.utcnow()
     user.save(redis)
+    return JsonResponse({'success': True})
+  else:
+    return HttpResponseNotFound()
+
+
+@csrf_exempt
+def ping_party(request, party_id):
+  logger.info('r %r', request.__dict__)
+  redis = StrictRedis(connection_pool=redis_connection_pool)
+  user = User.from_request(redis, request)
+  focused = False
+  if user:
+    user.last_check_in = datetime.datetime.utcnow()
+    user.save(redis)
+    party = Party.get(redis, party_id)
+    if party:
+      party.add_user(redis, user, focused)
+      party.save(redis)
     return JsonResponse({'success': True})
   else:
     return HttpResponseNotFound()

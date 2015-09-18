@@ -56,9 +56,7 @@ App.prototype.getAlbums = function(k) {
         offset: that.albums.length
       },
       success: function(result) {
-        console.log(result)
         var albums = result.albums;
-        console.log(result)
         var added = 0;
 
         _.each(albums, function(album) {
@@ -271,5 +269,3 @@ $(document).ready(function() {
 });
 
 })();
-
-
