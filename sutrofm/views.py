@@ -1,16 +1,16 @@
-import subprocess
-import os
 import json
-import psutil
+import os
+import subprocess
 
+import psutil
 from django.conf import settings
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, render_to_response
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, User
 
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
