@@ -6,11 +6,11 @@ from sutrofm.tests.sutro_test_case import SutroTestCase
 class UsersTestCase(SutroTestCase):
   def test_returns_empty_list_of_users(self):
     response = self.client.get('/api/users', follow=True)
-    self.assertJSONEqual(response.content, {'results':[]})
+    self.assertJSONEqual(response.content, {'results': []})
 
   def test_returns_list_of_users(self):
-      # Add dummy users
-      users = [
+    # Add dummy users
+    users = [
       {
         'display_name': 'alice',
         'user_id': '1234',
@@ -25,27 +25,30 @@ class UsersTestCase(SutroTestCase):
         'user_url': 'http://profiles.com/bob',
         'rdio_key': 's5432'
       }
-      ]
-      map(lambda x: self.create_a_user(x['display_name'],
-       user_id=x['user_id'],
-       icon_url=x['icon_url'],
-       user_url=x['user_url'],
-       rdio_key=x['rdio_key']), users)
+    ]
+    for x in users:
+      self.create_a_user(
+        x['display_name'],
+        user_id=x['user_id'],
+        icon_url=x['icon_url'],
+        user_url=x['user_url'],
+        rdio_key=x['rdio_key']
+      )
 
-      # Retrieve users via api and verify their attributes are as expected
-      response = self.client.get('/api/users', follow=True)
-      json_response = json.loads(response.content)
-      json_users = json_response['results']
+    # Retrieve users via api and verify their attributes are as expected
+    response = self.client.get('/api/users', follow=True)
+    json_response = json.loads(response.content)
+    json_users = json_response['results']
 
-      for user in json_users:
-        user_to_check = {
-          'display_name': user.get('display_name'),
-          'user_id': user.get('id'),
-          'icon_url': user.get('icon'),
-          'user_url': user.get('user_url'),
-          'rdio_key': user.get('rdio_key')
-        }
-        self.assertTrue(user_to_check in users)
+    for user in json_users:
+      user_to_check = {
+        'display_name': user.get('display_name'),
+        'user_id': user.get('id'),
+        'icon_url': user.get('icon'),
+        'user_url': user.get('user_url'),
+        'rdio_key': user.get('rdio_key')
+      }
+      self.assertTrue(user_to_check in users)
 
   def test_get_a_user_by_id(self):
     user = {

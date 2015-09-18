@@ -6,8 +6,9 @@ import uuid
 
 from django.conf import settings
 
-from dateutil import parser
 import simplejson as json
+from dateutil import parser
+
 from sutrofm.context_processors import rdio
 
 
@@ -38,7 +39,8 @@ class Party(object):
     self.playing_track_key = None
     self.playing_track_start_time = datetime.datetime.utcnow()
     self.playing_track_user_key = None
-    self.theme = ''
+    self.theme = 'Click me to change the theme!'
+
     self.users = []
     self.queue = []
     self.skippers = []
@@ -59,8 +61,8 @@ class Party(object):
 
   def get_queue_state_payload(self):
     return {
-        'type': 'queue',
-        'data': self.queue_to_dict()
+      'type': 'queue',
+      'data': self.queue_to_dict()
     }
 
   def get_user_list_state_payload(self):
@@ -72,16 +74,28 @@ class Party(object):
   def get_messages_state_payload(self, redis):
     recent_messages = Message.get_recent(redis, self.id)
     return {
-        'type': 'messages',
-        'data': [
-            message.to_dict() for message in recent_messages
-        ]
+      'type': 'messages',
+      'data': [
+        message.to_dict() for message in recent_messages
+      ]
     }
 
   def get_message_added_payload(self, message):
     return {
       'type': 'message_added',
       'data': message.to_dict()
+    }
+
+  def get_theme_state_payload(self):
+    return {
+      'type': 'theme',
+      'data': self.theme_to_dict()
+
+    }
+
+  def theme_to_dict(self):
+    return {
+      'theme': self.theme
     }
 
   def broadcast_player_state(self, connection):
@@ -94,10 +108,16 @@ class Party(object):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_user_list_state_payload()))
 
   def broadcast_messages_state(self, connection):
-    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_messages_state_payload()))
+    connection.publish(
+      'sutrofm:broadcast:parties:%s' % self.id,
+      json.dumps(self.get_messages_state_payload(connection))
+    )
 
   def broadcast_message_added(self, connection, message):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_message_added_payload(message)))
+
+  def broadcast_theme_state(self, connection):
+    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_theme_state_payload()))
 
   @property
   def current_track_position(self):
@@ -147,14 +167,19 @@ class Party(object):
 
       # Get queue
       queue_keys = connection.smembers('parties:%s:queue' % id)
-      output.queue = filter(None, [
-        QueueEntry.get(connection, id, key) for key in queue_keys
-      ])
+      output.queue = [QueueEntry.get(connection, id, key) for key in queue_keys if key]
 
       # Get skippers
       skippers = data.get('skippers', None)
       output.skippers = skippers.split(',') if skippers else []
+
+      # Get theme
+      output.theme = data.get('theme', '')
+
       return output
+
+
+
     else:
       return None
 
@@ -173,9 +198,11 @@ class Party(object):
       "playing_track_key": self.playing_track_key or '',
       "playing_track_start_time": self.playing_track_start_time,
       "playing_track_user_key": self.playing_track_user_key,
-      "skippers": ",".join(self.skippers)
+      "skippers": ",".join(self.skippers),
+      "theme": self.theme,
     })
     # Save users
+
     def _save_users(pipe):
       old_users = pipe.smembers('parties:%s:users' % self.id)
       for old_user_id in old_users:
@@ -252,15 +279,15 @@ class Party(object):
 
   def queue_to_dict(self):
     return [
-        {
-            'queue_entry_id': entry.id,
-            'track_key': entry.track_key,
-            'submitter': entry.submitter.to_dict(),
-            'upvotes': list(entry.upvotes),
-            'downvotes': list(entry.downvotes),
-            'timestamp': entry.timestamp.isoformat(),
-            'user_key': entry.submitter.rdio_key
-        } for entry in self.queue
+      {
+        'queue_entry_id': entry.id,
+        'track_key': entry.track_key,
+        'submitter': entry.submitter.to_dict(),
+        'upvotes': list(entry.upvotes),
+        'downvotes': list(entry.downvotes),
+        'timestamp': entry.timestamp.isoformat(),
+        'user_key': entry.submitter.rdio_key
+      } for entry in self.queue
     ]
 
   def users_to_dict(self):
@@ -270,7 +297,7 @@ class Party(object):
 
   def messages_to_dict(self):
     return [
-        m.to_dict() for m in self.messages
+      m.to_dict() for m in self.messages
     ]
 
 
@@ -296,8 +323,8 @@ class QueueEntry(object):
       output.upvotes = data.get('upvotes', '').split(",")
       output.downvotes = data.get('downvotes', '').split(",")
       # Filter out empty strings
-      output.upvotes = set(filter(None, output.upvotes))
-      output.downvotes = set(filter(None, output.downvotes))
+      output.upvotes = set(x for x in output.upvotes if x)
+      output.downvotes = set(x for x in output.downvotes if x)
       output.timestamp = parser.parse(data.get('timestamp', datetime.datetime.utcnow().isoformat()))
       return output
     else:
@@ -309,8 +336,8 @@ class QueueEntry(object):
     connection.hmset('parties:%s:queue:%s' % (self.party_id, self.id), {
       'track_key': self.track_key,
       'submitter': self.submitter.id,
-      'upvotes': ",".join(map(str, self.upvotes)),
-      'downvotes': ",".join(map(str, self.downvotes)),
+      'upvotes': ",".join((str(x) for x in self.upvotes if x)),
+      'downvotes': ",".join((str(x) for x in self.downvotes if x)),
       'timestamp': self.timestamp.isoformat()
     })
 
@@ -349,6 +376,7 @@ class QueueEntry(object):
   def to_json(self):
     return json.dumps(self.to_dict())
 
+
 class User(object):
   def __init__(self):
     self.id = None
@@ -360,7 +388,7 @@ class User(object):
 
   @property
   def active(self):
-    return  datetime.datetime.utcnow() - self.last_check_in > datetime.timedelta(minutes=5)
+    return datetime.datetime.utcnow() - self.last_check_in > datetime.timedelta(minutes=5)
 
   @staticmethod
   def get(connection, id):
@@ -450,7 +478,7 @@ class Message(object):
   def get_recent(connection, party_id, count=50):
     message_ids = connection.zrange('parties:%s:messages' % party_id, 0, count)
     messages = [
-        Message.get(connection, party_id, message_id) for message_id in message_ids
+      Message.get(connection, party_id, message_id) for message_id in message_ids
     ]
     return messages
 

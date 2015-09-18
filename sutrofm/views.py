@@ -1,16 +1,16 @@
-import subprocess
-import os
 import json
-import psutil
+import os
+import subprocess
 
+import psutil
 from django.conf import settings
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, render_to_response
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, User
 
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
@@ -61,6 +61,7 @@ def party(request, room_name):
     'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
     'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),
     'initial_messages_state_json': json.dumps(party.get_messages_state_payload(connection)),
+    'initial_theme_state_json': json.dumps(party.get_theme_state_payload())
   }
   make_room_daemon(room_name)
   return render(request, 'party.html', context)

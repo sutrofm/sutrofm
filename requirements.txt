@@ -3,7 +3,6 @@ boto==2.8.0
 dj-database-url==0.2.1
 django-social-auth==0.7.28
 django-storages==1.1.6
-firebase-token-generator==1.2
 httplib2==0.8
 oauth2==1.5.211
 psycopg2==2.4.6
@@ -11,7 +10,6 @@ python-openid==2.2.5
 raven==3.1.17
 requests==1.1.0
 wsgiref==0.1.2
-python-firebase==1.2
 Rdio==0.3.0
 psutil==2.2.0
 python-dateutil==2.4.1
