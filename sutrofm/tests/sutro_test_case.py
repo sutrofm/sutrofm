@@ -3,7 +3,7 @@ import string
 import uuid
 
 from django.conf import settings
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, User

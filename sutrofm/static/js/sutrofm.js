@@ -6,14 +6,14 @@ app.currentUserKey = rdioUserKey;
 
 app.Player = Backbone.Model.extend({
   initialize: function() {
-    var self = this
+    var self = this;
   },
   setState: function(data) {
-    this.set('position', data['playing_track_position'])
+    this.set('position', data['playing_track_position']);
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
       'userKey': data['playing_track_user_key']
-    })
+    });
   }
 });
 
@@ -63,7 +63,9 @@ app.PlaylistView = Backbone.View.extend({
         var twelve_hours_in_ms = 43200000;
         var today = new Date();
         var timestamp = new Date(x.attributes.timestamp);
-        if (x.attributes.type == 'NewTrack' && x.attributes.type == 'NewTrack' && Math.abs(today - timestamp) < twelve_hours_in_ms) { return x.attributes.trackKey; } });
+        if (x.attributes.type == 'NewTrack' && x.attributes.type == 'NewTrack' && Math.abs(today - timestamp) < twelve_hours_in_ms) {
+          return x.attributes.trackKey;
+        }});
     R.request({
       method: 'createPlaylist',
       content: {

@@ -1,5 +1,4 @@
 from django.conf import settings
-
 from social_auth.models import UserSocialAuth
 
 

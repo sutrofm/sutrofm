@@ -1,11 +1,10 @@
 from django.conf.urls import include, url
+
+from sutrofm import api_views, views
+
 from django.contrib import admin
 from django.contrib.auth import logout
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-
-import api_views
-from sutrofm import views
-
 
 admin.autodiscover()
 

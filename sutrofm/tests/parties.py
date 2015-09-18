@@ -6,7 +6,7 @@ from sutrofm.tests.sutro_test_case import SutroTestCase
 class PartiesTestCase(SutroTestCase):
   def test_returns_empty_list_of_parties(self):
     response = self.client.get('/api/parties', follow=True)
-    self.assertJSONEqual(response.content, {'results':[]})
+    self.assertJSONEqual(response.content, {'results': []})
 
   def test_returns_list_of_parties(self):
     party = self.create_a_party('party-lives-on', 'Party lives on!')

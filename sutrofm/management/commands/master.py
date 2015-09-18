@@ -1,12 +1,11 @@
-from datetime import datetime, timedelta
 import logging
 import time
+from datetime import datetime, timedelta
 
-from django.core.management.base import BaseCommand
-from django.conf import settings
 import requests
 import simplejson as json
-
+from django.conf import settings
+from django.core.management.base import BaseCommand
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, Message
@@ -25,6 +24,8 @@ class Command(BaseCommand):
 
   def __init__(self, *args, **kwargs):
     super(Command, self).__init__(*args, **kwargs)
+    self.redis = None
+    self.party = None
     self.party_id = None
     self.currently_playing = None
     self.current_track_duration = None
@@ -53,12 +54,12 @@ class Command(BaseCommand):
       time.sleep(1)
 
   def get_duration(self, track_key):
-        response = requests.post('https://services.rdio.com/api/1/get', {
-            'keys': track_key,
-            'method': 'get',
-            'access_token': settings.RDIO_ACCESS_TOKEN
-        })
-        return json.loads(response.text)['result'][track_key]['duration']
+    response = requests.post('https://services.rdio.com/api/1/get', {
+      'keys': track_key,
+      'method': 'get',
+      'access_token': settings.RDIO_ACCESS_TOKEN
+    })
+    return json.loads(response.text)['result'][track_key]['duration']
 
   def play_track(self, track_key):
     self.current_track_duration = None

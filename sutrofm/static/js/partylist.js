@@ -17,7 +17,7 @@ app.RoomList = Backbone.Collection.extend({
       success: function(response) {
         self.add(response.results);
       }
-    })
+    });
   }
 });
 
@@ -86,10 +86,10 @@ app.RoomView = Backbone.View.extend({
           success: function(response) {
             var track = response.result[playingTrackKey];
             if (track) {
-              var track = response.result[playingTrackKey].name;
-              var artist = response.result[playingTrackKey].artist;
-              data.nowPlaying = '"' + track + '" by ' + artist;
-              data.icon = response.result[playingTrackKey].icon400;
+              var track_name = track.name;
+              var artist = track.artist;
+              data.nowPlaying = '"' + track_name + '" by ' + artist;
+              data.icon = track.icon400;
               data.has_icon = 'has_icon';
             } else {
               data.nowPlaying = 'Something unknown';
@@ -173,4 +173,3 @@ R.ready(function() {
     }
   });
 });
-

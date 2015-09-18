@@ -13,7 +13,6 @@ Create a `.env` file with the following defined:
     AWS_SECRET_ACCESS_KEY=
     DJANGO_DEBUG=true
     DJANGO_SECRET_KEY=
-    FIREBASE_TOKEN=
     RDIO_OAUTH2_KEY=
     RDIO_OAUTH2_SECRET=
     SENTRY_DSN=
@@ -52,17 +51,17 @@ For each deployment thereafter:
 
 Have no idea what all this means? Don't worry. I'm going to run you through the process I used to get this set up for the first time on OS X.
 
-You will be getting Python, Django, Postgres, and some Heroku tools set up during this process. 
+You will be getting Python, Django, Postgres, and some Heroku tools set up during this process.
 
-Before you get started, you will need to set up some additional services. 
+Before you get started, you will need to set up some additional services.
 
 __Rdio js API__
 
 This is different from the web services API. You will need to request access. Once you've been granted access, go create an app at http://www.rdio.com/developers/ and add `RDIO_OAUTH2_KEY` and `RDIO_OAUTH2_SECRET` to your `.env` file.
 
-__FireBase__
+__Redis__
 
-Go create an account (free) at https://www.firebase.com/. This will be your realtime service. Once you've logged in, go to your app (https://[name]-[id].firebaseio.com/) and select "secrets". Add your firebase secret to `FIREBASE_TOKEN` in the `.env` file.
+Set up redis.
 
 __Django Secret__
 
@@ -103,24 +102,22 @@ Now you're ready to pick up the requirements install
 Go download and install the Heroku toolkit. https://devcenter.heroku.com/articles/getting-started-with-python#set-up
 This will give you access to Foreman for the next couple steps.
 
-A few modifications to `settings.py` are required to get things set up locally. 
+A few modifications to `settings.py` are required to get things set up locally.
 
 * Add `127.0.0.1` to `ALLOWED_HOSTS`.
-* Change `FIREBASE_URL` to use your new firebase instance.
 
 __The Environment__
 
-Now you're ready to start where this tutorial began! 
+Now you're ready to start where this tutorial began!
 
     $ mkdir webassets
     $ sudo foreman run python manage.py collectstatic
     $ sudo foreman run python manage.py syncdb
     $ sudo foreman run python manage.py runserver
-    
+
 All done. Access your server from http://127.0.0.1:8000/
 
 ## Coding Style
 
 1. Common sense
 2. 2 spaces
-
