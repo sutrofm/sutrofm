@@ -5,9 +5,6 @@ window.app = window.app || {};
 app.currentUserKey = rdioUserKey;
 
 app.Player = Backbone.Model.extend({
-  initialize: function() {
-    var self = this;
-  },
   setState: function(data) {
     this.set('position', data['playing_track_position']);
     this.set('playingTrack', {
@@ -42,28 +39,30 @@ app.PlaylistView = Backbone.View.extend({
     var dd = today.getDate();
     var mm = today.getMonth()+1;
     var yyyy = today.getFullYear();
-    if(dd<10) {
-        dd='0'+dd;
+    if(dd < 10) {
+        dd = '0' + dd;
     }
-    if(mm<10) {
-        mm='0'+mm;
+    if(mm < 10) {
+        mm = '0' + mm;
     }
     today = yyyy + '-' + mm + '-' + dd;
     return today;
   },
   getRoomString: function() {
-    var roomUrlList = app.roomUrl.split('/');
-    var roomString = roomUrlList[roomUrlList.length-1].replace(/_/g, ' ');
+    var roomUrlList = window.location.href.split('/');
+    var roomString = roomUrlList[roomUrlList.length-2].replace(/_/g, ' ');
     return roomString;
   },
 
   onPlaylistTodayClick: function() {
+    // This method is broken because we don't have timestamp set in attributes of chat.messageHistory entries since the redis rewrite
+    // But the good news is it isn't linked to from anywhere at the moment, yay!
     var playlistName = 'sutro.fm "' + this.getRoomString() + '" ' + this.getDateString();
     this.trackIds = chat.messageHistory.map(function(x) {
         var twelve_hours_in_ms = 43200000;
         var today = new Date();
         var timestamp = new Date(x.attributes.timestamp);
-        if (x.attributes.type == 'NewTrack' && x.attributes.type == 'NewTrack' && Math.abs(today - timestamp) < twelve_hours_in_ms) {
+        if (x.attributes.messageType == 'new_track' && Math.abs(today - timestamp) < twelve_hours_in_ms) {
           return x.attributes.trackKey;
         }});
     R.request({
@@ -88,7 +87,7 @@ app.PlaylistView = Backbone.View.extend({
   },
   onPlaylistRoomHistoryClick: function() {
     var playlistName = 'sutro.fm "' + this.getRoomString() + '" ' + this.getDateString();
-    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey; } });
+    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.messageType == 'new_track') { return x.attributes.trackKey; } });
     R.request({
       method: 'createPlaylist',
       content: {
