@@ -303,9 +303,11 @@ app.NowPlayingView = Backbone.View.extend({
 
   _onPositionChange: function(position) {
     prettyPosition = formatDuration(position);
-    prettyDuration = formatDuration(R.player.playingTrack().get('duration'));
-    this.$(".timer").text(prettyPosition + "/" + prettyDuration);
-    this.$(".duration-bar > span").animate({ width: ( position / R.player.playingTrack().get('duration') ) * 100+'%' }, 100);
+    if (R.player.playingTrack()) {
+      prettyDuration = formatDuration(R.player.playingTrack().get('duration'));
+      this.$(".timer").text(prettyPosition + "/" + prettyDuration);
+      this.$(".duration-bar > span").animate({ width: ( position / R.player.playingTrack().get('duration') ) * 100+'%' }, 100);
+    }
   },
 
   getDuration: function(duration) {
@@ -563,7 +565,9 @@ app.queueView = Backbone.View.extend({
 });
 
 app.ThemeInfo = Backbone.Model.extend({
-  defaults: { themeText: 'Click me to set a theme for this party!' }
+  setTheme: function(data) {
+    this.set({'themeText': data['theme']})
+  },
 }),
 
 app.ThemeView = Backbone.View.extend({
@@ -600,8 +604,16 @@ app.ThemeView = Backbone.View.extend({
       this.model.set('themeText', $(".theme_text").val());
       this.editing = false;
       this.render();
+      $.ajax({
+        'url': '/api/party/'+window.roomId+'/theme/set',
+        'method': 'POST',
+        'data': {
+          'theme': this.model.get('themeText')
+        }
+    });
     }
   },
+
   onThemeClick: function() {
     this.editing = true;
     this.render();
@@ -631,8 +643,11 @@ app.receiveMessage = function(msg) {
 
       case "message_added":
         chat.messageHistory.addMessage(payload['data']);
-     break;
+      break;
 
+      case "theme":
+        app.themeModel.setTheme(payload['data']);
+      break;
     }
   }
 }
@@ -649,7 +664,8 @@ R.ready(function() {
   app.nowPlayingView = new app.NowPlayingView();
   var searchView = new app.SearchView();
   var playlistView = new app.PlaylistView();
-  var themeView = new app.ThemeView({model: new app.ThemeInfo()});
+  app.themeModel = new app.ThemeInfo()
+  app.themeView = new app.ThemeView({model: app.themeModel});
   app.nowPlayingView.initSlaveStatus();
   var skipButton = new app.SkipButton();
 
@@ -657,6 +673,7 @@ R.ready(function() {
   app.queue.setQueue(window.initial_queue_state);
   chat.activeUsers.setUserList(window.initial_user_list_state);
   chat.messageHistory.setMessages(window.initial_messages_state);
+  app.themeModel.setTheme(window.initial_theme_state);
 
   if(!R.currentUser.get('canStreamHere')) {
     var template = _.template($('#not-a-paying-customer-template').html());

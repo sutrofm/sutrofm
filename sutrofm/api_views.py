@@ -47,6 +47,30 @@ def get_party_queue(request, party_id):
     return HttpResponseNotFound()
 
 @csrf_exempt
+def get_theme(request, party_id):
+  redis = StrictRedis(connection_pool=redis_connection_pool)
+  party = Party.get(redis, party_id)
+
+  if party:
+    return JsonResponse({'results': party.theme_to_dict()})
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
+def set_theme(request, party_id):
+  if request.method == "POST":
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    theme = request.POST.get('theme')
+    party = Party.get(redis, party_id)
+    party.theme = theme
+    party.save(redis)
+    party.broadcast_theme_state(redis)
+
+    return JsonResponse({'success': True})
+  else:
+    return HttpResponseNotFound()
+
+@csrf_exempt
 def add_to_queue(request, party_id):
   if request.method == "POST":
     redis = StrictRedis(connection_pool=redis_connection_pool)

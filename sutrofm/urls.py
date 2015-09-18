@@ -21,6 +21,8 @@ urlpatterns = [
 
   url(r'^api/parties/$', api_views.parties, name='api_parties'),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/?$', api_views.get_party_by_id),
+  url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/theme?$', api_views.get_theme),
+  url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/theme/set?$', api_views.set_theme),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/vote_to_skip$', api_views.vote_to_skip),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue$', api_views.get_party_queue),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/upvote$', api_views.upvote),

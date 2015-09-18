@@ -15,7 +15,7 @@ class Party(object):
     self.playing_track_key = None
     self.playing_track_start_time = datetime.datetime.utcnow()
     self.playing_track_user = None
-    self.theme = ''
+    self.theme = 'Click me to change the theme!'
     self.users = []
     self.queue = []
     self.skippers = []
@@ -61,6 +61,18 @@ class Party(object):
       'data': message.to_dict()
     }
 
+  def get_theme_state_payload(self):
+    return {
+      'type': 'theme',
+      'data': self.theme_to_dict()
+
+    }
+
+  def theme_to_dict(self):
+    return {
+      'theme': self.theme
+    }
+
   def broadcast_player_state(self, connection):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_player_state_payload()))
 
@@ -75,6 +87,9 @@ class Party(object):
 
   def broadcast_message_added(self, connection, message):
     connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_message_added_payload(message)))
+
+  def broadcast_theme_state(self, connection):
+    connection.publish('sutrofm:broadcast:parties:%s' % self.id, json.dumps(self.get_theme_state_payload()))
 
   @property
   def current_track_position(self):
@@ -130,7 +145,14 @@ class Party(object):
       # Get skippers
       skippers = data.get('skippers', None)
       output.skippers = skippers.split(',') if skippers else []
+
+      # Get theme
+      output.theme = data.get('theme', '')
+
       return output
+
+
+
     else:
       return None
 
@@ -148,7 +170,8 @@ class Party(object):
       "name": self.name,
       "playing_track_key": self.playing_track_key or '',
       "playing_track_start_time": self.playing_track_start_time,
-      "skippers": ",".join(self.skippers)
+      "skippers": ",".join(self.skippers),
+      "theme": self.theme
     })
     # Save users
     def _save_users(pipe):
