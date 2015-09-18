@@ -640,7 +640,7 @@ app.receiveMessage = function(msg) {
 
       case "message_added":
         chat.messageHistory.addMessage(payload['data']);
-     break;
+      break;
 
     }
   }

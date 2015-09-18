@@ -20,6 +20,17 @@ def get_rdio_user_data(rdio_user_key):
     return json.loads(response.text)['result'][rdio_user_key]
 
 
+
+def get_rdio_track_data(rdio_track_key):
+    response = requests.post('https://services.rdio.com/api/1/get', {
+        'keys': rdio_track_key,
+        'method': 'get',
+        'access_token': settings.RDIO_ACCESS_TOKEN
+    })
+    return json.loads(response.text)['result'][rdio_track_key]
+
+
+
 class Party(object):
   def __init__(self):
     self.id = None
@@ -428,9 +439,17 @@ class User(object):
 class Message(object):
   def __init__(self):
     self.message_type = None
-    self.text = None
+
+    # For type == 'chat'
     self.user_key = None
-    self.track = None
+    self.text = None
+
+    # For type == 'new_track'
+    self.track_key = None
+    self.track_title = None
+    self.track_artist = None
+    self.track_url = None
+    self.icon_url = None
     self.timestamp = datetime.datetime.utcnow()
 
   @staticmethod
@@ -440,6 +459,18 @@ class Message(object):
         Message.get(connection, party_id, message_id) for message_id in message_ids
     ]
     return messages
+
+  @staticmethod
+  def make_now_playing_message(connection, party, track_key):
+    output = Message.for_party(connection, party)
+    track_info = get_rdio_track_data(track_key)
+    output.message_type = 'new_track'
+    output.track_key = track_key
+    output.track_title = track_info['name']
+    output.track_artist = track_info['artist']
+    output.track_url = 'http://rdio.com%s' % track_info['url']
+    output.icon_url = track_info['dynamicIcon']
+    return output
 
   @staticmethod
   def for_party(connection, party):
@@ -459,18 +490,20 @@ class Message(object):
         'text': None,
         'user': None,
         'track': None,
-        'timestamp': None
+        'track_key': None,
+        'track_title': None,
+        'track_artist': None,
+        'track_url': None,
+        'icon_url': None,
+        'timestamp': None,
     }
     data = {}
     values = connection.hmget('parties:%s:messages:%s' % (party_id, message_id), schema.keys())
-    for index, key in enumerate(schema.keys()):
-        data[key] = values[index]
     output = Message()
     output.id = message_id
-    output.message_type = data['message_type']
-    output.text = data['text']
-    output.user_key = data['user']
-    output.track = data['track']
+    for index, key in enumerate(schema.keys()):
+        data[key] = values[index]
+        setattr(output, key, values[index])
     output.timestamp = parser.parse(data['timestamp'])
     return output
 
@@ -478,13 +511,26 @@ class Message(object):
     connection.hmset('parties:%s:messages:%s' % (self.party_id, self.id), self.to_dict())
 
   def to_dict(self):
-    return {
+    data = {
       'message_type': self.message_type,
-      'text': self.text,
-      'user': self.user_key,
-      'track': self.track,
-      'timestamp': self.timestamp.isoformat()
+      'timestamp': self.timestamp.isoformat(),
     }
+
+    if (self.message_type == "chat"):
+        data.update({
+          'text': self.text,
+          'user': self.user_key,
+        })
+    elif (self.message_type == "new_track"):
+        data.update({
+          'track_key': self.track_key,
+          'track_title': self.track_title,
+          'track_artist': self.track_artist,
+          'track_url': self.track_url,
+          'icon_url': self.icon_url
+        })
+
+    return data
 
   def to_json(self):
     return json.dumps(self.to_dict())

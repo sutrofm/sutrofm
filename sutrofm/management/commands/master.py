@@ -9,7 +9,7 @@ import simplejson as json
 
 from redis import ConnectionPool, StrictRedis
 
-from sutrofm.redis_models import Party
+from sutrofm.redis_models import Party, Message
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
@@ -69,7 +69,6 @@ class Command(BaseCommand):
       self.currently_playing = track_key
       self.current_track_duration = self.get_duration(track_key)
       self.current_start_time = self.party.playing_track_start_time
-      # self.send_play_track_message(rdio_response)
 
   def play_next_track(self):
     # Refresh party data
@@ -79,9 +78,14 @@ class Command(BaseCommand):
     self.party.broadcast_queue_state(self.redis)
 
     self.play_track(self.party.playing_track_key)
+    self.send_play_track_message(self.currently_playing)
 
-  def send_play_track_message(self, rdio_track):
-    pass # TODO
+  def send_play_track_message(self, rdio_track_key):
+    message = Message.make_now_playing_message(self.redis, self.party, rdio_track_key)
+    self.party.add_message(message)
+    message.save(self.redis)
+    self.party.save(self.redis)
+    self.party.broadcast_message_added(self.redis, message)
 
   def tick(self):
     # Refresh the party data
