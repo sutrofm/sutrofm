@@ -12,7 +12,7 @@ app.Player = Backbone.Model.extend({
     this.set('position', data['playing_track_position'])
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
-      'user_key': ''
+      'userKey': data['playing_track_user_key']
     })
   }
 });
@@ -162,7 +162,16 @@ app.TrackList = Backbone.Collection.extend({
 
   setQueue: function(data) {
     var queue = data.map(function(value) {
-      return new app.Track(value);
+      var transformed_data = {
+        'trackKey': value['track_key'],
+        'queueEntryId': value['queue_entry_id'],
+        'submitter': value['submitter'],
+        'upvotes': value['upvotes'],
+        'downvotes': value['downvotes'],
+        'timestamp': value['timestamp'],
+        'userKey': value['user_key']
+      }
+      return new app.Track(transformed_data);
     })
     this.reset(queue);
     this.sort();
@@ -356,10 +365,10 @@ app.NowPlayingView = Backbone.View.extend({
   render: function() {
     var self = this;
     var keys = [this.rdioTrackKey];
-    var user_key = null;
+    var userKey = null;
     if (self.playState.get('playingTrack')) {
-      keys.push(self.playState.get('playingTrack').user_key);
-      user_key = self.playState.get('playingTrack').user_key;
+      keys.push(self.playState.get('playingTrack').userKey);
+      userKey = self.playState.get('playingTrack').userKey;
     }
     if (this.rdioTrackKey) {
       R.request({
@@ -369,7 +378,7 @@ app.NowPlayingView = Backbone.View.extend({
           extras: 'streamRegions,shortUrl,bigIcon,duration,dominantColor,playerBackgroundUrl,isInCollection'
         },
         success: function(response) {
-          var userObj = (response.result[user_key]) ? response.result[user_key] : {firstName: '', lastName: ''};
+          var userObj = (response.result[userKey]) ? response.result[userKey] : {firstName: '', lastName: ''};
           var addedByName = userObj.firstName + " " + userObj.lastName;
           var activeUsers = self.activeUsers;
           var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
@@ -464,12 +473,12 @@ app.TrackView = Backbone.View.extend({
     R.request({
       method: 'get',
       content: {
-        keys: self.model.get('trackKey') + ',' + self.model.get('user_key'),
+        keys: self.model.get('trackKey') + ',' + self.model.get('userKey'),
         extras: 'streamRegions,shortUrl,bigIcon,duration'
       },
       success: function(response) {
         self.rdioTrack = response.result[self.model.get('trackKey')];
-        self.rdioUser = response.result[self.model.get('user_key')];
+        self.rdioUser = response.result[self.model.get('userKey')];
         self.trackDuration = self.getDuration(self.rdioTrack.duration);
         self.render();
       },

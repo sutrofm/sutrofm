@@ -11,25 +11,8 @@ chat.RedisUserList = Backbone.Collection.extend({
       var user_list = data.map(function(value) {
         return new chat.User(value);
       });
-
-      R.request({
-        method: 'get',
-        content: {
-          keys: user_keys,
-          extras: 'firstName, lastName'
-        },
-        success: function(response) {
-          _.mapObject(response.result, function(value, key) {
-            var user = _.find(user_list, function(user){return user.get('rdio_key') === key;})
-            user.set('display_name', value.firstName + " " + value.lastName);
-          })
-          self.update(user_list);
-        },
-        error: function(response) {
-          console.log('Unable to get user information for', self.model.get('id'));
-        }
-      });
-    },
+      self.update(user_list);
+    }
 })
 chat.activeUsers = new chat.RedisUserList();
 chat.UserView = Backbone.View.extend({

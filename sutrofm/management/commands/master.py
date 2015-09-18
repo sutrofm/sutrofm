@@ -56,7 +56,7 @@ class Command(BaseCommand):
         response = requests.post('https://services.rdio.com/api/1/get', {
             'keys': track_key,
             'method': 'get',
-            'access_token': 'AAAAAWEAAAAAAMDi3QAAAABVnsGjV3_1IwAAABZsZVF0VGpnYWRpUUFMejdUZ0hKY0RnJu-QXOiZq2IbKDNw-IigziKzSdv4NA0KY9Ei-Ov5LkM'
+            'access_token': settings.RDIO_ACCESS_TOKEN
         })
         return json.loads(response.text)['result'][track_key]['duration']
 

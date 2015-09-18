@@ -1,11 +1,23 @@
 import calendar
 import datetime
 import time
+import requests
 import uuid
+
+from django.conf import settings
 
 from dateutil import parser
 import simplejson as json
 from sutrofm.context_processors import rdio
+
+
+def get_rdio_user_data(rdio_user_key):
+    response = requests.post('https://services.rdio.com/api/1/get', {
+        'keys': rdio_user_key,
+        'method': 'get',
+        'access_token': settings.RDIO_ACCESS_TOKEN
+    })
+    return json.loads(response.text)['result'][rdio_user_key]
 
 
 class Party(object):
@@ -14,7 +26,7 @@ class Party(object):
     self.name = "unnamed"
     self.playing_track_key = None
     self.playing_track_start_time = datetime.datetime.utcnow()
-    self.playing_track_user = None
+    self.playing_track_user_key = None
     self.theme = ''
     self.users = []
     self.queue = []
@@ -30,7 +42,7 @@ class Party(object):
       'data': {
         'playing_track_key': self.playing_track_key,
         'playing_track_position': self.current_track_position,
-        'playing_track_user_added': ''
+        'playing_track_user_key': self.playing_track_user_key
       }
     }
 
@@ -83,7 +95,7 @@ class Party(object):
   def play_track(self, track_key, user):
     self.playing_track_key = track_key
     self.playing_track_start_time = datetime.datetime.utcnow()
-    self.playing_track_user = user
+    self.playing_track_user_key = user.rdio_key
 
   def play_next_track(self):
     """ Dequeue the next song and play it """
@@ -114,6 +126,7 @@ class Party(object):
       output.playing_track_key = data.get('playing_track_key', None)
       output.playing_track_start_time = parser.parse(
         data.get('playing_track_start_time', datetime.datetime.utcnow().isoformat()))
+      output.playing_track_user_key = data.get('playing_track_user_key', None)
 
       # Get users
       user_keys = connection.smembers('parties:%s:users' % id)
@@ -148,6 +161,7 @@ class Party(object):
       "name": self.name,
       "playing_track_key": self.playing_track_key or '',
       "playing_track_start_time": self.playing_track_start_time,
+      "playing_track_user_key": self.playing_track_user_key,
       "skippers": ",".join(self.skippers)
     })
     # Save users
@@ -234,8 +248,8 @@ class Party(object):
   def queue_to_dict(self):
     return [
         {
-            'queueEntryId': entry.id,
-            'trackKey': entry.track_key,
+            'queue_entry_id': entry.id,
+            'track_key': entry.track_key,
             'submitter': entry.submitter.to_dict(),
             'upvotes': list(entry.upvotes),
             'downvotes': list(entry.downvotes),
@@ -372,10 +386,15 @@ class User(object):
     if not user:
       user = User()
       user.id = rdio_token.id
-      user.display_name = rdio_token.username
       user.rdio_key = rdio_token.id
-      user.icon_url = rdio_token.icon_url
       user.last_check_in = datetime.datetime.utcnow()
+
+      # Fetch the rdio stuff
+      extra_data = get_rdio_user_data(rdio_token.id)
+      user.user_url = 'http://rdio.com%s' % extra_data['url']
+      user.icon_url = extra_data['dynamicIcon']
+      user.display_name = "%s %s" % (extra_data['firstName'], extra_data['lastName'])
+
       user.save(connection)
     return user
 
