@@ -37,13 +37,9 @@ class Party(object):
     self.name = "unnamed"
     self.playing_track_key = None
     self.playing_track_start_time = datetime.datetime.utcnow()
-<<<<<<< HEAD
-    self.playing_track_user = None
-    self.theme = 'Click me to change the theme!'
-=======
     self.playing_track_user_key = None
-    self.theme = ''
->>>>>>> 6775cf5a87119d1636dd911e7d30b7d2dbb95357
+    self.theme = 'Click me to change the theme!'
+
     self.users = []
     self.queue = []
     self.skippers = []

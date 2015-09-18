@@ -107,7 +107,6 @@ chat.RedisMessageHistoryList = Backbone.Collection.extend({
     this.update(message_list);
   },
   addMessage: function(value) {
-    debugger;
     this.add(this.createMessage(value));
   }
 });
