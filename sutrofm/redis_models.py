@@ -1,11 +1,34 @@
 import calendar
 import datetime
 import time
+import requests
 import uuid
+
+from django.conf import settings
 
 from dateutil import parser
 import simplejson as json
 from sutrofm.context_processors import rdio
+
+
+def get_rdio_user_data(rdio_user_key):
+    response = requests.post('https://services.rdio.com/api/1/get', {
+        'keys': rdio_user_key,
+        'method': 'get',
+        'access_token': settings.RDIO_ACCESS_TOKEN
+    })
+    return json.loads(response.text)['result'][rdio_user_key]
+
+
+
+def get_rdio_track_data(rdio_track_key):
+    response = requests.post('https://services.rdio.com/api/1/get', {
+        'keys': rdio_track_key,
+        'method': 'get',
+        'access_token': settings.RDIO_ACCESS_TOKEN
+    })
+    return json.loads(response.text)['result'][rdio_track_key]
+
 
 
 class Party(object):
@@ -14,8 +37,13 @@ class Party(object):
     self.name = "unnamed"
     self.playing_track_key = None
     self.playing_track_start_time = datetime.datetime.utcnow()
+<<<<<<< HEAD
     self.playing_track_user = None
     self.theme = 'Click me to change the theme!'
+=======
+    self.playing_track_user_key = None
+    self.theme = ''
+>>>>>>> 6775cf5a87119d1636dd911e7d30b7d2dbb95357
     self.users = []
     self.queue = []
     self.skippers = []
@@ -30,7 +58,7 @@ class Party(object):
       'data': {
         'playing_track_key': self.playing_track_key,
         'playing_track_position': self.current_track_position,
-        'playing_track_user_added': ''
+        'playing_track_user_key': self.playing_track_user_key
       }
     }
 
@@ -98,7 +126,7 @@ class Party(object):
   def play_track(self, track_key, user):
     self.playing_track_key = track_key
     self.playing_track_start_time = datetime.datetime.utcnow()
-    self.playing_track_user = user
+    self.playing_track_user_key = user.rdio_key
 
   def play_next_track(self):
     """ Dequeue the next song and play it """
@@ -129,6 +157,7 @@ class Party(object):
       output.playing_track_key = data.get('playing_track_key', None)
       output.playing_track_start_time = parser.parse(
         data.get('playing_track_start_time', datetime.datetime.utcnow().isoformat()))
+      output.playing_track_user_key = data.get('playing_track_user_key', None)
 
       # Get users
       user_keys = connection.smembers('parties:%s:users' % id)
@@ -170,8 +199,9 @@ class Party(object):
       "name": self.name,
       "playing_track_key": self.playing_track_key or '',
       "playing_track_start_time": self.playing_track_start_time,
+      "playing_track_user_key": self.playing_track_user_key,
       "skippers": ",".join(self.skippers),
-      "theme": self.theme
+      "theme": self.theme,
     })
     # Save users
     def _save_users(pipe):
@@ -257,8 +287,8 @@ class Party(object):
   def queue_to_dict(self):
     return [
         {
-            'queueEntryId': entry.id,
-            'trackKey': entry.track_key,
+            'queue_entry_id': entry.id,
+            'track_key': entry.track_key,
             'submitter': entry.submitter.to_dict(),
             'upvotes': list(entry.upvotes),
             'downvotes': list(entry.downvotes),
@@ -395,10 +425,15 @@ class User(object):
     if not user:
       user = User()
       user.id = rdio_token.id
-      user.display_name = rdio_token.username
       user.rdio_key = rdio_token.id
-      user.icon_url = rdio_token.icon_url
       user.last_check_in = datetime.datetime.utcnow()
+
+      # Fetch the rdio stuff
+      extra_data = get_rdio_user_data(rdio_token.id)
+      user.user_url = 'http://rdio.com%s' % extra_data['url']
+      user.icon_url = extra_data['dynamicIcon']
+      user.display_name = "%s %s" % (extra_data['firstName'], extra_data['lastName'])
+
       user.save(connection)
     return user
 
@@ -432,9 +467,17 @@ class User(object):
 class Message(object):
   def __init__(self):
     self.message_type = None
-    self.text = None
+
+    # For type == 'chat'
     self.user_key = None
-    self.track = None
+    self.text = None
+
+    # For type == 'new_track'
+    self.track_key = None
+    self.track_title = None
+    self.track_artist = None
+    self.track_url = None
+    self.icon_url = None
     self.timestamp = datetime.datetime.utcnow()
 
   @staticmethod
@@ -444,6 +487,18 @@ class Message(object):
         Message.get(connection, party_id, message_id) for message_id in message_ids
     ]
     return messages
+
+  @staticmethod
+  def make_now_playing_message(connection, party, track_key):
+    output = Message.for_party(connection, party)
+    track_info = get_rdio_track_data(track_key)
+    output.message_type = 'new_track'
+    output.track_key = track_key
+    output.track_title = track_info['name']
+    output.track_artist = track_info['artist']
+    output.track_url = 'http://rdio.com%s' % track_info['url']
+    output.icon_url = track_info['dynamicIcon']
+    return output
 
   @staticmethod
   def for_party(connection, party):
@@ -463,18 +518,20 @@ class Message(object):
         'text': None,
         'user': None,
         'track': None,
-        'timestamp': None
+        'track_key': None,
+        'track_title': None,
+        'track_artist': None,
+        'track_url': None,
+        'icon_url': None,
+        'timestamp': None,
     }
     data = {}
     values = connection.hmget('parties:%s:messages:%s' % (party_id, message_id), schema.keys())
-    for index, key in enumerate(schema.keys()):
-        data[key] = values[index]
     output = Message()
     output.id = message_id
-    output.message_type = data['message_type']
-    output.text = data['text']
-    output.user_key = data['user']
-    output.track = data['track']
+    for index, key in enumerate(schema.keys()):
+        data[key] = values[index]
+        setattr(output, key, values[index])
     output.timestamp = parser.parse(data['timestamp'])
     return output
 
@@ -482,13 +539,26 @@ class Message(object):
     connection.hmset('parties:%s:messages:%s' % (self.party_id, self.id), self.to_dict())
 
   def to_dict(self):
-    return {
+    data = {
       'message_type': self.message_type,
-      'text': self.text,
-      'user': self.user_key,
-      'track': self.track,
-      'timestamp': self.timestamp.isoformat()
+      'timestamp': self.timestamp.isoformat(),
     }
+
+    if (self.message_type == "chat"):
+        data.update({
+          'text': self.text,
+          'user': self.user_key,
+        })
+    elif (self.message_type == "new_track"):
+        data.update({
+          'track_key': self.track_key,
+          'track_title': self.track_title,
+          'track_artist': self.track_artist,
+          'track_url': self.track_url,
+          'icon_url': self.icon_url
+        })
+
+    return data
 
   def to_json(self):
     return json.dumps(self.to_dict())

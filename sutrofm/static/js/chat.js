@@ -11,25 +11,8 @@ chat.RedisUserList = Backbone.Collection.extend({
       var user_list = data.map(function(value) {
         return new chat.User(value);
       });
-
-      R.request({
-        method: 'get',
-        content: {
-          keys: user_keys,
-          extras: 'firstName, lastName'
-        },
-        success: function(response) {
-          _.mapObject(response.result, function(value, key) {
-            var user = _.find(user_list, function(user){return user.get('rdio_key') === key;})
-            user.set('display_name', value.firstName + " " + value.lastName);
-          })
-          self.update(user_list);
-        },
-        error: function(response) {
-          console.log('Unable to get user information for', self.model.get('id'));
-        }
-      });
-    },
+      self.update(user_list);
+    }
 })
 chat.activeUsers = new chat.RedisUserList();
 chat.UserView = Backbone.View.extend({
@@ -94,30 +77,40 @@ chat.UserListView = Backbone.View.extend({
 chat.Message = Backbone.Model.extend({});
 chat.RedisMessageHistoryList = Backbone.Collection.extend({
   model: chat.Message,
+  createMessage: function(payload) {
+    var dict = {
+      'message': payload['text'],
+      'messageType': payload['message_type']
+    }
+    switch (dict['messageType']) {
+      case 'chat':
+        dict['user_key'] = payload['user_key'];
+        dict['display_name'] = payload['user_key'];
+      break;
+
+      case 'new_track':
+        dict['trackKey'] = payload['track_key'];
+        dict['trackUrl'] = payload['track_url'];
+        dict['icon'] = payload['icon_url'];
+        dict['artist'] = payload['track_artist'];
+        dict['title'] = payload['track_title'];
+      break;
+    }
+    return new chat.Message(dict);
+  },
   setMessages: function(messages) {
     // Gets a list from the API
+    var self = this;
     var message_list = messages.map(function(value) {
-      var dict = {
-        'message': value['text'],
-        'messageType': value['message_type'],
-        'user_key': value['user_key'],
-        'display_name': value['user_key']
-      }
-      return new chat.Message(dict);
+      return self.createMessage(value);
     });
     this.update(message_list);
   },
   addMessage: function(value) {
-  var dict = {
-      'message': value['text'],
-      'messageType': value['message_type'],
-      'user_key': value['user_key'],
-      'display_name': value['user_key']
+    debugger;
+    this.add(this.createMessage(value));
   }
-  message = new chat.Message(dict)
-  this.add(message)
-
-}});
+});
 
 chat.UserMessageView = Backbone.View.extend({
 	tagName: 'li',
@@ -149,6 +142,7 @@ chat.UserMessageView = Backbone.View.extend({
     return this;
 	}
 });
+
 chat.NewTrackMessageView = Backbone.View.extend({
 	tagName: 'li',
 	template: _.template($('#chat-new-track-template').html()),
@@ -165,6 +159,7 @@ chat.NewTrackMessageView = Backbone.View.extend({
 		return this;
 	}
 });
+
 chat.MessagesView = Backbone.View.extend({
 	el: '.chat-messages',
 	initialize: function() {
@@ -180,7 +175,7 @@ chat.MessagesView = Backbone.View.extend({
 			});
 			this.$el.append(messageView.render().el);
 			this.el.parentElement.scrollTop = this.el.parentElement.scrollHeight;
-		} else if (messageType == 'NewTrack') {
+		} else if (messageType == 'new_track') {
 			var trackView = new chat.NewTrackMessageView({
 				model: model
 			});
