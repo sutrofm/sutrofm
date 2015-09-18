@@ -18,8 +18,6 @@ urlpatterns = [
   url(r'^auth/', include('social_auth.urls')),
   url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
   url(r'^admin/', include(admin.site.urls)),
-  url(r'^create-auth/', views.createauthtoken),
-  url(r'^create-auth/', 'sutrofm.views.createauthtoken'),
 
   url(r'^api/parties/$', api_views.parties, name='api_parties'),
   url(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/?$', api_views.get_party_by_id),

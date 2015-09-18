@@ -1,16 +1,35 @@
 var chat = chat || {};
 chat.User = Backbone.Model.extend({});
-chat.firebasePeopleRef = new Firebase(firebaseRootUrl + '/people');
-chat.firebaseMessagesRef = new Firebase(firebaseRootUrl + '/messages');
 chat.RedisUserList = Backbone.Collection.extend({
     model: chat.User,
     setUserList: function(data) {
+      var self = this;
+      user_keys = data.map(function(d) {
+        return d['rdio_key']
+      });
+
       var user_list = data.map(function(value) {
         return new chat.User(value);
-      })
-      this.update(user_list);
-    }
+      });
 
+      R.request({
+        method: 'get',
+        content: {
+          keys: user_keys,
+          extras: 'firstName, lastName'
+        },
+        success: function(response) {
+          _.mapObject(response.result, function(value, key) {
+            var user = _.find(user_list, function(user){return user.get('rdio_key') === key;})
+            user.set('display_name', value.firstName + " " + value.lastName);
+          })
+          self.update(user_list);
+        },
+        error: function(response) {
+          console.log('Unable to get user information for', self.model.get('id'));
+        }
+      });
+    },
 })
 chat.activeUsers = new chat.RedisUserList();
 chat.UserView = Backbone.View.extend({
@@ -54,7 +73,7 @@ chat.UserListView = Backbone.View.extend({
 		this.redraw(chat.activeUsers, {});
 	},
 	drawUser: function(model, collection, options) {
-		if (model.get('isOnline')) {
+		if (model.get('is_online')) {
 			console.log("rendering user: ", model);
 			var view = new chat.UserView({
 				model: model
@@ -81,8 +100,8 @@ chat.RedisMessageHistoryList = Backbone.Collection.extend({
       var dict = {
         'message': value['text'],
         'messageType': value['message_type'],
-        'userKey': value['user_key'],
-        'fullName': value['user_key']
+        'user_key': value['user_key'],
+        'display_name': value['user_key']
       }
       return new chat.Message(dict);
     });
@@ -92,42 +111,42 @@ chat.RedisMessageHistoryList = Backbone.Collection.extend({
   var dict = {
       'message': value['text'],
       'messageType': value['message_type'],
-      'userKey': value['user_key'],
-      'fullName': value['user_key']
+      'user_key': value['user_key'],
+      'display_name': value['user_key']
   }
   message = new chat.Message(dict)
   this.add(message)
 
 }});
 
-chat.MessageHistoryList = Backbone.Firebase.Collection.extend({
-	model: chat.Message,
-	firebase: chat.firebaseMessagesRef
-});
 chat.UserMessageView = Backbone.View.extend({
 	tagName: 'li',
 	template: _.template($('#chat-user-message-template').html()),
 	render: function() {
-		var user = chat.activeUsers.get(this.model.get('userKey'));
-		// Strip all tags from the message. Regex explanation: http://regexr.com/3b0rq
-		var message = this.model.get('message').replace(/<(?:.|\n)*?>/gm, '');
-		if (user) {
-			icon = user.attributes.icon;
-		} else {
-			icon = '';
-		}
-		var data = {
-			fullName: this.model.get('fullName'),
-			icon: icon
-		};
-		this.$el.html(this.template(data));
-		// Replace any urls in the message with anchor markup.
-		// Options set are target="_blank", truncate link text, do not link email or phone
-		message = Autolinker.link(message, { newWindow: true, truncate: 30, email: false, phone: false, });
-		// Be careful in the future. Using html() instead of text() will allow a lot more to be passed through.
-		this.$el.find('.chat-message').html(message);
-		this.$el.show();
-		return this;
+		var users = chat.activeUsers.where({'user_key': this.model.get('user_key')})
+    if (!users) {
+      return this;
+    }
+    var user = users[0];
+    // Strip all tags from the message. Regex explanation: http://regexr.com/3b0rq
+    var message = this.model.get('message').replace(/<(?:.|\n)*?>/gm, '');
+    if (user) {
+      icon = user.attributes.icon;
+    } else {
+      icon = '';
+    }
+    var data = {
+      display_name: user.get('display_name'),
+      icon: icon
+    };
+    this.$el.html(this.template(data));
+    // Replace any urls in the message with anchor markup.
+    // Options set are target="_blank", truncate link text, do not link email or phone
+    message = Autolinker.link(message, { newWindow: true, truncate: 30, email: false, phone: false, });
+    // Be careful in the future. Using html() instead of text() will allow a lot more to be passed through.
+    this.$el.find('.chat-message').html(message);
+    this.$el.show();
+    return this;
 	}
 });
 chat.NewTrackMessageView = Backbone.View.extend({
@@ -137,7 +156,7 @@ chat.NewTrackMessageView = Backbone.View.extend({
 		var data = {
 			title: this.model.get('title'),
 			artist: this.model.get('artist'),
-			iconUrl: this.model.get('iconUrl'),
+			icon: this.model.get('icon'),
 			trackUrl: this.model.get('trackUrl'),
 			trackKey: this.model.get('trackKey')
 		};
@@ -172,17 +191,17 @@ chat.MessagesView = Backbone.View.extend({
 });
 R.ready(function() {
 	chat.currentUser = R.currentUser;
-	var userKey = R.currentUser.get('key');
+	var user_key = R.currentUser.get('key');
 	// add current user to activeUsers list, if they're not already
-	var user = chat.activeUsers.get(userKey);
+	var user = chat.activeUsers.get(user_key);
 	if (user === undefined) {
 		chat.activeUsers.add({
-			id: userKey,
-			isOnline: true,
+			id: user_key,
+			is_online: true,
 			icon: R.currentUser.get('icon'),
-			fullName: R.currentUser.get('firstName') + ' ' + R.currentUser.get('lastName')
+			display_name: R.currentUser.get('firstName') + ' ' + R.currentUser.get('lastName')
 		});
-		console.log("added user ", chat.activeUsers.get(userKey), " to chat");
+		console.log("added user ", chat.activeUsers.get(user_key), " to chat");
 	}
 
 	// draw user list view (after marking yourself as online)

@@ -31,7 +31,7 @@ class PartiesTestCase(SutroTestCase):
 
     for person in json_parties[0]['people']:
       self.assertIn(person['id'], [user_bob.id, user_shindiger.id])
-      self.assertIn(person['displayName'], [user_bob.display_name, user_shindiger.display_name])
+      self.assertIn(person['display_name'], [user_bob.display_name, user_shindiger.display_name])
 
     party.remove_user(user_bob)
     party.save(self.redis)

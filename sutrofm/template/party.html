@@ -81,10 +81,8 @@
 
   {% if user.is_authenticated %}
   <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
-  <script type='text/javascript' src='//cdn.firebase.com/v0/firebase.js'></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/autolinker.min.js"></script>
 
@@ -198,8 +196,8 @@
   <script type="text/template" id="chat-user-message-template">
     <div class="presence">
       <li>
-        <img class="user-presence" src=<%= icon %> width=20 height=20>
-        <span class="chat-message-username"><%= fullName %></span>
+        <img class="user-presence" src="<%= icon %>" width="20" height="20">
+        <span class="chat-message-username"><%= display_name %></span>
         <span class="chat-message"></span>
       </li>
     </div>
@@ -211,7 +209,7 @@
         <tr>
           <td>
             <a href="<%= trackUrl %>" target="_blank">
-              <img src="<%= iconUrl %>" width="35" height="35">
+              <img src="<%= icon %>" width="35" height="35">
             </a>
           </td>
           <td>
@@ -261,9 +259,6 @@
   <script type="text/javascript">
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
   var rdioUserKey = '{{ rdio.id }}';
-  var firebaseToken = '{{ rdio.firebase_token }}';
-  var firebaseRootUrl = '{{ firebase_url }}';
-  var firebaseRef = new Firebase(firebaseRootUrl);
   var roomId = "{{ room_id }}";
   var websocket_uri = '{{ WEBSOCKET_URI }}';
   var heartbeat_msg = {{ WS4REDIS_HEARTBEAT }};

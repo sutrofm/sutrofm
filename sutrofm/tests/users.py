@@ -39,11 +39,11 @@ class UsersTestCase(SutroTestCase):
 
       for user in json_users:
         user_to_check = {
-          'display_name': user.get('displayName'),
+          'display_name': user.get('display_name'),
           'user_id': user.get('id'),
-          'icon_url': user.get('iconUrl'),
-          'user_url': user.get('userUrl'),
-          'rdio_key': user.get('rdioKey')
+          'icon_url': user.get('icon'),
+          'user_url': user.get('user_url'),
+          'rdio_key': user.get('rdio_key')
         }
         self.assertTrue(user_to_check in users)
 
@@ -69,7 +69,7 @@ class UsersTestCase(SutroTestCase):
     json_user = json_response['results']
 
     self.assertEqual(json_user['id'], user.id)
-    self.assertEqual(json_user['displayName'], user.display_name)
-    self.assertEqual(json_user['iconUrl'], user.icon_url)
-    self.assertEqual(json_user['userUrl'], user.user_url)
-    self.assertEqual(json_user['rdioKey'], user.rdio_key)
+    self.assertEqual(json_user['display_name'], user.display_name)
+    self.assertEqual(json_user['icon'], user.icon_url)
+    self.assertEqual(json_user['user_url'], user.user_url)
+    self.assertEqual(json_user['rdio_key'], user.rdio_key)

@@ -14,6 +14,7 @@ ADMINS = (
   ('Emily Stumpf', 'emily.stumpf@rdio.com'),
   ('Marek Kapolka', 'marek.kapolka@rd.io'),
   ('Holly French', 'holly.french@rd.io'),
+  ('Jesse Mullan', 'jesse.mullan@rd.io'),
 )
 
 MANAGERS = ADMINS
@@ -219,9 +220,6 @@ LOGIN_URL = '/auth/login/rdio-oauth2/'
 LOGIN_REDIRECT_URL = '/parties/'
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
-FIREBASE_TOKEN = os.environ.get('FIREBASE_TOKEN')
-
-FIREBASE_URL = 'https://rdioparty.firebaseio.com'
 
 # URL that distinguishes websocket connections from normal requests
 WEBSOCKET_URL = '/ws/'

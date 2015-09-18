@@ -8,7 +8,6 @@ import simplejson as json
 from sutrofm.context_processors import rdio
 
 
-
 class Party(object):
   def __init__(self):
     self.id = None
@@ -16,6 +15,7 @@ class Party(object):
     self.playing_track_key = None
     self.playing_track_start_time = datetime.datetime.utcnow()
     self.playing_track_user = None
+    self.theme = ''
     self.users = []
     self.queue = []
     self.skippers = []
@@ -214,7 +214,7 @@ class Party(object):
     return {
       "id": self.id,
       "name": self.name,
-      "people": [{'id': user.id, 'displayName': user.display_name} for user in self.users],
+      "people": [{'id': user.id, 'display_name': user.display_name} for user in self.users],
       "player": {
         "playingTrack": {
           "trackKey": self.playing_track_key
@@ -240,7 +240,7 @@ class Party(object):
             'upvotes': list(entry.upvotes),
             'downvotes': list(entry.downvotes),
             'timestamp': entry.timestamp.isoformat(),
-            'userKey': entry.submitter.rdio_key
+            'user_key': entry.submitter.rdio_key
         } for entry in self.queue
     ]
 
@@ -349,11 +349,11 @@ class User(object):
     if data:
       output = User()
       output.id = id
-      output.display_name = data.get('displayName', '')
-      output.icon_url = data.get('iconUrl', '')
-      output.user_url = data.get('userUrl', '')
-      output.rdio_key = data.get('rdioKey', '')
-      output.last_check_in = parser.parse(data.get('lastCheckIn', datetime.datetime.utcnow().isoformat()))
+      output.display_name = data.get('display_name', '')
+      output.icon_url = data.get('icon', '')
+      output.user_url = data.get('user_url', '')
+      output.rdio_key = data.get('rdio_key', '')
+      output.last_check_in = parser.parse(data.get('last_check_in', datetime.datetime.utcnow().isoformat()))
       return output
     else:
       return None
@@ -374,6 +374,7 @@ class User(object):
       user.id = rdio_token.id
       user.display_name = rdio_token.username
       user.rdio_key = rdio_token.id
+      user.icon_url = rdio_token.icon_url
       user.last_check_in = datetime.datetime.utcnow()
       user.save(connection)
     return user
@@ -382,23 +383,23 @@ class User(object):
     if not self.id:
       self.id = connection.scard('users') + 1
     connection.hmset("users:%s" % self.id, {
-      "displayName": self.display_name,
-      "iconUrl": self.icon_url,
-      "userUrl": self.user_url,
-      "rdioKey": self.rdio_key,
-      "lastCheckIn": self.last_check_in,
+      "display_name": self.display_name,
+      "icon": self.icon_url,
+      "user_url": self.user_url,
+      "rdio_key": self.rdio_key,
+      "last_check_in": self.last_check_in,
     })
     connection.sadd('users', self.id)
 
   def to_dict(self):
     return {
       "id": self.id,
-      "fullName": self.display_name,
+      "display_name": self.display_name,
       "icon": self.icon_url,
-      "userUrl": self.user_url,
-      "rdioKey": self.rdio_key,
-      "lastCheckIn": self.last_check_in.isoformat(),
-      "isOnline": True
+      "user_url": self.user_url,
+      "rdio_key": self.rdio_key,
+      "last_check_in": self.last_check_in.isoformat(),
+      "is_online": True
     }
 
   def to_json(self):

@@ -6,9 +6,7 @@ import psutil
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
 from django.shortcuts import redirect, render, render_to_response
-from firebase_token_generator import create_token
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Party, User
@@ -23,19 +21,6 @@ def home(request):
     'body_class': 'home'
   }
   return render(request, 'index.html', context)
-
-
-def createauthtoken(request):
-  rdio_user_key = request.GET.get('userKey')
-  if rdio_user_key:
-    custom_data = {'rdio_user_key': rdio_user_key}
-    options = {'debug': settings.DEBUG}
-    firebase_token = create_token(settings.FIREBASE_TOKEN, custom_data, options)
-    response = {"token": firebase_token}
-  else:
-    response = {"error": "userKey is a required GET param"}
-
-  return HttpResponse(json.dumps(response), content_type="application/json")
 
 
 def make_room_daemon(room_name):
@@ -69,7 +54,6 @@ def party(request, room_name):
   party.save(connection)
 
   context = {
-    'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),
     'room_name': room_name,
     'body_class': 'party',
     'room_id': room_name,
@@ -84,7 +68,6 @@ def party(request, room_name):
 
 def parties(request):
   context = {
-    'firebase_url': "%s/" % (settings.FIREBASE_URL,),
     'body_class': 'parties'
   }
   return render(request, 'partylist.html', context)

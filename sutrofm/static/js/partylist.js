@@ -1,9 +1,8 @@
-/*globals app, console, R, Backbone, Firebase, rdioUserKey, firebaseToken, firebaseRootUrl, firebaseRef */
+/*globals app, console, R, Backbone, rdioUserKey */
 
 window.app = window.app || {};
 
 app.currentUserKey = rdioUserKey;
-app.firebaseUrl = firebaseRootUrl;
 
 app.Room = Backbone.Model.extend({
 });
@@ -46,7 +45,7 @@ app.RoomView = Backbone.View.extend({
 
     var people = this.model.get('people');
     var population = _.reduce(people, function (memo, obj) {
-      if (obj.isOnline === true) {
+      if (obj.is_online === true) {
         return memo + 1;
       }
       return memo;

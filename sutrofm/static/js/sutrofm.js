@@ -1,10 +1,8 @@
-/*globals app, console, R, Backbone, Firebase, rdioUserKey, firebaseToken, firebaseRootUrl, firebaseRef */
+/*globals app, console, R, Backbone, rdioUserKey*/
 
 window.app = window.app || {};
 
 app.currentUserKey = rdioUserKey;
-
-app.roomUrl = firebaseRootUrl;
 
 app.Player = Backbone.Model.extend({
   initialize: function() {
@@ -14,7 +12,7 @@ app.Player = Backbone.Model.extend({
     this.set('position', data['playing_track_position'])
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
-      'userKey': ''
+      'user_key': ''
     })
   }
 });
@@ -358,10 +356,10 @@ app.NowPlayingView = Backbone.View.extend({
   render: function() {
     var self = this;
     var keys = [this.rdioTrackKey];
-    var userKey = null;
+    var user_key = null;
     if (self.playState.get('playingTrack')) {
-      keys.push(self.playState.get('playingTrack').userKey);
-      userKey = self.playState.get('playingTrack').userKey;
+      keys.push(self.playState.get('playingTrack').user_key);
+      user_key = self.playState.get('playingTrack').user_key;
     }
     if (this.rdioTrackKey) {
       R.request({
@@ -371,7 +369,7 @@ app.NowPlayingView = Backbone.View.extend({
           extras: 'streamRegions,shortUrl,bigIcon,duration,dominantColor,playerBackgroundUrl,isInCollection'
         },
         success: function(response) {
-          var userObj = (response.result[userKey]) ? response.result[userKey] : {firstName: '', lastName: ''};
+          var userObj = (response.result[user_key]) ? response.result[user_key] : {firstName: '', lastName: ''};
           var addedByName = userObj.firstName + " " + userObj.lastName;
           var activeUsers = self.activeUsers;
           var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
@@ -381,7 +379,7 @@ app.NowPlayingView = Backbone.View.extend({
             favorited = response.result[self.rdioTrackKey].isInCollection;
           }
           if (masterUserObj.length > 0 && masterUserObj[0]) {
-            userName = masterUserObj[0].get('fullName');
+            userName = masterUserObj[0].get('display_name');
           }
           var data = _.extend({
             'track': response.result[self.rdioTrackKey],
@@ -466,12 +464,12 @@ app.TrackView = Backbone.View.extend({
     R.request({
       method: 'get',
       content: {
-        keys: self.model.get('trackKey') + ',' + self.model.get('userKey'),
+        keys: self.model.get('trackKey') + ',' + self.model.get('user_key'),
         extras: 'streamRegions,shortUrl,bigIcon,duration'
       },
       success: function(response) {
         self.rdioTrack = response.result[self.model.get('trackKey')];
-        self.rdioUser = response.result[self.model.get('userKey')];
+        self.rdioUser = response.result[self.model.get('user_key')];
         self.trackDuration = self.getDuration(self.rdioTrack.duration);
         self.render();
       },
@@ -564,8 +562,7 @@ app.queueView = Backbone.View.extend({
   }
 });
 
-app.ThemeInfo = Backbone.Firebase.Model.extend({
-  firebase: app.roomUrl + '/meta',
+app.ThemeInfo = Backbone.Model.extend({
   defaults: { themeText: 'Click me to set a theme for this party!' }
 }),
 
@@ -647,31 +644,23 @@ R.ready(function() {
     heartbeat_msg: window.heartbeat_msg
   })
 
-  firebaseRef.auth(firebaseToken, function(error) {
-    if (error) {
-      console.log('Login Failed!', error);
-    } else {
-      console.log('Login Succeeded!');
+  app.playState = new app.Player();
+  var queueView = new app.queueView();
+  app.nowPlayingView = new app.NowPlayingView();
+  var searchView = new app.SearchView();
+  var playlistView = new app.PlaylistView();
+  var themeView = new app.ThemeView({model: new app.ThemeInfo()});
+  app.nowPlayingView.initSlaveStatus();
+  var skipButton = new app.SkipButton();
 
-      app.playState = new app.Player();
-      var queueView = new app.queueView();
-      app.nowPlayingView = new app.NowPlayingView();
-      var searchView = new app.SearchView();
-      var playlistView = new app.PlaylistView();
-      var themeView = new app.ThemeView({model: new app.ThemeInfo()});
-      app.nowPlayingView.initSlaveStatus();
-      var skipButton = new app.SkipButton();
+  app.playState.setState(window.initial_player_state);
+  app.queue.setQueue(window.initial_queue_state);
+  chat.activeUsers.setUserList(window.initial_user_list_state);
+  chat.messageHistory.setMessages(window.initial_messages_state);
 
-      app.playState.setState(window.initial_player_state);
-      app.queue.setQueue(window.initial_queue_state);
-      chat.activeUsers.setUserList(window.initial_user_list_state);
-      chat.messageHistory.setMessages(window.initial_messages_state);
-
-      if(!R.currentUser.get('canStreamHere')) {
-        var template = _.template($('#not-a-paying-customer-template').html());
-        var values = {};
-        $('body').append(template(values));
-      }
-    }
-  });
+  if(!R.currentUser.get('canStreamHere')) {
+    var template = _.template($('#not-a-paying-customer-template').html());
+    var values = {};
+    $('body').append(template(values));
+  }
 });
