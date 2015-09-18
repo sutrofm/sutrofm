@@ -196,14 +196,8 @@ class Party(object):
         queue_entry.save(pipe)
         pipe.sadd('parties:%s:queue' % self.id, queue_entry.id)
 
-    # Save messages
-    def _save_messages(pipe):
-      for message in self.messages:
-        pipe.zadd('parties:%s:messages' % self.id, calendar.timegm(time.gmtime()), message.id)
-
     connection.transaction(_save_users, 'parties:%s:users' % self.id)
     connection.transaction(_save_queue, 'parties:%s:queue' % self.id)
-    connection.transaction(_save_messages, 'parties:%s:messages' % self.id)
 
     connection.sadd('parties', self.id)
 
@@ -439,9 +433,10 @@ class User(object):
 class Message(object):
   def __init__(self):
     self.message_type = None
+    self.timestamp = datetime.datetime.utcnow()
 
     # For type == 'chat'
-    self.user_key = None
+    self.user_id = None
     self.text = None
 
     # For type == 'new_track'
@@ -450,7 +445,6 @@ class Message(object):
     self.track_artist = None
     self.track_url = None
     self.icon_url = None
-    self.timestamp = datetime.datetime.utcnow()
 
   @staticmethod
   def get_recent(connection, party_id, count=50):
@@ -488,7 +482,7 @@ class Message(object):
     schema = {
         'message_type': None,
         'text': None,
-        'user': None,
+        'user_id': None,
         'track': None,
         'track_key': None,
         'track_title': None,
@@ -504,11 +498,13 @@ class Message(object):
     for index, key in enumerate(schema.keys()):
         data[key] = values[index]
         setattr(output, key, values[index])
-    output.timestamp = parser.parse(data['timestamp'])
+    print data
+    output.timestamp = parser.parse(data['timestamp']) if data['timestamp'] else datetime.datetime.utcnow()
     return output
 
   def save(self, connection):
     connection.hmset('parties:%s:messages:%s' % (self.party_id, self.id), self.to_dict())
+    connection.zadd('parties:%s:messages' % self.party_id, calendar.timegm(time.gmtime()), self.id)
 
   def to_dict(self):
     data = {
@@ -519,7 +515,7 @@ class Message(object):
     if (self.message_type == "chat"):
         data.update({
           'text': self.text,
-          'user': self.user_key,
+          'user_id': self.user_id,
         })
     elif (self.message_type == "new_track"):
         data.update({

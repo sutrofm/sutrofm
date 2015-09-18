@@ -168,12 +168,9 @@ def post_message(request, party_id):
     track = request.POST.get('trackKey')
     m.track = track
 
-  m.user_key = user.rdio_key
+  m.user_id = user.id
   m.message_type = message_type
   m.save(redis)
-
-  party.add_message(m)
-  party.save(redis)
 
   party.broadcast_message_added(redis, m)
 

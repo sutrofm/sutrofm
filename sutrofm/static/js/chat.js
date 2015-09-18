@@ -84,8 +84,7 @@ chat.RedisMessageHistoryList = Backbone.Collection.extend({
     }
     switch (dict['messageType']) {
       case 'chat':
-        dict['user_key'] = payload['user_key'];
-        dict['display_name'] = payload['user_key'];
+        dict['user_id'] = payload['user_id'];
       break;
 
       case 'new_track':
@@ -107,7 +106,6 @@ chat.RedisMessageHistoryList = Backbone.Collection.extend({
     this.update(message_list);
   },
   addMessage: function(value) {
-    debugger;
     this.add(this.createMessage(value));
   }
 });
@@ -116,7 +114,7 @@ chat.UserMessageView = Backbone.View.extend({
 	tagName: 'li',
 	template: _.template($('#chat-user-message-template').html()),
 	render: function() {
-		var users = chat.activeUsers.where({'user_key': this.model.get('user_key')})
+		var users = chat.activeUsers.where({'id': this.model.get('user_id')})
     if (!users) {
       return this;
     }
