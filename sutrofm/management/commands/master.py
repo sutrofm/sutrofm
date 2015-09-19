@@ -91,10 +91,11 @@ class Command(BaseCommand):
     self.party = Party.get(self.redis, self.party_id)
 
     position = (datetime.utcnow() - (self.current_start_time or datetime.utcnow())).seconds
-    if not self.currently_playing or (position > self.current_track_duration) or self.party.should_skip():
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    if (not self.currently_playing) or (position > self.current_track_duration) or self.party.should_skip(redis):
       self.play_next_track()
     return self.should_keep_running()
 
   def should_keep_running(self):
     """ Kill if no one is online in the room any more """
-    return True # TODO when User models are more fleshed out
+    return len(self.party.active_users())

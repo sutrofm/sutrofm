@@ -52,8 +52,8 @@ class Party(object):
   def add_message(self, message):
     self.messages.append(message)
 
-  def active_users(self):
-    return [user for user in self._users.values() if user.is_active(self.id)]
+  def active_users(self, connection):
+    return [user for user in self._users.values() if user.is_active(connection, self.id)]
 
   def get_player_state_payload(self):
     return {
@@ -149,8 +149,8 @@ class Party(object):
   def vote_to_skip(self, user):
     self.skippers.add(user.id)
 
-  def should_skip(self):
-    return len(self.skippers) > (len(self.active_users()) / 2)
+  def should_skip(self, connection):
+    return len(self.skippers) > (len(self.active_users(connection)) / 2)
 
   @staticmethod
   def get(connection, id):
@@ -176,7 +176,7 @@ class Party(object):
 
       # Get skippers
       skippers = data.get('skippers', None)
-      output.skippers = skippers.split(',') if skippers else []
+      output.skippers = set(skippers.split(',') if skippers else [])
 
       # Get theme
       output.theme = data.get('theme', '')
@@ -433,7 +433,8 @@ class User(object):
     return user
 
   def is_active(self, connection, party_id):
-    return connection.get('user:%s:party:%s:active' % (party_id, self.id)) or False
+    active = connection.get('user:%s:party:%s:active' % (party_id, self.id))
+    return active or False
 
   def visit_room(self, connection, party_id):
     connection.sadd('user:%s:parties' % self.id, party_id)
