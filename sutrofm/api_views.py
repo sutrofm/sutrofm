@@ -1,6 +1,5 @@
 import datetime
 import httplib
-import logging
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -8,8 +7,6 @@ from django.views.decorators.csrf import csrf_exempt
 from redis import ConnectionPool, StrictRedis
 
 from sutrofm.redis_models import Message, Party, User
-
-logger = logging.getLogger(__name__)
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
@@ -170,17 +167,16 @@ def ping(request):
 
 @csrf_exempt
 def ping_party(request, party_id):
-  logger.info('r %r', request.__dict__)
   redis = StrictRedis(connection_pool=redis_connection_pool)
+  party = None
   user = User.from_request(redis, request)
-  focused = False
   if user:
+    party = Party.get(redis, party_id)
+  if user and party:
     user.last_check_in = datetime.datetime.utcnow()
     user.save(redis)
-    party = Party.get(redis, party_id)
-    if party:
-      party.add_user(redis, user, focused)
-      party.save(redis)
+    party.add_user(redis, user)
+    party.save(redis)
     return JsonResponse({'success': True})
   else:
     return HttpResponseNotFound()

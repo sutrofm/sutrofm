@@ -131,13 +131,6 @@ app.PartyRoomListView = Backbone.View.extend({
     } else {
       this.redraw(app.partyRooms, {});
     }
-
-    this.timer = setInterval(
-      function () {
-        $.ajax({'method': 'POST', 'url': '/api/ping/'});
-      },
-      10000
-    );
   },
 
   drawRoom: function(model, collection, options) {

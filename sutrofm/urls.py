@@ -34,8 +34,6 @@ urlpatterns = [
 
   url(r'^api/users/$', api_views.users, name='api_users'),
   url(r'^api/user/((?P<user_id>[A-Za-z0-9]+)/)', api_views.get_user_by_id),
-
-  url(r'^api/ping/$', api_views.ping),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

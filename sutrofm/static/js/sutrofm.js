@@ -672,13 +672,10 @@ function ping() {
   var roomId = window.roomId;
   $.ajax({
     'method': 'POST',
-    'url': '/api/party/' + window.roomId + '/ping/',
-    'data': {
-      'hasFocus': document.hasFocus() || false
-    }
+    'url': '/api/party/' + window.roomId + '/ping/'
   })
   .fail(function (response) {
-    console.log('I hunger!');
+    console.log('Could not ping the server to say that we are still in the party.');
   });
 }
 

@@ -46,7 +46,7 @@ class Party(object):
 
     self._users = {}
     self.queue = []
-    self.skippers = []
+    self.skippers = set()
     self.messages = []
 
   def add_message(self, message):
@@ -143,11 +143,11 @@ class Party(object):
     self.clear_skippers()
 
   def clear_skippers(self):
-    self.skippers = []
+    """GILLIGANNNNNN!!!"""
+    self.skippers = set()
 
   def vote_to_skip(self, user):
-    if user.id not in self.skippers:
-      self.skippers.append(user.id)
+    self.skippers.add(user.id)
 
   def should_skip(self):
     return len(self.skippers) > (len(self.active_users()) / 2)
@@ -230,9 +230,9 @@ class Party(object):
 
     connection.sadd('parties', self.id)
 
-  def add_user(self, connection, user, focused):
+  def add_user(self, connection, user):
     self._users[user.id] = user
-    user.visit_room(connection, self.id, focused)
+    user.visit_room(connection, self.id)
 
   def enqueue_song(self, user, track_key):
     qe = QueueEntry()
@@ -432,16 +432,8 @@ class User(object):
   def is_active(self, connection, party_id):
     return connection.get('user:%s:party:%s:active' % (party_id, self.id)) or False
 
-  def is_focused(self, connection, party_id):
-    return connection.get('user:%s:party:%s:focus' % (party_id, self.id)) or False
-
-  def visit_room(self, connection, party_id, focused):
+  def visit_room(self, connection, party_id):
     connection.sadd('user:%s:parties' % self.id, party_id)
-    connection.setex(
-      'user:%s:party:%s:focus' % (party_id, self.id),
-      FOCUS_EXPIRES,
-      focused
-    )
     connection.setex(
       'user:%s:party:%s:active' % (party_id, self.id),
       ACTIVITY_EXPIRES,
@@ -456,20 +448,6 @@ class User(object):
       party_id for party_id in self.seen_rooms(connection)
       if self.is_active(connection, party_id)
     ]
-
-  def focused_room(self, connection):
-    active_rooms = self.active_rooms(connection)
-    focused_rooms = [
-      party_id for party_id in active_rooms
-      if self.is_focused(connection, party_id)
-    ]
-    if focused_rooms:
-      # return an arbitrary room from the list of still focused rooms
-      return focused_rooms[0]
-    if active_rooms:
-      # return an arbitrary room from the list of still active rooms
-      return active_rooms[0]
-    return None
 
   def save(self, connection):
     if not self.id:
