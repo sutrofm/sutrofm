@@ -176,7 +176,6 @@ def ping_party(request, party_id):
     user.last_check_in = datetime.datetime.utcnow()
     user.save(redis)
     party.add_user(redis, user)
-    party.save(redis)
     return JsonResponse({'success': True})
   else:
     return HttpResponseNotFound()

@@ -231,8 +231,11 @@ class Party(object):
     connection.sadd('parties', self.id)
 
   def add_user(self, connection, user):
+    should_save = user.id not in self._users
     self._users[user.id] = user
     user.visit_room(connection, self.id)
+    if should_save:
+      self.save(connection)
 
   def enqueue_song(self, user, track_key):
     qe = QueueEntry()
