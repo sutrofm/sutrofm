@@ -83,9 +83,7 @@ class Command(BaseCommand):
 
   def send_play_track_message(self, rdio_track_key):
     message = Message.make_now_playing_message(self.redis, self.party, rdio_track_key)
-    self.party.add_message(message)
     message.save(self.redis)
-    self.party.save(self.redis)
     self.party.broadcast_message_added(self.redis, message)
 
   def tick(self):

@@ -476,7 +476,7 @@ class Message(object):
 
   @staticmethod
   def get_recent(connection, party_id, count=50):
-    message_ids = connection.zrange('parties:%s:messages' % party_id, 0, count)
+    message_ids = connection.zrange('parties:%s:messages' % party_id, -count, -1)
     messages = [
       Message.get(connection, party_id, message_id) for message_id in message_ids
     ]
@@ -526,7 +526,6 @@ class Message(object):
     for index, key in enumerate(schema.keys()):
         data[key] = values[index]
         setattr(output, key, values[index])
-    print data
     output.timestamp = parser.parse(data['timestamp']) if data['timestamp'] else datetime.datetime.utcnow()
     return output
 
