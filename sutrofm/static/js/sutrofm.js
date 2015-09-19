@@ -62,13 +62,16 @@ app.PlaylistView = Backbone.View.extend({
     // This method is broken because we don't have timestamp set in attributes of chat.messageHistory entries since the redis rewrite
     // But the good news is it isn't linked to from anywhere at the moment, yay!
     var playlistName = 'sutro.fm "' + this.getRoomString() + '" ' + this.getDateString();
-    this.trackIds = chat.messageHistory.map(function(x) {
+    this.trackIds = chat.messageHistory.map(
+      function(x) {
         var twelve_hours_in_ms = 43200000;
         var today = new Date();
         var timestamp = new Date(x.attributes.timestamp);
         if (x.attributes.messageType == 'new_track' && Math.abs(today - timestamp) < twelve_hours_in_ms) {
           return x.attributes.trackKey;
-        }});
+        }
+      }
+    );
     R.request({
       method: 'createPlaylist',
       content: {
@@ -128,7 +131,7 @@ formatDuration = function(duration) {
 app.Track = Backbone.Model.extend({
   upVote: function() {
     $.ajax({
-      'url': '/api/party/'+window.roomId+'/queue/upvote',
+      'url': '/api/party/' + window.roomId + '/queue/upvote',
       'method': 'POST',
       'data': {
         'id': this.get('queueEntryId')
@@ -138,7 +141,7 @@ app.Track = Backbone.Model.extend({
 
   downVote: function() {
     $.ajax({
-      'url': '/api/party/'+window.roomId+'/queue/downvote',
+      'url': '/api/party/' + window.roomId + '/queue/downvote',
       'method': 'POST',
       'data': {
         'id': this.get('queueEntryId')
@@ -235,7 +238,6 @@ app.FavoriteButton = Backbone.View.extend({
     },
 
     _clickFavorite: function() {
-        console.log("clickfav");
         if (this.isFavorited) {
             this.unfavoriteCurrentlyPlaying();
         } else {
@@ -398,20 +400,24 @@ app.NowPlayingView = Backbone.View.extend({
           if (masterUserObj.length > 0 && masterUserObj[0]) {
             userName = masterUserObj[0].get('display_name');
           }
-          var data = _.extend({
-            'track': response.result[self.rdioTrackKey],
-            'formattedDuration': self.getDuration(response.result[self.rdioTrackKey].duration),
-            'masterUser': userName,
-            'addedBy': addedByName,
-            'favorited': favorited
-          });
-          self.$el.html(self.template(data));
-          self.$el.show();
-          self.initChildModels(favorited);
-          $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
+          if (self.rdioTrackKey) {
+            var data = _.extend({
+              'track': response.result[self.rdioTrackKey],
+              'formattedDuration': self.getDuration(response.result[self.rdioTrackKey].duration),
+              'masterUser': userName,
+              'addedBy': addedByName,
+              'favorited': favorited
+            });
+            self.$el.html(self.template(data));
+            self.$el.show();
+            self.initChildModels(favorited);
+            $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
+          } else {
+            self.$el.hide();
+          }
         },
         error: function(response) {
-          console.log('Unable to get tack information for', self.rdioTrackKey);
+          console.log('Unable to get track information for', self.rdioTrackKey);
         }
       });
 
@@ -439,15 +445,18 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   _onSlaveTrackChange: function(model, value, options) {
-    console.log('change:playingTrack', model, value, options);
-    R.player.play({
-      source: value.trackKey,
-      initialPosition: model.get('position')
-    });
+    if (value.trackKey) {
+      R.player.play({
+        source: value.trackKey,
+        initialPosition: model.get('position')
+      });
+    } else {
+      R.player.pause();
+      this.render();
+    }
   },
 
   _onSlavePlayerStateChange: function(model, value, options) {
-    console.log('change:playState', model, value, options);
     switch (value) {
       case R.player.PLAYSTATE_PAUSED:
       case R.player.PLAYSTATE_STOPPED:
@@ -491,7 +500,7 @@ app.TrackView = Backbone.View.extend({
         self.render();
       },
       error: function(response) {
-        console.log('Unable to get tack information for', self.model.get('trackKey'));
+        console.log('Unable to get track information for', self.model.get('trackKey'));
       }
     });
 

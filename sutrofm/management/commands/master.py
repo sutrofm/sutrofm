@@ -1,5 +1,6 @@
 import logging
 import time
+import traceback
 from datetime import datetime, timedelta
 
 import requests
@@ -49,7 +50,9 @@ class Command(BaseCommand):
     while self.keep_running:
       try:
         self.keep_running = self.tick()
-      except Exception:
+      except Exception as ex:
+        print ex
+        print(traceback.format_exc())
         logging.exception("AH DAEMON PROBLEM")
       time.sleep(1)
 
@@ -75,11 +78,13 @@ class Command(BaseCommand):
     # Refresh party data
     self.party.play_next_track()
     self.party.save(self.redis)
+
+    was_playing = self.currently_playing
+    self.play_track(self.party.playing_track_key)
+    if was_playing != self.currently_playing:
+      self.send_play_track_message(self.currently_playing)
     self.party.broadcast_player_state(self.redis)
     self.party.broadcast_queue_state(self.redis)
-
-    self.play_track(self.party.playing_track_key)
-    self.send_play_track_message(self.currently_playing)
 
   def send_play_track_message(self, rdio_track_key):
     message = Message.make_now_playing_message(self.redis, self.party, rdio_track_key)
@@ -98,4 +103,5 @@ class Command(BaseCommand):
 
   def should_keep_running(self):
     """ Kill if no one is online in the room any more """
-    return len(self.party.active_users())
+    redis = StrictRedis(connection_pool=redis_connection_pool)
+    return len(self.party.active_users(redis))
