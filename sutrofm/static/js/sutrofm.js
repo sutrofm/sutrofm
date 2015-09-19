@@ -22,10 +22,12 @@ app.PlaylistView = Backbone.View.extend({
     "click .playlist-today": "onPlaylistTodayClick",
     "click .playlist-room-history": "onPlaylistRoomHistoryClick"
   },
+
   initialize: function() {
     this.snapped = false;
     this.render();
   },
+
   render: function() {
     values = {
       'snapped': this.snapped,
@@ -34,6 +36,7 @@ app.PlaylistView = Backbone.View.extend({
     this.$el.html(this.template(values));
     return this;
   },
+
   getDateString: function() {
     var today = new Date();
     var dd = today.getDate();
@@ -48,6 +51,7 @@ app.PlaylistView = Backbone.View.extend({
     today = yyyy + '-' + mm + '-' + dd;
     return today;
   },
+
   getRoomString: function() {
     var roomUrlList = window.location.href.split('/');
     var roomString = roomUrlList[roomUrlList.length-2].replace(/_/g, ' ');
@@ -85,6 +89,7 @@ app.PlaylistView = Backbone.View.extend({
     self = this;
     setTimeout(function () {self.snapped = false; self.render();}, 5000);
   },
+
   onPlaylistRoomHistoryClick: function() {
     var playlistName = 'sutro.fm "' + this.getRoomString() + '" ' + this.getDateString();
     this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.messageType == 'new_track') { return x.attributes.trackKey; } });
@@ -171,9 +176,9 @@ app.TrackList = Backbone.Collection.extend({
         'downvotes': value['downvotes'],
         'timestamp': value['timestamp'],
         'userKey': value['user_key']
-      }
+      };
       return new app.Track(transformed_data);
-    })
+    });
     this.reset(queue);
     this.sort();
   },
@@ -207,7 +212,7 @@ app.SkipButton = Backbone.View.extend({
     },
 
     _clickSkip: function() {
-      chat.sendMessage('voted to skip')
+      chat.sendMessage('voted to skip');
       $.ajax({
         'url': '/api/party/'+window.roomId+'/vote_to_skip',
         'method': 'POST',
@@ -524,7 +529,7 @@ app.TrackView = Backbone.View.extend({
   removeTrack: function() {
     console.log('Removing track ' + this.rdioTrack.name);
     $.ajax({
-      'url': '/api/party/'+window.roomId+'/queue/remove',
+      'url': '/api/party/' + window.roomId + '/queue/remove',
       'method': 'POST',
       'data': {
         'id': this.model.get('queueEntryId')
@@ -615,7 +620,7 @@ app.ThemeView = Backbone.View.extend({
       this.editing = false;
       this.render();
       $.ajax({
-        'url': '/api/party/'+window.roomId+'/theme/set',
+        'url': '/api/party/' + window.roomId + '/theme/set',
         'method': 'POST',
         'data': {
           'theme': this.model.get('themeText')
@@ -660,21 +665,34 @@ app.receiveMessage = function(msg) {
       break;
     }
   }
+};
+
+
+function ping() {
+  var roomId = window.roomId;
+  $.ajax({
+    'method': 'POST',
+    'url': '/api/party/' + window.roomId + '/ping/'
+  })
+  .fail(function (response) {
+    console.log('Could not ping the server to say that we are still in the party.');
+  });
 }
+
 
 R.ready(function() {
   self.redis = WS4Redis({
     uri: window.websocket_uri + "parties:" + window.roomId + "?subscribe-broadcast&publish-broadcast&echo",
     receive_message: app.receiveMessage,
     heartbeat_msg: window.heartbeat_msg
-  })
+  });
 
   app.playState = new app.Player();
   var queueView = new app.queueView();
   app.nowPlayingView = new app.NowPlayingView();
   var searchView = new app.SearchView();
   var playlistView = new app.PlaylistView();
-  app.themeModel = new app.ThemeInfo()
+  app.themeModel = new app.ThemeInfo();
   app.themeView = new app.ThemeView({model: app.themeModel});
   app.nowPlayingView.initSlaveStatus();
   var skipButton = new app.SkipButton();
@@ -685,9 +703,11 @@ R.ready(function() {
   chat.messageHistory.setMessages(window.initial_messages_state);
   app.themeModel.setTheme(window.initial_theme_state);
 
-  if(!R.currentUser.get('canStreamHere')) {
+  if (!R.currentUser.get('canStreamHere')) {
     var template = _.template($('#not-a-paying-customer-template').html());
     var values = {};
     $('body').append(template(values));
   }
+
+  setInterval(ping, 3000);
 });

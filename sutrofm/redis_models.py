@@ -12,27 +12,30 @@ from dateutil import parser
 from sutrofm.context_processors import rdio
 
 
-def get_rdio_user_data(rdio_user_key):
-    response = requests.post('https://services.rdio.com/api/1/get', {
-        'keys': rdio_user_key,
-        'method': 'get',
-        'access_token': settings.RDIO_ACCESS_TOKEN
-    })
-    return json.loads(response.text)['result'][rdio_user_key]
+ACTIVITY_EXPIRES = 60
+FOCUS_EXPIRES = 10
 
+
+def get_rdio_user_data(rdio_user_key):
+  response = requests.post('https://services.rdio.com/api/1/get', {
+    'keys': rdio_user_key,
+    'method': 'get',
+    'access_token': settings.RDIO_ACCESS_TOKEN
+  })
+  return json.loads(response.text)['result'][rdio_user_key]
 
 
 def get_rdio_track_data(rdio_track_key):
-    response = requests.post('https://services.rdio.com/api/1/get', {
-        'keys': rdio_track_key,
-        'method': 'get',
-        'access_token': settings.RDIO_ACCESS_TOKEN
-    })
-    return json.loads(response.text)['result'][rdio_track_key]
-
+  response = requests.post('https://services.rdio.com/api/1/get', {
+    'keys': rdio_track_key,
+    'method': 'get',
+    'access_token': settings.RDIO_ACCESS_TOKEN
+  })
+  return json.loads(response.text)['result'][rdio_track_key]
 
 
 class Party(object):
+
   def __init__(self):
     self.id = None
     self.name = "unnamed"
@@ -41,13 +44,16 @@ class Party(object):
     self.playing_track_user_key = None
     self.theme = 'Click me to change the theme!'
 
-    self.users = []
+    self._users = {}
     self.queue = []
-    self.skippers = []
+    self.skippers = set()
     self.messages = []
 
   def add_message(self, message):
     self.messages.append(message)
+
+  def active_users(self):
+    return [user for user in self._users.values() if user.is_active(self.id)]
 
   def get_player_state_payload(self):
     return {
@@ -90,7 +96,6 @@ class Party(object):
     return {
       'type': 'theme',
       'data': self.theme_to_dict()
-
     }
 
   def theme_to_dict(self):
@@ -138,14 +143,14 @@ class Party(object):
     self.clear_skippers()
 
   def clear_skippers(self):
-    self.skippers = []
+    """GILLIGANNNNNN!!!"""
+    self.skippers = set()
 
   def vote_to_skip(self, user):
-    if user.id not in self.skippers:
-      self.skippers.append(user.id)
+    self.skippers.add(user.id)
 
   def should_skip(self):
-    return len(self.skippers) > (len(self.users) / 2)
+    return len(self.skippers) > (len(self.active_users()) / 2)
 
   @staticmethod
   def get(connection, id):
@@ -161,9 +166,9 @@ class Party(object):
 
       # Get users
       user_keys = connection.smembers('parties:%s:users' % id)
-      output.users = [
-        User.get(connection, key) for key in user_keys
-      ]
+      output._users = {
+        key: User.get(connection, key) for key in user_keys
+      }
 
       # Get queue
       queue_keys = connection.smembers('parties:%s:queue' % id)
@@ -177,9 +182,6 @@ class Party(object):
       output.theme = data.get('theme', '')
 
       return output
-
-
-
     else:
       return None
 
@@ -206,11 +208,11 @@ class Party(object):
     def _save_users(pipe):
       old_users = pipe.smembers('parties:%s:users' % self.id)
       for old_user_id in old_users:
-        if old_user_id not in self.users:
+        if old_user_id not in self._users:
           pipe.srem('parties:%s:users' % self.id, old_user_id)
 
-      for user in self.users:
-        pipe.sadd('parties:%s:users' % self.id, user.id)
+      for user_id in self._users:
+        pipe.sadd('parties:%s:users' % self.id, user_id)
 
     # Save queue
     def _save_queue(pipe):
@@ -228,13 +230,12 @@ class Party(object):
 
     connection.sadd('parties', self.id)
 
-  def add_user(self, user):
-    if user not in self.users:
-      self.users.append(user)
-
-  def remove_user(self, user):
-    if user in self.users:
-      self.users.remove(user)
+  def add_user(self, connection, user):
+    should_save = user.id not in self._users
+    self._users[user.id] = user
+    user.visit_room(connection, self.id)
+    if should_save:
+      self.save(connection)
 
   def enqueue_song(self, user, track_key):
     qe = QueueEntry()
@@ -260,7 +261,7 @@ class Party(object):
     return {
       "id": self.id,
       "name": self.name,
-      "people": [{'id': user.id, 'display_name': user.display_name} for user in self.users],
+      "people": [{'id': user.id, 'display_name': user.display_name} for user in self._users.values()],
       "player": {
         "playingTrack": {
           "trackKey": self.playing_track_key
@@ -292,7 +293,7 @@ class Party(object):
 
   def users_to_dict(self):
     return [
-      user.to_dict() for user in self.users
+      user.to_dict() for user in self._users.values()
     ]
 
   def messages_to_dict(self):
@@ -431,6 +432,26 @@ class User(object):
       user.save(connection)
     return user
 
+  def is_active(self, connection, party_id):
+    return connection.get('user:%s:party:%s:active' % (party_id, self.id)) or False
+
+  def visit_room(self, connection, party_id):
+    connection.sadd('user:%s:parties' % self.id, party_id)
+    connection.setex(
+      'user:%s:party:%s:active' % (party_id, self.id),
+      ACTIVITY_EXPIRES,
+      True
+    )
+
+  def seen_rooms(self, connection):
+    return connection.smembers('user:%s:parties' % self.id)
+
+  def active_rooms(self, connection):
+    return [
+      party_id for party_id in self.seen_rooms(connection)
+      if self.is_active(connection, party_id)
+    ]
+
   def save(self, connection):
     if not self.id:
       self.id = connection.scard('users') + 1
@@ -524,8 +545,8 @@ class Message(object):
     output = Message()
     output.id = message_id
     for index, key in enumerate(schema.keys()):
-        data[key] = values[index]
-        setattr(output, key, values[index])
+      data[key] = values[index]
+      setattr(output, key, values[index])
     output.timestamp = parser.parse(data['timestamp']) if data['timestamp'] else datetime.datetime.utcnow()
     return output
 
@@ -540,18 +561,18 @@ class Message(object):
     }
 
     if (self.message_type == "chat"):
-        data.update({
-          'text': self.text,
-          'user_id': self.user_id,
-        })
+      data.update({
+        'text': self.text,
+        'user_id': self.user_id,
+      })
     elif (self.message_type == "new_track"):
-        data.update({
-          'track_key': self.track_key,
-          'track_title': self.track_title,
-          'track_artist': self.track_artist,
-          'track_url': self.track_url,
-          'icon_url': self.icon_url
-        })
+      data.update({
+        'track_key': self.track_key,
+        'track_title': self.track_title,
+        'track_artist': self.track_artist,
+        'track_url': self.track_url,
+        'icon_url': self.icon_url
+      })
 
     return data
 

@@ -149,6 +149,10 @@ app.PartyRoomListView = Backbone.View.extend({
 
   onListChanged: function(model, options) {
     this.redraw(app.partyRooms, {});
+  },
+
+  close: function () {
+    clearInterval(this.timer);
   }
 });
 
@@ -162,7 +166,7 @@ R.ready(function() {
     var allowedChars = /^[A-Za-z0-9_\-]+$/;
     var matches = roomName.match(allowedChars);
     if (matches && matches[0] == roomName) {
-      //we have a match
+      // we have a match
 
       // TODO check if the room existed before, give the user the option to reset it
       console.log("room name is valid");
