@@ -28,23 +28,13 @@ chat.UserView = Backbone.View.extend({
     if (!this.model.get('is_active')) {
    	  return this;
     }
-    R.request({
-      method: 'get',
-      content: {
-        keys: this.model.get('id'),
-        extras: 'shortUrl'
-      },
-      success: function(response) {
-        var data = _.extend({
-          'user': response.result[self.model.get('id')]
-        });
-        self.$el.html(self.template(data));
-        self.$el.show();
-      },
-      error: function(response) {
-        console.log('Unable to get user information for', self.model.get('id'));
-      }
+    var data = _.extend({
+      'display_name': self.model.get('display_name'),
+      'user_url': self.model.get('user_url'),
+      'icon': self.model.get('icon')
     });
+    self.$el.html(self.template(data));
+    self.$el.show();
     return this;
   }
 });
