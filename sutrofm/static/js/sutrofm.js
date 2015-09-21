@@ -718,5 +718,5 @@ R.ready(function() {
     $('body').append(template(values));
   }
 
-  setInterval(ping, 3000);
+  setInterval(ping, 1000);
 });

@@ -12,9 +12,7 @@ from dateutil import parser
 from sutrofm.context_processors import rdio
 
 
-ACTIVITY_EXPIRES = 60
-FOCUS_EXPIRES = 10
-
+ACTIVITY_EXPIRES = 5
 
 def get_rdio_user_data(rdio_user_key):
   response = requests.post('https://services.rdio.com/api/1/get', {
@@ -52,8 +50,8 @@ class Party(object):
   def add_message(self, message):
     self.messages.append(message)
 
-  def active_users(self, connection):
-    return [user for user in self._users.values() if user.is_active(connection, self.id)]
+  def active_users(self):
+    return [user for user in self._users.values() if user.is_active(self.id)]
 
   def get_player_state_payload(self):
     return {
@@ -154,8 +152,8 @@ class Party(object):
   def vote_to_skip(self, user):
     self.skippers.add(user.id)
 
-  def should_skip(self, connection):
-    return len(self.skippers) > (len(self.active_users(connection)) / 2)
+  def should_skip(self):
+    return len(self.skippers) > (len(self.active_users()) / 2)
 
   @staticmethod
   def get(connection, id):
@@ -238,7 +236,7 @@ class Party(object):
   def add_user(self, connection, user):
     should_save = user.id not in self._users
     self._users[user.id] = user
-    user.visit_room(connection, self.id)
+    user.visit_party(self.id)
     if should_save:
       self.save(connection)
 
@@ -298,7 +296,7 @@ class Party(object):
 
   def users_to_dict(self):
     return [
-      user.to_dict() for user in self._users.values()
+      user.to_dict() for user in self._users.values() if user.is_active(self.id)
     ]
 
   def messages_to_dict(self):
@@ -391,6 +389,7 @@ class User(object):
     self.user_url = None
     self.rdio_key = None
     self.last_check_in = None
+    self.party_id = None
 
   @property
   def active(self):
@@ -407,6 +406,7 @@ class User(object):
       output.user_url = data.get('user_url', '')
       output.rdio_key = data.get('rdio_key', '')
       output.last_check_in = parser.parse(data.get('last_check_in', datetime.datetime.utcnow().isoformat()))
+      output.party_id = data.get('party_id', '')
       return output
     else:
       return None
@@ -437,26 +437,15 @@ class User(object):
       user.save(connection)
     return user
 
-  def is_active(self, connection, party_id):
-    active = connection.get('user:%s:party:%s:active' % (party_id, self.id))
-    return active or False
+  def checked_in_recently(self):
+    return datetime.datetime.utcnow() - self.last_check_in <= datetime.timedelta(seconds=ACTIVITY_EXPIRES)
 
-  def visit_room(self, connection, party_id):
-    connection.sadd('user:%s:parties' % self.id, party_id)
-    connection.setex(
-      'user:%s:party:%s:active' % (party_id, self.id),
-      ACTIVITY_EXPIRES,
-      True
-    )
+  def is_active(self, party_id):
+    return self.party_id == party_id and self.checked_in_recently()
 
-  def seen_rooms(self, connection):
-    return connection.smembers('user:%s:parties' % self.id)
-
-  def active_rooms(self, connection):
-    return [
-      party_id for party_id in self.seen_rooms(connection)
-      if self.is_active(connection, party_id)
-    ]
+  def visit_party(self, party_id):
+    self.party_id = party_id
+    self.last_check_in = datetime.datetime.utcnow()
 
   def save(self, connection):
     if not self.id:
@@ -467,6 +456,7 @@ class User(object):
       "user_url": self.user_url,
       "rdio_key": self.rdio_key,
       "last_check_in": self.last_check_in,
+      "party_id": self.party_id
     })
     connection.sadd('users', self.id)
 
@@ -478,7 +468,8 @@ class User(object):
       "user_url": self.user_url,
       "rdio_key": self.rdio_key,
       "last_check_in": self.last_check_in.isoformat(),
-      "is_online": True
+      "is_active": self.is_active(self.party_id),
+      "party_id": self.party_id
     }
 
   def to_json(self):

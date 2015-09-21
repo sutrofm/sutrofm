@@ -173,7 +173,7 @@ def ping_party(request, party_id):
   if user:
     party = Party.get(redis, party_id)
   if user and party:
-    user.last_check_in = datetime.datetime.utcnow()
+    user.visit_party(party_id)
     user.save(redis)
     party.add_user(redis, user)
     return JsonResponse({'success': True})

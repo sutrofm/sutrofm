@@ -25,6 +25,9 @@ chat.UserView = Backbone.View.extend({
   },
   render: function() {
     var self = this;
+    if (!this.model.get('is_active')) {
+   	  return this;
+    }
     R.request({
       method: 'get',
       content: {
@@ -48,6 +51,7 @@ chat.UserView = Backbone.View.extend({
 chat.UserListView = Backbone.View.extend({
   el: '#user-list',
   initialize: function() {
+  	this._current_users = [];
     this.presenceStats = $('#presence-stats');
     // listen to when new users are added
     this.listenTo(chat.activeUsers, 'add', this.onListChanged);
@@ -57,7 +61,7 @@ chat.UserListView = Backbone.View.extend({
     this.redraw(chat.activeUsers, {});
   },
   drawUser: function(model, collection, options) {
-    if (model.get('is_online')) {
+    if (model.get('is_active')) {
       var view = new chat.UserView({
         model: model
       });
@@ -65,8 +69,13 @@ chat.UserListView = Backbone.View.extend({
     }
   },
   redraw: function(collection, options) {
-    this.$el.empty();
-    collection.each(this.drawUser, this);
+  	var activeUsers = collection.filter(function(user) {return user.get('is_active');});
+  	activeUsers = activeUsers.map(function(user) {return user.get('id');});
+  	if (_.difference(this._current_users, activeUsers).length || _.difference(activeUsers, this._current_users).length) {
+      this.$el.empty();
+      collection.each(this.drawUser, this);
+      this._current_users = activeUsers;
+    };
   },
   onListChanged: function(model, options) {
     // this is inefficient, but we don't have another hook to the dom element.
@@ -193,7 +202,7 @@ R.ready(function() {
   if (user === undefined) {
     chat.activeUsers.add({
       id: user_key,
-      is_online: true,
+      is_active: true,
       icon: R.currentUser.get('icon'),
       display_name: R.currentUser.get('firstName') + ' ' + R.currentUser.get('lastName')
     });
