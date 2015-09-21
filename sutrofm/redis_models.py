@@ -52,8 +52,8 @@ class Party(object):
   def add_message(self, message):
     self.messages.append(message)
 
-  def active_users(self):
-    return [user for user in self._users.values() if user.is_active(self.id)]
+  def active_users(self, connection):
+    return [user for user in self._users.values() if user.is_active(connection, self.id)]
 
   def get_player_state_payload(self):
     return {
@@ -133,13 +133,18 @@ class Party(object):
     self.playing_track_start_time = datetime.datetime.utcnow()
     self.playing_track_user_key = user.rdio_key
 
+  def skip_stop(self):
+    self.playing_track_key = None
+    self.playing_track_start_time = datetime.datetime.utcnow()
+    self.playing_track_user_key = None
+
   def play_next_track(self):
     """ Dequeue the next song and play it """
     next_track_entry = self.dequeue_next_song()
     if next_track_entry:
       self.play_track(next_track_entry.track_key, next_track_entry.submitter)
     else:
-      self.play_track(None, None)
+      self.skip_stop()
     self.clear_skippers()
 
   def clear_skippers(self):
@@ -149,8 +154,8 @@ class Party(object):
   def vote_to_skip(self, user):
     self.skippers.add(user.id)
 
-  def should_skip(self):
-    return len(self.skippers) > (len(self.active_users()) / 2)
+  def should_skip(self, connection):
+    return len(self.skippers) > (len(self.active_users(connection)) / 2)
 
   @staticmethod
   def get(connection, id):
@@ -176,7 +181,7 @@ class Party(object):
 
       # Get skippers
       skippers = data.get('skippers', None)
-      output.skippers = skippers.split(',') if skippers else []
+      output.skippers = set(skippers.split(',') if skippers else [])
 
       # Get theme
       output.theme = data.get('theme', '')
@@ -433,7 +438,8 @@ class User(object):
     return user
 
   def is_active(self, connection, party_id):
-    return connection.get('user:%s:party:%s:active' % (party_id, self.id)) or False
+    active = connection.get('user:%s:party:%s:active' % (party_id, self.id))
+    return active or False
 
   def visit_room(self, connection, party_id):
     connection.sadd('user:%s:parties' % self.id, party_id)
@@ -506,13 +512,27 @@ class Message(object):
   @staticmethod
   def make_now_playing_message(connection, party, track_key):
     output = Message.for_party(connection, party)
-    track_info = get_rdio_track_data(track_key)
     output.message_type = 'new_track'
     output.track_key = track_key
-    output.track_title = track_info['name']
-    output.track_artist = track_info['artist']
-    output.track_url = 'http://rdio.com%s' % track_info['url']
-    output.icon_url = track_info['dynamicIcon']
+    if track_key:
+      track_info = get_rdio_track_data(track_key)
+      output.track_title = track_info['name']
+      output.track_artist = track_info['artist']
+      output.track_url = 'http://rdio.com%s' % track_info['url']
+      output.icon_url = track_info['dynamicIcon']
+    return output
+
+  @staticmethod
+  def make_stop_playing_message(connection, party):
+    output = Message.for_party(connection, party)
+    output.message_type = 'player'
+    output.track_key = track_key
+    if track_key:
+      track_info = get_rdio_track_data(track_key)
+      output.track_title = track_info['name']
+      output.track_artist = track_info['artist']
+      output.track_url = 'http://rdio.com%s' % track_info['url']
+      output.icon_url = track_info['dynamicIcon']
     return output
 
   @staticmethod
@@ -551,7 +571,11 @@ class Message(object):
     return output
 
   def save(self, connection):
-    connection.hmset('parties:%s:messages:%s' % (self.party_id, self.id), self.to_dict())
+    redis_dict = {k: v for k, v in self.to_dict().iteritems() if v is not None}
+    # redis hmsets None as the string 'None', so delete those fields.
+    delete_fields = [k for k, v in self.to_dict().iteritems() if v is None]
+    connection.hdel('parties:%s:messages:%s' % (self.party_id, self.id), delete_fields)
+    connection.hmset('parties:%s:messages:%s' % (self.party_id, self.id), redis_dict)
     connection.zadd('parties:%s:messages' % self.party_id, calendar.timegm(time.gmtime()), self.id)
 
   def to_dict(self):
@@ -573,7 +597,6 @@ class Message(object):
         'track_url': self.track_url,
         'icon_url': self.icon_url
       })
-
     return data
 
   def to_json(self):
