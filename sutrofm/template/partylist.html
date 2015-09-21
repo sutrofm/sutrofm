@@ -25,15 +25,6 @@
   </div>
 </div>
 
-<!--
-<div class="row">
-  <div class="span12">
-    <div id="creation-feedback">
-    </div>
-  </div>
-</div>
--->
-
 <div class="row existing-party-list">
 
   <div class="span6 offset3">
@@ -53,16 +44,14 @@
 
   {% if user.is_authenticated %}
   <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
-  <script type='text/javascript' src='//cdn.firebase.com/v0/firebase.js'></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
 
   <script type="text/template" id="room-template">
     <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">
       <div class="party-room-name">
-        <a href="{% url 'party' %}<%= name %>"><%= name %></a>
+        <a href="{% url 'party' %}<%= id %>"><%= name %></a>
       </div>
       <div class="party-room-population">
         <%= population %>
@@ -83,9 +72,6 @@
   <script type="text/javascript">
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
   var rdioUserKey = '{{ rdio.id }}';
-  var firebaseToken = '{{ rdio.firebase_token }}';
-  var firebaseRootUrl = '{{ firebase_url }}';
-  var firebaseRef = new Firebase(firebaseRootUrl);
   </script>
   <script type="text/javascript" src="{{STATIC_URL}}js/partylist.js"></script>
   {% endif %}

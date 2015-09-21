@@ -1,17 +1,24 @@
-/*globals app, console, R, Backbone, Firebase, rdioUserKey, firebaseToken, firebaseRootUrl, firebaseRef */
+/*globals app, console, R, Backbone, rdioUserKey */
 
 window.app = window.app || {};
 
 app.currentUserKey = rdioUserKey;
-app.firebaseUrl = firebaseRootUrl;
 
 app.Room = Backbone.Model.extend({
 });
 
-app.RoomList = Backbone.Firebase.Collection.extend({
+app.RoomList = Backbone.Collection.extend({
   model: app.Room,
 
-  firebase: app.firebaseUrl,
+  initialize: function() {
+    var self = this;
+    $.ajax({
+      url: '/api/parties',
+      success: function(response) {
+        self.add(response.results);
+      }
+    });
+  }
 });
 
 app.RoomView = Backbone.View.extend({
@@ -34,11 +41,11 @@ app.RoomView = Backbone.View.extend({
 
   render: function() {
     var self = this;
-    var roomName = this.model.get('id');
+    var roomName = this.model.get('name');
 
     var people = this.model.get('people');
     var population = _.reduce(people, function (memo, obj) {
-      if (obj.isOnline === true) {
+      if (obj.is_active === true && obj.party_id === self.model.get('id')) {
         return memo + 1;
       }
       return memo;
@@ -62,6 +69,7 @@ app.RoomView = Backbone.View.extend({
 
     var data = _.extend({
       name: roomName,
+      id: this.model.get('id'),
       population: populationStr
     });
 
@@ -76,12 +84,18 @@ app.RoomView = Backbone.View.extend({
             extras: '-*,name,artist,icon400'
           },
           success: function(response) {
-            var track = response.result[playingTrackKey].name;
-            var artist = response.result[playingTrackKey].artist;
-            data.nowPlaying = '"' + track + '" by ' + artist;
-            data.icon = response.result[playingTrackKey].icon400;
-            data.has_icon = 'has_icon';
-            console.log(data.icon);
+            var track = response.result[playingTrackKey];
+            if (track) {
+              var track_name = track.name;
+              var artist = track.artist;
+              data.nowPlaying = '"' + track_name + '" by ' + artist;
+              data.icon = track.icon400;
+              data.has_icon = 'has_icon';
+            } else {
+              data.nowPlaying = 'Something unknown';
+              data.icon = '';
+              data.has_icon = '';
+            }
             self.$el.html(self.template(data));
             self.$el.show();
           },
@@ -135,20 +149,16 @@ app.PartyRoomListView = Backbone.View.extend({
 
   onListChanged: function(model, options) {
     this.redraw(app.partyRooms, {});
+  },
+
+  close: function () {
+    clearInterval(this.timer);
   }
 });
 
 R.ready(function() {
-  firebaseRef.auth(firebaseToken, function(error) {
-    if (error) {
-      window.alert('Login Failed!', error);
-    } else {
-      console.log('Login Succeeded!');
-
-      app.partyRooms = new app.RoomList();
-      var partyRoomListView = new app.PartyRoomListView();
-    }
-  });
+  app.partyRooms = new app.RoomList();
+  var partyRoomListView = new app.PartyRoomListView();
 
   $('#create-room-button').click(function(e){
     e.preventDefault();
@@ -156,7 +166,7 @@ R.ready(function() {
     var allowedChars = /^[A-Za-z0-9_\-]+$/;
     var matches = roomName.match(allowedChars);
     if (matches && matches[0] == roomName) {
-      //we have a match
+      // we have a match
 
       // TODO check if the room existed before, give the user the option to reset it
       console.log("room name is valid");
@@ -167,4 +177,3 @@ R.ready(function() {
     }
   });
 });
-
