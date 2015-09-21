@@ -45,7 +45,7 @@ app.RoomView = Backbone.View.extend({
 
     var people = this.model.get('people');
     var population = _.reduce(people, function (memo, obj) {
-      if (obj.is_online === true) {
+      if (obj.is_active === true && obj.party_id === self.model.get('id')) {
         return memo + 1;
       }
       return memo;

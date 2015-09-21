@@ -264,7 +264,7 @@ class Party(object):
     return {
       "id": self.id,
       "name": self.name,
-      "people": [{'id': user.id, 'display_name': user.display_name} for user in self._users.values()],
+      "people": [user.to_dict() for user in self._users.values()],
       "player": {
         "playingTrack": {
           "trackKey": self.playing_track_key
