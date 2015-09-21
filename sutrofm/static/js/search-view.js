@@ -12,6 +12,16 @@
     el: '.track-input',
     resultTemplate: _.template($('#search-result-template').html()),
 
+    enqueueTrack: function(trackKey) {
+      $.ajax({
+        'url': '/api/party/'+window.roomId+'/queue/add',
+        'method': 'POST',
+        'data': {
+          'trackKey': trackKey
+        }
+      })
+    },
+
     initialize: function() {
       var self = this;
 
@@ -21,12 +31,7 @@
           var $target = $(event.currentTarget);
           var originalVote = {};
           originalVote[app.currentUserKey] = "like";
-          app.queue.add({
-            trackKey: $target.data('rdio-key'),
-            userKey: app.currentUserKey,
-            votes: originalVote,
-            timestamp: (new Date()).toISOString()
-          });
+          self.enqueueTrack($target.data('rdio-key'));
 
           self.close();
           self.$input.val('');
