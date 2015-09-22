@@ -13,9 +13,6 @@ from sutrofm.redis_models import Party, Message
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
-RDIO_OAUTH2_KEY = 'c2y48bscf6hpd768b6cwvafy'
-RDIO_OAUTH2_SECRET = 'sHf9GavUrP'
-
 WAIT_FOR_USERS = timedelta(minutes=5)
 
 
