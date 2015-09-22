@@ -296,7 +296,7 @@ class Party(object):
 
   def users_to_dict(self):
     return [
-      user.to_dict() for user in self._users.values() if user.is_active(self.id)
+      user.to_dict() for user in self._users.values()
     ]
 
   def messages_to_dict(self):
