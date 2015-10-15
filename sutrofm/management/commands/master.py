@@ -12,6 +12,7 @@ from redis import ConnectionPool, StrictRedis
 from sutrofm.redis_models import Party, Message
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
+logger = logging.getLogger(__name__)
 
 WAIT_FOR_USERS = timedelta(minutes=5)
 
@@ -44,13 +45,14 @@ class Command(BaseCommand):
     self.run()
 
   def run(self):
+    logger.debug('Starting up master process for party "%s"!', self.party_id)
     while self.keep_running:
       try:
         self.keep_running = self.tick()
       except Exception as ex:
         print ex
         print(traceback.format_exc())
-        logging.exception("AH DAEMON PROBLEM")
+        logger.exception("!!! ALERT !!! Master... More like Crashster.")
       time.sleep(1)
 
   def get_duration(self, track_key):

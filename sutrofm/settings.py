@@ -178,6 +178,11 @@ LOGGING = {
       'level': 'DEBUG',
       'class': 'logging.StreamHandler',
       'formatter': 'verbose'
+    },
+    'file': {
+      'level': 'DEBUG',
+      'class': 'logging.FileHandler',
+      'filename': 'sutrofm.log'
     }
   },
   'loggers': {
@@ -200,6 +205,10 @@ LOGGING = {
       'handlers': ['console'],
       'propagate': True,
       'level': 'DEBUG',
+    },
+    'sutrofm': {
+      'level': 'DEBUG',
+      'handlers': ['file'],
     }
   },
 }
