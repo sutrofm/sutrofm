@@ -1,5 +1,6 @@
 *.py[cod]
 venv
+.vagrant/*
 
 # C extensions
 *.so
