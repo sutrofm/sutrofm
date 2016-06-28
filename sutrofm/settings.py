@@ -75,7 +75,7 @@ if DEBUG:
 else:
   DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
   STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-  STATIC_URL = 'http://' + AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com/'
+  STATIC_URL = '/static/'
 
 ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'
 
@@ -219,10 +219,6 @@ AUTHENTICATION_BACKENDS = (
   'django.contrib.auth.backends.ModelBackend',
 )
 
-RDIO_OAUTH2_KEY = os.environ['RDIO_OAUTH2_KEY']
-RDIO_OAUTH2_SECRET = os.environ['RDIO_OAUTH2_SECRET']
-RDIO2_PERMISSIONS = []
-
 LOGIN_URL = '/auth/login/rdio-oauth2/'
 LOGIN_REDIRECT_URL = '/parties/'
 
@@ -244,8 +240,3 @@ WS4REDIS_CONNECTION = {
   'db': 0,
   'password': None,
 }
-
-# RDIO_OAUTH2_KEY = 'c2y48bscf6hpd768b6cwvafy'
-# RDIO_OAUTH2_SECRET = 'sHf9GavUrP'
-
-RDIO_ACCESS_TOKEN = 'AAAAAWEAAAAAAMDi3QAAAABVnsGjV3_1IwAAABZsZVF0VGpnYWRpUUFMejdUZ0hKY0RnJu-QXOiZq2IbKDNw-IigziKzSdv4NA0KY9Ei-Ov5LkM'
