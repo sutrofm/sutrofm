@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import uuid
 
 import psutil
 from django.conf import settings
@@ -10,7 +11,7 @@ from redis import ConnectionPool, StrictRedis
 from sutrofm.redis_models import Party, User
 
 from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
@@ -35,7 +36,14 @@ def make_room_daemon(room_name):
   subprocess.Popen(["python", "%s/../manage.py" % directory, "master", room_name])
 
 
-@login_required
+@csrf_exempt
+def login(request):
+  name = request.POST["name"]
+  request.session['display_name'] = name
+  request.session['uuid'] = str(uuid.uuid4())
+  return redirect('parties')
+
+
 def party(request, room_name):
   if room_name is None:
     return redirect('/p/rdio')
@@ -61,7 +69,8 @@ def party(request, room_name):
     'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
     'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),
     'initial_messages_state_json': json.dumps(party.get_messages_state_payload(connection)),
-    'initial_theme_state_json': json.dumps(party.get_theme_state_payload())
+    'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
+    'current_user': json.dumps(user.to_dict()),
   }
   make_room_daemon(room_name)
   return render(request, 'party.html', context)

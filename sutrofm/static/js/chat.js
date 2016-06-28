@@ -5,7 +5,7 @@ chat.RedisUserList = Backbone.Collection.extend({
     setUserList: function(data) {
       var self = this;
       user_keys = data.map(function(d) {
-        return d['rdio_key'];
+        return d['id'];
       });
 
       var user_list = data.map(function(value) {
@@ -184,17 +184,17 @@ chat.MessagesView = Backbone.View.extend({
   }
 });
 
-R.ready(function() {
-  chat.currentUser = R.currentUser;
-  var user_key = R.currentUser.get('key');
+$(function() {
+  chat.currentUser = window.current_user
+  var user_key = chat.currentUser["id"]
   // add current user to activeUsers list, if they're not already
   var user = chat.activeUsers.get(user_key);
   if (user === undefined) {
     chat.activeUsers.add({
       id: user_key,
       is_active: true,
-      icon: R.currentUser.get('icon'),
-      display_name: R.currentUser.get('firstName') + ' ' + R.currentUser.get('lastName')
+      icon: chat.currentUser['icon'],
+      display_name: chat.currentUser["display_name"]
     });
   }
 
@@ -221,7 +221,7 @@ chat.sendMessage = function(text) {
     'method': 'POST',
     'data': {
       messageType: 'chat',
-      user: chat.currentUser.get('key'),
+      user: chat.currentUser["id"],
       text: text
     }
   });

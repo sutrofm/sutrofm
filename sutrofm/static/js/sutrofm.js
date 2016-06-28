@@ -294,28 +294,6 @@ app.NowPlayingView = Backbone.View.extend({
     this.playState = app.playState;
 
     _.bindAll(this, '_onPositionChange');
-    R.player.on('change:position', this._onPositionChange);
-
-    R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
-    R.player.on('change:isMaster', function() {
-      if (R.player.isMaster()) {
-        $('.player-controls .music').css('background-position', '-25px 0');
-        $('.player-controls .music').attr('title', 'Resume playback');
-      } else {
-        $('.player-controls .music').css('background-position', '-336px -96px');
-        $('.player-controls .music').attr('title', 'Take master control');
-      }
-    }, this);
-    R.player.on('change:volume', function() {
-      if (R.player.volume() > 0.5) {
-        $('.player-controls .mute').css('background-position', '-408px -24px');
-        $('.player-controls .mute').attr('title', 'Mute');
-      } else {
-        $('.player-controls .mute').css('background-position', '-360px -24px');
-        $('.player-controls .mute').attr('title', 'Unmute');
-      }
-    }, this);
-
   },
 
   _onPositionChange: function(position) {
@@ -433,25 +411,13 @@ app.NowPlayingView = Backbone.View.extend({
   initSlaveStatus: function() {
     console.info('Becoming slave');
 
-    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING && app.playState.get('playingTrack')) {
-      R.player.play({
-        source: app.playState.get('playingTrack').trackKey,
-        initialPosition: app.playState.get('position')
-      });
-    }
-
     app.playState.on('change:playingTrack', this._onSlaveTrackChange, this);
     app.playState.on('change:playState', this._onSlavePlayerStateChange, this);
   },
 
   _onSlaveTrackChange: function(model, value, options) {
     if (value.trackKey) {
-      R.player.play({
-        source: value.trackKey,
-        initialPosition: model.get('position')
-      });
     } else {
-      R.player.pause();
       this.render();
     }
   },
@@ -689,7 +655,7 @@ function ping() {
 }
 
 
-R.ready(function() {
+$(function() {
   self.redis = WS4Redis({
     uri: window.websocket_uri + "parties:" + window.roomId + "?subscribe-broadcast&publish-broadcast&echo",
     receive_message: app.receiveMessage,
@@ -711,12 +677,6 @@ R.ready(function() {
   chat.activeUsers.setUserList(window.initial_user_list_state);
   chat.messageHistory.setMessages(window.initial_messages_state);
   app.themeModel.setTheme(window.initial_theme_state);
-
-  if (!R.currentUser.get('canStreamHere')) {
-    var template = _.template($('#not-a-paying-customer-template').html());
-    var values = {};
-    $('body').append(template(values));
-  }
 
   setInterval(ping, 1000);
 });

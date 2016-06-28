@@ -3,13 +3,12 @@ import datetime
 import time
 import requests
 import uuid
+import random
 
 from django.conf import settings
 
 import simplejson as json
 from dateutil import parser
-
-from sutrofm.context_processors import rdio
 
 
 ACTIVITY_EXPIRES = 5
@@ -129,7 +128,6 @@ class Party(object):
   def play_track(self, track_key, user):
     self.playing_track_key = track_key
     self.playing_track_start_time = datetime.datetime.utcnow()
-    self.playing_track_user_key = user.rdio_key
 
   def skip_stop(self):
     self.playing_track_key = None
@@ -290,7 +288,6 @@ class Party(object):
         'upvotes': list(entry.upvotes),
         'downvotes': list(entry.downvotes),
         'timestamp': entry.timestamp.isoformat(),
-        'user_key': entry.submitter.rdio_key
       } for entry in self.queue
     ]
 
@@ -387,7 +384,6 @@ class User(object):
     self.display_name = None
     self.icon_url = None
     self.user_url = None
-    self.rdio_key = None
     self.last_check_in = None
     self.party_id = None
 
@@ -404,7 +400,6 @@ class User(object):
       output.display_name = data.get('display_name', '')
       output.icon_url = data.get('icon', '')
       output.user_url = data.get('user_url', '')
-      output.rdio_key = data.get('rdio_key', '')
       output.last_check_in = parser.parse(data.get('last_check_in', datetime.datetime.utcnow().isoformat()))
       output.party_id = data.get('party_id', '')
       return output
@@ -420,19 +415,22 @@ class User(object):
 
   @staticmethod
   def from_request(connection, request):
-    rdio_token = rdio(request)['rdio']
-    user = User.get(connection, rdio_token.id)
+    uuid = request.session.get('uuid')
+    user = User.get(connection, uuid)
     if not user:
       user = User()
-      user.id = rdio_token.id
-      user.rdio_key = rdio_token.id
+      user.id = uuid
       user.last_check_in = datetime.datetime.utcnow()
 
-      # Fetch the rdio stuff
-      extra_data = get_rdio_user_data(rdio_token.id)
-      user.user_url = 'http://rdio.com%s' % extra_data['url']
-      user.icon_url = extra_data['dynamicIcon']
-      user.display_name = "%s %s" % (extra_data['firstName'], extra_data['lastName'])
+      icons = [
+        '/static/img/icons/husky.jpeg',
+        '/static/img/icons/raccoon.jpeg',
+        '/static/img/icons/glasses_cat.jpeg',
+        '/static/img/icons/shepherd.jpeg',
+        '/static/img/icons/rhino.jpeg',
+      ]
+      user.icon_url = random.choice(icons)
+      user.display_name = request.session.get('display_name')
 
       user.save(connection)
     return user
@@ -454,7 +452,6 @@ class User(object):
       "display_name": self.display_name,
       "icon": self.icon_url,
       "user_url": self.user_url,
-      "rdio_key": self.rdio_key,
       "last_check_in": self.last_check_in,
       "party_id": self.party_id
     })
@@ -466,7 +463,6 @@ class User(object):
       "display_name": self.display_name,
       "icon": self.icon_url,
       "user_url": self.user_url,
-      "rdio_key": self.rdio_key,
       "last_check_in": self.last_check_in.isoformat(),
       "is_active": self.is_active(self.party_id),
       "party_id": self.party_id
@@ -504,19 +500,6 @@ class Message(object):
   def make_now_playing_message(connection, party, track_key):
     output = Message.for_party(connection, party)
     output.message_type = 'new_track'
-    output.track_key = track_key
-    if track_key:
-      track_info = get_rdio_track_data(track_key)
-      output.track_title = track_info['name']
-      output.track_artist = track_info['artist']
-      output.track_url = 'http://rdio.com%s' % track_info['url']
-      output.icon_url = track_info['dynamicIcon']
-    return output
-
-  @staticmethod
-  def make_stop_playing_message(connection, party):
-    output = Message.for_party(connection, party)
-    output.message_type = 'player'
     output.track_key = track_key
     if track_key:
       track_info = get_rdio_track_data(track_key)

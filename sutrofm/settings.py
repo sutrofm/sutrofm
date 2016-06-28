@@ -1,7 +1,5 @@
 import os
 
-import dj_database_url
-
 DEBUG = True if os.environ.get('DJANGO_DEBUG') in ['True', 'true'] else False
 TEMPLATE_DEBUG = DEBUG
 INTERNAL_IPS = ('127.0.0.1',)
@@ -19,7 +17,10 @@ MANAGERS = ADMINS
 
 TEST_DB_URI = os.environ.get('TEST_DB')
 DATABASES = {
-  'default': dj_database_url.config(default=TEST_DB_URI)
+  'default': {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': 'sutrofm.db',
+  },
 }
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False

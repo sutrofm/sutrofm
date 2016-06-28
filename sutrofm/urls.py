@@ -14,6 +14,7 @@ urlpatterns = [
   url(r'^parties/$', views.parties, name='parties'),
   url(r'^sign-out/$', logout, {'next_page': '/'}, name='sign-out'),
   url(r'^player/helper/', views.player_helper, name='player-helper'),
+  url(r'^auth/name', views.login),
   url(r'^auth/', include('social_auth.urls')),
   url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
   url(r'^admin/', include(admin.site.urls)),

@@ -156,7 +156,7 @@ app.PartyRoomListView = Backbone.View.extend({
   }
 });
 
-R.ready(function() {
+$(function() {
   app.partyRooms = new app.RoomList();
   var partyRoomListView = new app.PartyRoomListView();
 
