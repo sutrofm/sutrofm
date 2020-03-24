@@ -1,34 +1,28 @@
-from django.conf import settings
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
 import json
-from django.http import HttpResponse
-
-import subprocess
-import psutil
 import os
-from firebase_token_generator import create_token
+import subprocess
+import uuid
+
+import psutil
+from django.conf import settings
+from django.shortcuts import redirect, render, render_to_response
+from redis import ConnectionPool, StrictRedis
+
+from sutrofm.redis_models import Party, User
+
+from django.contrib.auth import logout
+from django.views.decorators.csrf import csrf_exempt
+
+redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
 
 def home(request):
-    context = {
-        # Something good
-        'body_class': 'home'
-    }
-    return render(request, 'index.html', context)
+  context = {
+    # Something good
+    'body_class': 'home'
+  }
+  return render(request, 'index.html', context)
 
-def createauthtoken(request):
-    rdio_user_key = request.GET.get('userKey')
-    if rdio_user_key:
-        custom_data = {'rdio_user_key': rdio_user_key}
-        options = {'debug': settings.DEBUG}
-        firebase_token = create_token(settings.FIREBASE_TOKEN, custom_data, options)
-        response = { "token": firebase_token }
-    else:
-        response = {"error": "userKey is a required GET param"}
-
-    return HttpResponse(json.dumps(response), content_type="application/json")
 
 def make_room_daemon(room_name):
   child_processes = psutil.Process(os.getpid()).get_children()
@@ -42,31 +36,57 @@ def make_room_daemon(room_name):
   subprocess.Popen(["python", "%s/../manage.py" % directory, "master", room_name])
 
 
-@login_required
+@csrf_exempt
+def login(request):
+  name = request.POST["name"]
+  request.session['display_name'] = name
+  request.session['uuid'] = str(uuid.uuid4())
+  return redirect('parties')
+
+
 def party(request, room_name):
-    if room_name is None:
-        return redirect('/p/rdio')
-    context = {
-        'firebase_url': "%s/%s" % (settings.FIREBASE_URL, room_name),
-        'room_name': room_name,
-        'body_class': 'party'
-    }
-    make_room_daemon(room_name)
-    return render(request, 'party.html', context)
+  if room_name is None:
+    return redirect('/p/rdio')
+
+  connection = StrictRedis(connection_pool=redis_connection_pool)
+  party = Party.get(connection, room_name)
+  if not party:
+    party = Party()
+    party.id = room_name
+    party.name = room_name
+    party.save(connection)
+
+  user = User.from_request(connection, request)
+  party.add_user(connection, user)
+  party.broadcast_user_list_state(connection)
+  party.save(connection)
+
+  context = {
+    'room_name': room_name,
+    'body_class': 'party',
+    'room_id': room_name,
+    'initial_player_state_json': json.dumps(party.get_player_state_payload()),
+    'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
+    'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),
+    'initial_messages_state_json': json.dumps(party.get_messages_state_payload(connection)),
+    'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
+    'current_user': json.dumps(user.to_dict()),
+  }
+  make_room_daemon(room_name)
+  return render(request, 'party.html', context)
 
 
 def parties(request):
-    context = {
-        'firebase_url': "%s/" % (settings.FIREBASE_URL,),
-        'body_class': 'parties'
-    }
-    return render(request, 'partylist.html', context)
+  context = {
+    'body_class': 'parties'
+  }
+  return render(request, 'partylist.html', context)
 
 
 def sign_out(request):
-    logout(request)
-    return redirect('/')
+  logout(request)
+  return redirect('/')
 
 
 def player_helper(request):
-    return render(request, 'player-helper.html')
+  return render_to_response('player-helper.html')

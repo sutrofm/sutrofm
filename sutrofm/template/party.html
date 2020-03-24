@@ -79,12 +79,9 @@
 {% block javascript %}
   {{ block.super }}
 
-  {% if user.is_authenticated %}
   <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
-  <script type='text/javascript' src='//cdn.firebase.com/v0/firebase.js'></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-firebase.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/autolinker.min.js"></script>
 
@@ -129,9 +126,9 @@
 
   <script type="text/template" id="user-presence-template">
     <li class="">
-        <a class="" href="<%= user.shortUrl %>/" target="_blank"
-            title="<%= user.firstName %> <%= user.lastName %>">
-          <img class="user-presence" src="<%= user.icon %>" width="50" height="50">
+        <a class="" href="<%= user_url %>" target="_blank"
+            title="<%= display_name %>">
+          <img class="user-presence" src="<%= icon %>" width="50" height="50">
         </a>
     </li>
   </script>
@@ -198,8 +195,8 @@
   <script type="text/template" id="chat-user-message-template">
     <div class="presence">
       <li>
-        <img class="user-presence" src=<%= icon %> width=20 height=20>
-        <span class="chat-message-username"><%= fullName %></span>
+        <img class="user-presence" src="<%= icon %>" width="20" height="20">
+        <span class="chat-message-username"><%= display_name %></span>
         <span class="chat-message"></span>
       </li>
     </div>
@@ -211,7 +208,7 @@
         <tr>
           <td>
             <a href="<%= trackUrl %>" target="_blank">
-              <img src="<%= iconUrl %>" width="35" height="35">
+              <img src="<%= icon %>" width="35" height="35">
             </a>
           </td>
           <td>
@@ -226,7 +223,7 @@
   <script type="text/template" id="playlist-template">
     <div>
     <% if (!snapped) { %>
-      <span class="playlist-today"><img align="right" src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25></span>
+      <span class="playlist-room-history"><img align="right" src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25></span>
     <% } else { %>
       Created: <span class="playlist-clicked"><%= playlist %></span>
     <% } %>
@@ -261,13 +258,21 @@
   <script type="text/javascript">
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
   var rdioUserKey = '{{ rdio.id }}';
-  var firebaseToken = '{{ rdio.firebase_token }}';
-  var firebaseRootUrl = '{{ firebase_url }}';
-  var firebaseRef = new Firebase(firebaseRootUrl);
+  var roomId = "{{ room_id }}";
+  var websocket_uri = '{{ WEBSOCKET_URI }}';
+  var heartbeat_msg = {{ WS4REDIS_HEARTBEAT }};
   </script>
   <script type="text/javascript" src="{{STATIC_URL}}js/chat.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/sutrofm.js"></script>
   <script type="text/javascript" src="{{STATIC_URL}}js/search-view.js"></script>
-  {% endif %}
+  <script type="text/javascript" src="{{STATIC_URL}}js/ws4redis.js"></script>
+  <script type="text/javascript">
+    var current_user = {{ current_user|safe}}
+    var initial_player_state = {{ initial_player_state_json|safe }}['data']
+    var initial_queue_state = {{ initial_queue_state_json|safe }}['data']
+    var initial_user_list_state = {{ initial_user_list_state_json|safe }}['data']
+    var initial_messages_state = {{ initial_messages_state_json|safe }}['data']
+    var initial_theme_state = {{ initial_theme_state_json|safe }}['data']
+  </script>
 
 {% endblock%}

@@ -1,15 +1,17 @@
-/*globals app, console, R, Backbone, Firebase, rdioUserKey, firebaseToken, firebaseRootUrl, firebaseRef */
+/*globals app, console, R, Backbone, rdioUserKey*/
 
 window.app = window.app || {};
 
 app.currentUserKey = rdioUserKey;
 
-app.roomUrl = firebaseRootUrl;
-
-app.Player = Backbone.Firebase.Model.extend({
-
-  firebase: app.roomUrl + '/player'
-
+app.Player = Backbone.Model.extend({
+  setState: function(data) {
+    this.set('position', data['playing_track_position']);
+    this.set('playingTrack', {
+      'trackKey': data['playing_track_key'],
+      'userKey': data['playing_track_user_key']
+    });
+  }
 });
 
 app.PlaylistView = Backbone.View.extend({
@@ -20,10 +22,12 @@ app.PlaylistView = Backbone.View.extend({
     "click .playlist-today": "onPlaylistTodayClick",
     "click .playlist-room-history": "onPlaylistRoomHistoryClick"
   },
+
   initialize: function() {
     this.snapped = false;
     this.render();
   },
+
   render: function() {
     values = {
       'snapped': this.snapped,
@@ -32,33 +36,42 @@ app.PlaylistView = Backbone.View.extend({
     this.$el.html(this.template(values));
     return this;
   },
+
   getDateString: function() {
     var today = new Date();
     var dd = today.getDate();
     var mm = today.getMonth()+1;
     var yyyy = today.getFullYear();
-    if(dd<10) {
-        dd='0'+dd;
+    if(dd < 10) {
+        dd = '0' + dd;
     }
-    if(mm<10) {
-        mm='0'+mm;
+    if(mm < 10) {
+        mm = '0' + mm;
     }
     today = yyyy + '-' + mm + '-' + dd;
     return today;
   },
+
   getRoomString: function() {
-    var roomUrlList = app.roomUrl.split('/');
-    var roomString = roomUrlList[roomUrlList.length-1].replace(/_/g, ' ');
+    var roomUrlList = window.location.href.split('/');
+    var roomString = roomUrlList[roomUrlList.length-2].replace(/_/g, ' ');
     return roomString;
   },
 
   onPlaylistTodayClick: function() {
+    // This method is broken because we don't have timestamp set in attributes of chat.messageHistory entries since the redis rewrite
+    // But the good news is it isn't linked to from anywhere at the moment, yay!
     var playlistName = 'sutro.fm "' + this.getRoomString() + '" ' + this.getDateString();
-    this.trackIds = chat.messageHistory.map(function(x) {
+    this.trackIds = chat.messageHistory.map(
+      function(x) {
         var twelve_hours_in_ms = 43200000;
         var today = new Date();
         var timestamp = new Date(x.attributes.timestamp);
-        if (x.attributes.type == 'NewTrack' && x.attributes.type == 'NewTrack' && Math.abs(today - timestamp) < twelve_hours_in_ms) { return x.attributes.trackKey; } });
+        if (x.attributes.messageType == 'new_track' && Math.abs(today - timestamp) < twelve_hours_in_ms) {
+          return x.attributes.trackKey;
+        }
+      }
+    );
     R.request({
       method: 'createPlaylist',
       content: {
@@ -79,9 +92,10 @@ app.PlaylistView = Backbone.View.extend({
     self = this;
     setTimeout(function () {self.snapped = false; self.render();}, 5000);
   },
+
   onPlaylistRoomHistoryClick: function() {
     var playlistName = 'sutro.fm "' + this.getRoomString() + '" ' + this.getDateString();
-    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.type == 'NewTrack') { return x.attributes.trackKey; } });
+    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.messageType == 'new_track') { return x.attributes.trackKey; } });
     R.request({
       method: 'createPlaylist',
       content: {
@@ -115,44 +129,29 @@ formatDuration = function(duration) {
 
 
 app.Track = Backbone.Model.extend({
-  LIKE: 'like',
-  DISLIKE: 'dislike',
-  getVoteRef: function() {
-    return this.collection.firebase.child(this.get('id')).child('votes');
-  },
-
-  vote: function(newVote) {
-    console.info('Voting', newVote, 'for', this.get('trackKey'));
-    this.getVoteRef().child(app.currentUserKey).set(newVote);
-  },
-
   upVote: function() {
-    this.vote(this.LIKE);
+    $.ajax({
+      'url': '/api/party/' + window.roomId + '/queue/upvote',
+      'method': 'POST',
+      'data': {
+        'id': this.get('queueEntryId')
+      }
+    });
   },
 
   downVote: function() {
-    this.vote(this.DISLIKE);
-  },
-
-  getVoteCount: function(voteType) {
-    var voteArray = this.get('votes');
-    if (voteArray === undefined) {
-      return 0;
-    }
-    var votes = _.values(voteArray);
-    var count = _.reduce(votes, function(num, vote) {
-      if (vote === voteType) {
-        return num + 1;
-      } else {
-        return num;
+    $.ajax({
+      'url': '/api/party/' + window.roomId + '/queue/downvote',
+      'method': 'POST',
+      'data': {
+        'id': this.get('queueEntryId')
       }
-    }, 0);
-    return count;
+    });
   },
 
   getVoteCounts: function() {
-    var likeCount = this.getVoteCount(this.LIKE);
-    var dislikeCount = this.getVoteCount(this.DISLIKE);
+    var likeCount = this.get('upvotes').length;
+    var dislikeCount = this.get('downvotes').length;
 
     return {
       upVotes: likeCount,
@@ -167,10 +166,25 @@ app.Track = Backbone.Model.extend({
 });
 
 
-app.TrackList = Backbone.Firebase.Collection.extend({
+app.TrackList = Backbone.Collection.extend({
   model: app.Track,
 
-  firebase: app.roomUrl + '/queue',
+  setQueue: function(data) {
+    var queue = data.map(function(value) {
+      var transformed_data = {
+        'trackKey': value['track_key'],
+        'queueEntryId': value['queue_entry_id'],
+        'submitter': value['submitter'],
+        'upvotes': value['upvotes'],
+        'downvotes': value['downvotes'],
+        'timestamp': value['timestamp'],
+        'userKey': value['user_key']
+      };
+      return new app.Track(transformed_data);
+    });
+    this.reset(queue);
+    this.sort();
+  },
 
   comparator: function(a, b) {
     var aScore = a.getVoteCounts().totalVotes;
@@ -193,26 +207,6 @@ app.TrackList = Backbone.Firebase.Collection.extend({
 
 app.queue = new app.TrackList();
 
-app.SkipList = Backbone.Firebase.Collection.extend({
-  model: chat.User,
-  firebase: app.roomUrl + '/skippers',
-
-  containsUser: function(user) {
-    keys = this.map(function(user){ return user.get('key'); });
-    return keys.indexOf(user.get('key')) !== -1;
-  },
-
-  voteToSkip: function() {
-    if (!this.containsUser(chat.currentUser)) {
-      this.add(chat.currentUser, {
-        success: function() {
-          chat.sendMessage("Voted to skip");
-        }
-      });
-    }
-  }
-});
-
 app.SkipButton = Backbone.View.extend({
     el: "#skip-button",
 
@@ -221,7 +215,11 @@ app.SkipButton = Backbone.View.extend({
     },
 
     _clickSkip: function() {
-        app.skipList.voteToSkip();
+      chat.sendMessage('voted to skip');
+      $.ajax({
+        'url': '/api/party/'+window.roomId+'/vote_to_skip',
+        'method': 'POST',
+      });
     }
 });
 
@@ -240,7 +238,6 @@ app.FavoriteButton = Backbone.View.extend({
     },
 
     _clickFavorite: function() {
-        console.log("clickfav");
         if (this.isFavorited) {
             this.unfavoriteCurrentlyPlaying();
         } else {
@@ -277,8 +274,6 @@ app.FavoriteButton = Backbone.View.extend({
     },
 });
 
-app.skipList = new app.SkipList();
-
 app.NowPlayingView = Backbone.View.extend({
   model: app.Track,
 
@@ -299,36 +294,15 @@ app.NowPlayingView = Backbone.View.extend({
     this.playState = app.playState;
 
     _.bindAll(this, '_onPositionChange');
-    R.player.on('change:position', this._onPositionChange);
-
-    R.player.on('change:playingTrack', this._onPlayingTrackChange, this);
-    R.player.on('change:isMaster', function() {
-      if (R.player.isMaster()) {
-        $('.player-controls .music').css('background-position', '-25px 0');
-        $('.player-controls .music').attr('title', 'Resume playback');
-      } else {
-        $('.player-controls .music').css('background-position', '-336px -96px');
-        $('.player-controls .music').attr('title', 'Take master control');
-      }
-    }, this);
-    R.player.on('change:volume', function() {
-      if (R.player.volume() > 0.5) {
-        $('.player-controls .mute').css('background-position', '-408px -24px');
-        $('.player-controls .mute').attr('title', 'Mute');
-      } else {
-        $('.player-controls .mute').css('background-position', '-360px -24px');
-        $('.player-controls .mute').attr('title', 'Unmute');
-      }
-    }, this);
-
   },
 
   _onPositionChange: function(position) {
     prettyPosition = formatDuration(position);
-    prettyDuration = formatDuration(R.player.playingTrack().get('duration'));
-    this.$(".timer").text(prettyPosition + "/" + prettyDuration);
-    this.$(".duration-bar > span").animate({ width: ( position / R.player.playingTrack().get('duration') ) * 100+'%' }, 100);//attr("value", position);
-//    this.$(".duration-bar").attr("max", R.player.playingTrack().get('duration'));
+    if (R.player.playingTrack()) {
+      prettyDuration = formatDuration(R.player.playingTrack().get('duration'));
+      this.$(".timer").text(prettyPosition + "/" + prettyDuration);
+      this.$(".duration-bar > span").animate({ width: ( position / R.player.playingTrack().get('duration') ) * 100+'%' }, 100);
+    }
   },
 
   getDuration: function(duration) {
@@ -402,22 +376,26 @@ app.NowPlayingView = Backbone.View.extend({
             favorited = response.result[self.rdioTrackKey].isInCollection;
           }
           if (masterUserObj.length > 0 && masterUserObj[0]) {
-            userName = masterUserObj[0].get('fullName');
+            userName = masterUserObj[0].get('display_name');
           }
-          var data = _.extend({
-            'track': response.result[self.rdioTrackKey],
-            'formattedDuration': self.getDuration(response.result[self.rdioTrackKey].duration),
-            'masterUser': userName,
-            'addedBy': addedByName,
-            'favorited': favorited
-          });
-          self.$el.html(self.template(data));
-          self.$el.show();
-          self.initChildModels(favorited);
-          $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
+          if (self.rdioTrackKey) {
+            var data = _.extend({
+              'track': response.result[self.rdioTrackKey],
+              'formattedDuration': self.getDuration(response.result[self.rdioTrackKey].duration),
+              'masterUser': userName,
+              'addedBy': addedByName,
+              'favorited': favorited
+            });
+            self.$el.html(self.template(data));
+            self.$el.show();
+            self.initChildModels(favorited);
+            $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
+          } else {
+            self.$el.hide();
+          }
         },
         error: function(response) {
-          console.log('Unable to get tack information for', self.rdioTrackKey);
+          console.log('Unable to get track information for', self.rdioTrackKey);
         }
       });
 
@@ -433,27 +411,18 @@ app.NowPlayingView = Backbone.View.extend({
   initSlaveStatus: function() {
     console.info('Becoming slave');
 
-    if (app.playState.get('playState') == R.player.PLAYSTATE_PLAYING && app.playState.get('playingTrack')) {
-      R.player.play({
-        source: app.playState.get('playingTrack').trackKey,
-        initialPosition: app.playState.get('position')
-      });
-    }
-
     app.playState.on('change:playingTrack', this._onSlaveTrackChange, this);
     app.playState.on('change:playState', this._onSlavePlayerStateChange, this);
   },
 
   _onSlaveTrackChange: function(model, value, options) {
-    console.log('change:playingTrack', model, value, options);
-    R.player.play({
-      source: value.trackKey,
-      initialPosition: model.get('position')
-    });
+    if (value.trackKey) {
+    } else {
+      this.render();
+    }
   },
 
   _onSlavePlayerStateChange: function(model, value, options) {
-    console.log('change:playState', model, value, options);
     switch (value) {
       case R.player.PLAYSTATE_PAUSED:
       case R.player.PLAYSTATE_STOPPED:
@@ -497,7 +466,7 @@ app.TrackView = Backbone.View.extend({
         self.render();
       },
       error: function(response) {
-        console.log('Unable to get tack information for', self.model.get('trackKey'));
+        console.log('Unable to get track information for', self.model.get('trackKey'));
       }
     });
 
@@ -534,7 +503,13 @@ app.TrackView = Backbone.View.extend({
 
   removeTrack: function() {
     console.log('Removing track ' + this.rdioTrack.name);
-    app.queue.remove(this.model);
+    $.ajax({
+      'url': '/api/party/' + window.roomId + '/queue/remove',
+      'method': 'POST',
+      'data': {
+        'id': this.model.get('queueEntryId')
+      }
+    });
   },
 
 });
@@ -548,10 +523,11 @@ app.queueView = Backbone.View.extend({
     this.queueStats = $('#queue-stats');
 
     this.listenTo(app.queue, 'add', this.addOne);
+    this.listenTo(app.queue, 'reset', this.addAll);
     this.listenTo(app.queue, 'sort', this.addAll);
     this.listenTo(app.queue, 'change', this.sortQueue);
     this.listenTo(app.queue, 'all', this.render);
-    this.addAll(app.queue, {});
+    //this.addAll(app.queue, {});
   },
 
   render: function() {
@@ -578,9 +554,10 @@ app.queueView = Backbone.View.extend({
   }
 });
 
-app.ThemeInfo = Backbone.Firebase.Model.extend({
-  firebase: app.roomUrl + '/meta',
-  defaults: { themeText: 'Click me to set a theme for this party!' }
+app.ThemeInfo = Backbone.Model.extend({
+  setTheme: function(data) {
+    this.set({'themeText': data['theme']})
+  },
 }),
 
 app.ThemeView = Backbone.View.extend({
@@ -617,35 +594,89 @@ app.ThemeView = Backbone.View.extend({
       this.model.set('themeText', $(".theme_text").val());
       this.editing = false;
       this.render();
+      $.ajax({
+        'url': '/api/party/' + window.roomId + '/theme/set',
+        'method': 'POST',
+        'data': {
+          'theme': this.model.get('themeText')
+        }
+    });
     }
   },
+
   onThemeClick: function() {
     this.editing = true;
     this.render();
   }
 });
 
-R.ready(function() {
-  firebaseRef.auth(firebaseToken, function(error) {
-    if (error) {
-      console.log('Login Failed!', error);
-    } else {
-      console.log('Login Succeeded!');
+app.receiveMessage = function(msg) {
+  if (msg !== window.heartbeat_msg) {
+    var payload = JSON.parse(msg);
+    var type = payload['type'];
+    switch (type) {
+      case "player":
+        app.playState.setState(payload['data']);
+      break;
 
-      app.playState = new app.Player();
-      var queueView = new app.queueView();
-      app.nowPlayingView = new app.NowPlayingView();
-      var searchView = new app.SearchView();
-      var playlistView = new app.PlaylistView();
-      var themeView = new app.ThemeView({model: new app.ThemeInfo()});
-      app.nowPlayingView.initSlaveStatus();
-      var skipButton = new app.SkipButton();
+      case "queue":
+        app.queue.setQueue(payload['data']);
+      break;
 
-      if(!R.currentUser.get('canStreamHere')) {
-        var template = _.template($('#not-a-paying-customer-template').html());
-        var values = {};
-        $('body').append(template(values));
-      }
+      case "user_list":
+        chat.activeUsers.setUserList(payload['data']);
+      break;
+
+      case "messages":
+        chat.messageHistory.setMessages(payload['data']);
+      break;
+
+      case "message_added":
+        chat.messageHistory.addMessage(payload['data']);
+      break;
+
+      case "theme":
+        app.themeModel.setTheme(payload['data']);
+      break;
     }
+  }
+};
+
+
+function ping() {
+  var roomId = window.roomId;
+  $.ajax({
+    'method': 'POST',
+    'url': '/api/party/' + window.roomId + '/ping/'
+  })
+  .fail(function (response) {
+    console.log('Could not ping the server to say that we are still in the party.');
   });
+}
+
+
+$(function() {
+  self.redis = WS4Redis({
+    uri: window.websocket_uri + "parties:" + window.roomId + "?subscribe-broadcast&publish-broadcast&echo",
+    receive_message: app.receiveMessage,
+    heartbeat_msg: window.heartbeat_msg
+  });
+
+  app.playState = new app.Player();
+  var queueView = new app.queueView();
+  app.nowPlayingView = new app.NowPlayingView();
+  var searchView = new app.SearchView();
+  var playlistView = new app.PlaylistView();
+  app.themeModel = new app.ThemeInfo();
+  app.themeView = new app.ThemeView({model: app.themeModel});
+  app.nowPlayingView.initSlaveStatus();
+  var skipButton = new app.SkipButton();
+
+  app.playState.setState(window.initial_player_state);
+  app.queue.setQueue(window.initial_queue_state);
+  chat.activeUsers.setUserList(window.initial_user_list_state);
+  chat.messageHistory.setMessages(window.initial_messages_state);
+  app.themeModel.setTheme(window.initial_theme_state);
+
+  setInterval(ping, 1000);
 });

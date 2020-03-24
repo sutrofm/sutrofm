@@ -36,7 +36,10 @@
             <p class="lead">Welcome to the party. This is going to be awesome.</p>
             
             <p>
-                <a class="btn btn-primary btn-large" href="{% url 'socialauth_begin' backend='rdio-oauth2' %}">Sign In</a>
+                <form action="auth/name" method="post">
+                  <input type="text" name="name" id="name"/>
+                  <button type="submit">Let's Rock!</button>
+                </form>
             </p>
 
         {% endif %}
