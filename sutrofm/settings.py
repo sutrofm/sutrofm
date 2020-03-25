@@ -149,3 +149,6 @@ WS4REDIS_CONNECTION = {
   'db': 0,
   'password': None,
 }
+
+SOCIAL_AUTH_SPOTIFY_KEY = os.environ.get('SPOTIFY_API_KEY', '')
+SOCIAL_AUTH_SPOTIFY_SECRET = os.environ.get('SPOTIFY_API_SECRET', '')

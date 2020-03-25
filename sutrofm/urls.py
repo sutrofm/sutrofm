@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import re_path, path, include
 
-import sutrofm.views as views
+from sutrofm import views, api_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +25,20 @@ urlpatterns = [
     path('social', include('social_django.urls', namespace='social')),
     path('player/helper', views.player_helper, name='player-helper'),
     path('auth/name', views.login),
+
+    path('api/parties', api_views.parties, name='api_parties'),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/?$', api_views.get_party_by_id),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/theme?$', api_views.get_theme),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/theme/set?$', api_views.set_theme),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/vote_to_skip$', api_views.vote_to_skip),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue$', api_views.get_party_queue),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/upvote$', api_views.upvote),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/downvote$', api_views.downvote),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/add$', api_views.add_to_queue),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/queue/remove$', api_views.remove_from_queue),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/users$', api_views.get_party_users),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/messages/?$', api_views.messages, name='messages'),
+    re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/ping/?$', api_views.ping_party),
 
     re_path(r'^p/((?P<room_name>[A-Za-z0-9\-_]+)/)?$', views.party, name='party'),
 ]

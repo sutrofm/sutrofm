@@ -43,7 +43,6 @@
 {% block javascript %}
   {{ block.super }}
 
-  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
   <script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/backbone-min.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/jquery.ba-outside-events.min.js' %}"></script>
