@@ -1,4 +1,7 @@
 import uuid
+import psutil
+import os
+
 from django.conf import settings
 from redis import ConnectionPool, StrictRedis
 from django.shortcuts import redirect, render
@@ -22,6 +25,18 @@ def login(request):
   request.session['display_name'] = name
   request.session['uuid'] = str(uuid.uuid4())
   return redirect('parties')
+
+
+def make_room_daemon(room_name):
+  child_processes = psutil.Process(os.getpid()).get_children()
+  for process in child_processes:
+    try:
+      if process.cmdline() and len(process.cmdline()) > 0 and process.cmdline()[-1] == room_name:
+        return
+    except psutil.AccessDenied:
+      pass
+  directory = os.path.dirname(os.path.realpath(__file__))
+  subprocess.Popen(["python", "%s/../manage.py" % directory, "master", room_name])
 
 
 def party(request, room_name):
