@@ -40,5 +40,9 @@ urlpatterns = [
     re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/messages/?$', api_views.messages, name='messages'),
     re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/ping/?$', api_views.ping_party),
 
+    path('api/users', api_views.users, name='api_users'),
+    re_path(r'^api/user/((?P<user_id>[A-Za-z0-9]+)/)', api_views.get_user_by_id),
+
+
     re_path(r'^p/((?P<room_name>[A-Za-z0-9\-_]+)/)?$', views.party, name='party'),
 ]
