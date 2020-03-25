@@ -43,5 +43,9 @@ sutrofm.sublime-workspace
 sutrofm.sublime-project
 .idea
 
+db.sqlite3
+sutrofm.db
+sutrofm.log
+
 # static web assets
 webassets

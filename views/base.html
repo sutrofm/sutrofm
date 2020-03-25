@@ -1,4 +1,5 @@
 {% load nav_extras %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,10 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="shortcut icon" type="image/x-icon" href="{{STATIC_URL}}img/favicon.ico" />
-    <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap.min.css" />
-    <link rel="stylesheet" href="{{STATIC_URL}}css/bootstrap-responsive.min.css" />
-    <link rel="stylesheet/less" type="text/css" href="{{STATIC_URL}}css/style.less">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap-responsive.min.css' %}" />
+    <link rel="stylesheet/less" type="text/css" href="{% static 'css/style.less' %}">
     <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/2.5.0/less.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
@@ -27,7 +28,7 @@
               <span class="icon-bar"></span>
             </a>
             <a class="brand" href="/">
-              <img src="{{STATIC_URL}}img/logo.png">
+              <img src="{% static 'img/logo.png' %}">
             </a>
             <div class="nav-collapse collapse">
               <ul class="nav">
@@ -43,7 +44,7 @@
               <ul class="nav pull-right">
                 <li>
                   <a href="https://github.com/sutrofm/sutrofm" target="_blank" title="Find us on GitHub">
-                    <img src="{{STATIC_URL}}img/GitHub-Mark-Light-32px.png" class="github-logo">
+                      <img src="{% static 'img/GitHub-Mark-Light-32px.png' %}" class="github-logo">
                   </a>
                 </li>
                 <li class="twitter-follow-magic">
@@ -65,22 +66,12 @@
                     <li class="divider"></li>
                     <li class="nav-header">Social Auth</li>
                     <li>
-                      {% if social_auth.rdio_oauth2 %}
-                      <a href="{% url 'socialauth_disconnect' backend='rdio-oauth2' %}">Remove Rdio 2.0</a>
-                      {% else %}
-                      <a href="{% url 'socialauth_begin' backend='rdio-oauth2' %}">Add Rdio 2.0</a>
-                      {% endif %}
+                      <a href="{% url 'social:begin' 'spotify' %}">Add "Rdio 2.0" A.K.A Spotify</a>
                     </li>
                   </ul>
                   </li>
                 {% endif %}
-                {% if user.is_authenticated %}
-                <li><a href="{% url 'sign-out' %}">Sign Out</a></li>
-                {% else %}
-                <li><a href="{% url 'socialauth_begin' backend='rdio-oauth2' %}">Sign In</a></li>
-                {% endif %}
-              </ul>
-            </div>
+                <li><a href="{% url 'social:begin' 'spotify' %}">Sign In</a></li>
           </div>
         </div>
       </div>
@@ -101,7 +92,7 @@
         </div>
 
     {% block javascript %}
-    <script type="text/javascript" src="{{STATIC_URL}}js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
     {% endblock %}
 
     {% if not debug %}

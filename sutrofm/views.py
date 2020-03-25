@@ -1,17 +1,12 @@
-import json
-import os
-import subprocess
 import uuid
-
 import psutil
+import os
+
 from django.conf import settings
-from django.shortcuts import redirect, render, render_to_response
 from redis import ConnectionPool, StrictRedis
+from django.shortcuts import redirect, render
 
 from sutrofm.redis_models import Party, User
-
-from django.contrib.auth import logout
-from django.views.decorators.csrf import csrf_exempt
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
@@ -24,6 +19,14 @@ def home(request):
   return render(request, 'index.html', context)
 
 
+# Add some display name information and assign a UUID before continuing
+def login(request):
+  name = request.POST["name"]
+  request.session['display_name'] = name
+  request.session['uuid'] = str(uuid.uuid4())
+  return redirect('parties')
+
+
 def make_room_daemon(room_name):
   child_processes = psutil.Process(os.getpid()).get_children()
   for process in child_processes:
@@ -34,14 +37,6 @@ def make_room_daemon(room_name):
       pass
   directory = os.path.dirname(os.path.realpath(__file__))
   subprocess.Popen(["python", "%s/../manage.py" % directory, "master", room_name])
-
-
-@csrf_exempt
-def login(request):
-  name = request.POST["name"]
-  request.session['display_name'] = name
-  request.session['uuid'] = str(uuid.uuid4())
-  return redirect('parties')
 
 
 def party(request, room_name):
@@ -83,10 +78,5 @@ def parties(request):
   return render(request, 'partylist.html', context)
 
 
-def sign_out(request):
-  logout(request)
-  return redirect('/')
-
-
 def player_helper(request):
-  return render_to_response('player-helper.html')
+  return render(request, 'player-helper.html')

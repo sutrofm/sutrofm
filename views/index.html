@@ -37,6 +37,7 @@
             
             <p>
                 <form action="auth/name" method="post">
+                  {% csrf_token %}
                   <input type="text" name="name" id="name"/>
                   <button type="submit">Let's Rock!</button>
                 </form>

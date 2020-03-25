@@ -1,5 +1,4 @@
 import datetime
-import httplib
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -233,4 +232,4 @@ def post_message(request, party_id):
 
   party.broadcast_message_added(redis, m)
 
-  return HttpResponse(status=httplib.CREATED)
+  return HttpResponse(status=201)

@@ -50,7 +50,7 @@ class Command(BaseCommand):
       try:
         self.keep_running = self.tick()
       except Exception as ex:
-        print ex
+        print(ex)
         print(traceback.format_exc())
         logger.exception("!!! ALERT !!! Master... More like Crashster.")
       time.sleep(1)
