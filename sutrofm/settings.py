@@ -12,6 +12,17 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
+# We salute the contributions of the previous caretakers of this great project
+ADMINS = (
+  ('Brandon Wilson', 'brandon.wilson@rd.io'),
+  ('Rebecca Stecker', 'rebecca.stecker@rdio.com'),
+  ('Emily Stumpf', 'emily.stumpf@rdio.com'),
+  ('Marek Kapolka', 'marek.kapolka@rd.io'),
+  ('Holly French', 'holly.french@rd.io'),
+  ('Jesse Mullan', 'jesse.mullan@rd.io'),
+)
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
