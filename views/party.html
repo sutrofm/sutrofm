@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}sutro.fm - {{room_name}}{% endblock %}
+
+{% block content %}
+<style>
+    .was_favorited {
+        background-image: url("{{STATIC_URL}}img/was_favorited.png");
+        background-size: 25px 25px;
+    }
+
+    .not_favorited {
+        background-image: url("{{STATIC_URL}}img/favorite.png");
+        background-size: 25px 25px;
+    }
+</style>
+<div class="row-fluid no-space">
+
+
+  <div class="span5 now-playing-box full-height">
+    <div id="now-playing">
+    </div>
+  </div>
+
+  <div class="span4 queue-box full-height">
+    <div class="col-title" style="display: inline">
+      Queue:
+    </div>
+    <div id="theme" style="display: inline"></div>
+    <div class="track-input">
+      <table class="text-input">
+        <tr>
+          <td>
+            <img src="{{STATIC_URL}}img/search.png" class="input-icon">
+          </td>
+          <td class="input-cell">
+            <input type="text" id="track-key-input" placeholder="Find a song to add to the party">
+          </td>
+        </tr>
+      </table>
+      <div class="dropdown">
+        <ul class="dropdown-menu">
+        </ul>
+      </div>
+    </div>
+    <ul id="queue">
+    </ul>
+    <div id="queue-stats"></div>
+  </div>
+
+  <div class="span3 chat-box full-height">
+    <div class="playlist"></div>
+      <div class="col-title">
+        Chat
+      </div>
+    <div class="chat-message-container">
+      <ul class="chat-messages"></ul>
+    </div>
+    <table class="text-input">
+      <tr>
+        <td>
+          <img src="{{STATIC_URL}}img/chat-bubble.png" class="input-icon">
+        </td>
+        <td class="input-cell">
+          <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+<div class="span1 user-box full-height">
+    <div class="presence">
+      <ul id="user-list" class="thumbnails"></ul>
+      <div id="presence-stats"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+  {{ block.super }}
+
+  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/autolinker.min.js"></script>
+
+  <script type="text/template" id="track-template">
+    <table>
+      <tr>
+        <td>
+          <img class="album-cover" src="<%= track.icon %>">
+        </td>
+        <td class="main">
+          <div class="title">
+            <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a>
+          </div>
+          <div class="artist">
+            <%= track.artist %>
+          </div>
+          <div class="added">
+            Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a>
+          </div>
+          <div class="duration">
+            <%= formattedDuration %>
+          </div>
+        </td>
+        <% if (window.rdioUserKey == user.key) {%>
+        <td>
+          <div class="remove-track"></div>
+        </td>
+        <% } %>
+        <td class="buttons">
+    <div class="button-group">
+            <div class="up-vote" style="background-image: url({{STATIC_URL}}img/vote-up.png)"></div>
+            <span class="votes"><%= upVotes %></span>
+    </div>
+    <div class="button-group">
+            <div class="down-vote" style="background-image: url({{STATIC_URL}}img/vote-down.png)"></div>
+      <span class="votes"><%= downVotes %></span>
+    </div>
+        </td>
+      </tr>
+    </table>
+  </script>
+
+  <script type="text/template" id="user-presence-template">
+    <li class="">
+        <a class="" href="<%= user_url %>" target="_blank"
+            title="<%= display_name %>">
+          <img class="user-presence" src="<%= icon %>" width="50" height="50">
+        </a>
+    </li>
+  </script>
+
+  <script type="text/template" id="stats-template">
+    <p>Queue size is <%= queueSize %></p>
+  </script>
+
+  <script type="text/template" id="now-playing-template">
+    <div class="player-controls">
+      <a href="#" class="music" title="Resume playback"></a>
+      <a href="#" class="mute" title="Mute"></a>
+    </div>
+    <div class="col-title">
+      Now Playing
+    </div>
+    <div class="now-playing-album">
+      <img src="<%= track.bigIcon %>">
+      <div class="album-info">
+        <div class="title">
+          <a href="<%= track.shortUrl %>" target="_blank"><%= track.name %></a>
+        </div>
+        <div class="credits">
+          <%= track.artist %> - <%= track.album %>
+        </div>
+      </div>
+    </div>
+    <div class="now-playing-details">
+      <div style="float: left;"> Added by <%= addedBy %></div><div style="float: right;" class="np-duration"><div class="timer"></div></div>
+      <div class="duration-bar"><span></span></div>
+    </div>
+
+    <div class="now-playing-buttons">
+      <img src="{{STATIC_URL}}img/favorite.png" id="favorite-button" width=25>
+      <img src="{{STATIC_URL}}img/download.png" id="download-button" width=25>
+      <img src="{{STATIC_URL}}img/upvote.png" id="upvote-button" width=50>
+      <img src="{{STATIC_URL}}img/downvote.png" id="skip-button" width=50>
+      <img src="{{STATIC_URL}}img/share.png" id="share-button" width=25>
+      <img src="{{STATIC_URL}}img/more.png" id="more-button" width=25>
+
+    </div>
+
+  </div>
+</script>
+
+  <script type="text/template" id="search-result-template">
+    <li>
+      <a href="#" data-rdio-key="<%= key %>">
+        <table>
+          <tr>
+            <td>
+              <img src="<%= icon %>">
+            </td>
+            <td>
+              <div class="name"><%= name %></div>
+              <div class="artist"><%= artist %></div>
+              <div class="duration"><%= formattedDuration %></div>
+            </td>
+          </tr>
+      </a>
+    </li>
+  </script>
+
+  <script type="text/template" id="chat-user-message-template">
+    <div class="presence">
+      <li>
+        <img class="user-presence" src="<%= icon %>" width="20" height="20">
+        <span class="chat-message-username"><%= display_name %></span>
+        <span class="chat-message"></span>
+      </li>
+    </div>
+  </script>
+
+  <script type="text/template" id="chat-new-track-template">
+    <div class="chat-message-track">
+      <table>
+        <tr>
+          <td>
+            <a href="<%= trackUrl %>" target="_blank">
+              <img src="<%= icon %>" width="35" height="35">
+            </a>
+          </td>
+          <td>
+            <a href="<%= trackUrl %>" target="_blank"><%= title %></a>
+            <br><%= artist %>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </script>
+
+  <script type="text/template" id="playlist-template">
+    <div>
+    <% if (!snapped) { %>
+      <span class="playlist-room-history"><img align="right" src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25></span>
+    <% } else { %>
+      Created: <span class="playlist-clicked"><%= playlist %></span>
+    <% } %>
+    </div>
+  </script>
+
+  <script type="text/template" id="theme-template">
+    <p class='theme_name' style='cursor:pointer; color: #FFFFFF; display: inline'>
+    <% if (editing) { %>
+      <input type="text" class="theme_text"/>
+    <% } %>
+    </p>
+  </script>
+  <script type="text/template" id="not-a-paying-customer-template">
+    <div class="giant_popup_warning">
+      Ain't nothing in life that's free!
+      <br><br><br>
+      In order to listen to the party, you need to be a paying Rdio customer.  So why not
+      hop on over to <a href="http://www.rdio.com/settings/subscription/">Rdio.com</a>
+      and given them some of your money? (remember, subscribing through iTunes is a
+      sucker's game!)
+      <br><br><br>
+      Right now you can participate in the chat and aaaaAAAAHH-ffect the queue but you're only
+      going to hear 30s samples for each track.
+      <br><br><br>
+      <span class="close-it" onClick="$('.giant_popup_warning').remove()">
+        Click here to close this kill-joy pop-up & have some (limited) fun.
+      </span>
+    </div>
+  </script>
+
+  <script type="text/javascript">
+  var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
+  var rdioUserKey = '{{ rdio.id }}';
+  var roomId = "{{ room_id }}";
+  var websocket_uri = '{{ WEBSOCKET_URI }}';
+  var heartbeat_msg = {{ WS4REDIS_HEARTBEAT }};
+  </script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/chat.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/sutrofm.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/search-view.js"></script>
+  <script type="text/javascript" src="{{STATIC_URL}}js/ws4redis.js"></script>
+  <script type="text/javascript">
+    var current_user = {{ current_user|safe}}
+    var initial_player_state = {{ initial_player_state_json|safe }}['data']
+    var initial_queue_state = {{ initial_queue_state_json|safe }}['data']
+    var initial_user_list_state = {{ initial_user_list_state_json|safe }}['data']
+    var initial_messages_state = {{ initial_messages_state_json|safe }}['data']
+    var initial_theme_state = {{ initial_theme_state_json|safe }}['data']
+  </script>
+
+{% endblock%}

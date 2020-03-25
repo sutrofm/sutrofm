@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}sutro.fm - Parties{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="span6 offset3">
+    <h1>The Party Room</h1>
+    <p>It's simple to get started. Either start your own party or select one that has already started without you.</p>
+  </div>
+</div>
+<div class="row">
+  <div class="span6 offset3">
+    <h2>Start a Party</h2>
+    <form class="form-inline">
+    <fieldset>
+      <div class="input-append">
+          <input type="text" name="room_name" id="room-name-input" class="input-xlarge" placeholder="Name your party"
+                 pattern="[A-Za-z0-9_-]+">
+          <button type="submit" class="btn btn-primary" id="create-room-button">Start the Party</button>
+      </div>
+        <span class="help-block">Make sure your Party name only uses letters, numbers, underscores, and dashes.</span>
+    </fieldset>
+    </form>
+  </div>
+</div>
+
+<div class="row existing-party-list">
+
+  <div class="span6 offset3">
+    <h2>Parties Already Started</h2>
+    <p>Join one of the parties already in progress.</p>
+    <div class="party-list-container">
+      <ul id="party-list">
+      </ul>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block javascript %}
+  {{ block.super }}
+
+  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
+  <script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/backbone-min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/jquery.ba-outside-events.min.js' %}"></script>
+
+  <script type="text/template" id="room-template">
+    <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">
+      <div class="party-room-name">
+        <a href="{% url 'party' %}<%= id %>"><%= name %></a>
+      </div>
+      <div class="party-room-population">
+        <%= population %>
+      </div>
+      <div class="party-room-now-playing">
+        Now playing: <%= nowPlaying %>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/template" id="spinner-template">
+    <div class="spinner">
+      <div class="spinner_caption">Looking for the party...</div>
+      <img class="spinner_image" src="{% static 'img/spinner.gif' %}"/>
+    </div>
+  </script>
+
+  <script type="text/javascript">
+  var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
+  var rdioUserKey = '{{ rdio.id }}';
+  </script>
+    <script type="text/javascript" src="{% static 'js/partylist.js' %}"></script>
+
+{% endblock%}

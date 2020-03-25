@@ -1,6 +1,12 @@
 import uuid
-
+from django.conf import settings
+from redis import ConnectionPool, StrictRedis
 from django.shortcuts import redirect, render
+
+from sutrofm.redis_models import Party, User
+
+redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
+
 
 def home(request):
   context = {
@@ -57,3 +63,5 @@ def parties(request):
   return render(request, 'partylist.html', context)
 
 
+def player_helper(request):
+  return render(request, 'player-helper.html')

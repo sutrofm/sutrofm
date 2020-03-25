@@ -124,3 +124,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Set the number of seconds each message shall persited
+WS4REDIS_EXPIRE = 3600
+
+WS4REDIS_HEARTBEAT = '--heartbeat--'
+
+WS4REDIS_PREFIX = 'sutrofm'
+
+WS4REDIS_CONNECTION = {
+  'host': 'localhost',
+  'port': 6379,
+  'db': 0,
+  'password': None,
+}

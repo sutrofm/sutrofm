@@ -14,15 +14,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import re_path, path, include
 
 import sutrofm.views as views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='index'),
-    path('party', views.home, name='party'),
     path('parties', views.parties, name='parties'),
     path('social', include('social_django.urls', namespace='social')),
+    path('player/helper', views.player_helper, name='player-helper'),
     path('auth/name', views.login),
+
+    re_path(r'^p/((?P<room_name>[A-Za-z0-9\-_]+)/)?$', views.party, name='party'),
 ]
