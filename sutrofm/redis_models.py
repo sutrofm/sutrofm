@@ -199,7 +199,7 @@ class Party(object):
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
       "playing_track_key": self.playing_track_key or '',
-      "playing_track_start_time": self.playing_track_start_time,
+      "playing_track_start_time": self.playing_track_start_time.isoformat(),
       "playing_track_user_key": self.playing_track_user_key,
       "skippers": ",".join(self.skippers),
       "theme": self.theme,
