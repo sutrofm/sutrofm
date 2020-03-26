@@ -71,7 +71,7 @@ ROOT_URLCONF = 'sutrofm.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['views'],
+        'DIRS': [os.path.join(BASE_DIR, 'views')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
