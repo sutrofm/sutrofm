@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}sutro.fm - Parties{% endblock %}
 
@@ -42,10 +43,9 @@
 {% block javascript %}
   {{ block.super }}
 
-  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
+  <script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/backbone-min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/jquery.ba-outside-events.min.js' %}"></script>
 
   <script type="text/template" id="room-template">
     <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">
@@ -64,7 +64,7 @@
   <script type="text/template" id="spinner-template">
     <div class="spinner">
       <div class="spinner_caption">Looking for the party...</div>
-      <img class="spinner_image" src="{{STATIC_URL}}img/spinner.gif"/>
+      <img class="spinner_image" src="{% static 'img/spinner.gif' %}"/>
     </div>
   </script>
 
@@ -72,6 +72,6 @@
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
   var rdioUserKey = '{{ rdio.id }}';
   </script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/partylist.js"></script>
+    <script type="text/javascript" src="{% static 'js/partylist.js' %}"></script>
 
 {% endblock%}

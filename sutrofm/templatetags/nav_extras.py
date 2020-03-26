@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import Library
 
 register = Library()
@@ -11,3 +11,4 @@ def activelink(context, url):
     if request_path == reverse(url):
       return 'active'
   return ''
+

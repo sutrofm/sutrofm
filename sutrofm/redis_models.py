@@ -5,6 +5,7 @@ import requests
 import uuid
 import random
 
+import spotipy
 from django.conf import settings
 
 import simplejson as json
@@ -22,13 +23,20 @@ def get_rdio_user_data(rdio_user_key):
   return json.loads(response.text)['result'][rdio_user_key]
 
 
-def get_rdio_track_data(rdio_track_key):
-  response = requests.post('https://services.rdio.com/api/1/get', {
-    'keys': rdio_track_key,
-    'method': 'get',
-    'access_token': settings.RDIO_ACCESS_TOKEN
-  })
-  return json.loads(response.text)['result'][rdio_track_key]
+def get_rdio_track_data(track_key):
+  client_credentials_manager = spotipy.SpotifyClientCredentials(client_id=settings.SOCIAL_AUTH_SPOTIFY_KEY,
+                                                                client_secret=settings.SOCIAL_AUTH_SPOTIFY_SECRET)
+  sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+  track = sp.track(track_key)
+  return track
+
+  # response = requests.post('https://services.rdio.com/api/1/get', {
+  #   'keys': rdio_track_key,
+  #   'method': 'get',
+  #   'access_token': settings.RDIO_ACCESS_TOKEN
+  # })
+  # return json.loads(response.text)['result'][rdio_track_key]
 
 
 class Party(object):
@@ -50,7 +58,7 @@ class Party(object):
     self.messages.append(message)
 
   def active_users(self):
-    return [user for user in self._users.values() if user.is_active(self.id)]
+    return [user for user in self._users.values() if user and user.is_active(self.id)]
 
   def get_player_state_payload(self):
     return {
@@ -199,8 +207,8 @@ class Party(object):
     connection.hmset("parties:%s" % self.id, {
       "name": self.name,
       "playing_track_key": self.playing_track_key or '',
-      "playing_track_start_time": self.playing_track_start_time,
-      "playing_track_user_key": self.playing_track_user_key,
+      "playing_track_start_time": self.playing_track_start_time.isoformat(),
+      "playing_track_user_key": self.playing_track_user_key or '',
       "skippers": ",".join(self.skippers),
       "theme": self.theme,
     })
@@ -293,7 +301,7 @@ class Party(object):
 
   def users_to_dict(self):
     return [
-      user.to_dict() for user in self._users.values()
+      user.to_dict() for user in self._users.values() if user
     ]
 
   def messages_to_dict(self):
@@ -384,7 +392,7 @@ class User(object):
     self.display_name = None
     self.icon_url = None
     self.user_url = None
-    self.last_check_in = None
+    self.last_check_in = datetime.datetime(1970, 1, 1)
     self.party_id = None
 
   @property
@@ -415,7 +423,7 @@ class User(object):
 
   @staticmethod
   def from_request(connection, request):
-    uuid = request.session.get('uuid')
+    uuid = request.user.social_auth.get(provider='spotify').uid
     user = User.get(connection, uuid)
     if not user:
       user = User()
@@ -430,7 +438,7 @@ class User(object):
         '/static/img/icons/rhino.jpeg',
       ]
       user.icon_url = random.choice(icons)
-      user.display_name = request.session.get('display_name')
+      user.display_name = request.user.username
 
       user.save(connection)
     return user
@@ -451,8 +459,8 @@ class User(object):
     connection.hmset("users:%s" % self.id, {
       "display_name": self.display_name,
       "icon": self.icon_url,
-      "user_url": self.user_url,
-      "last_check_in": self.last_check_in,
+      "user_url": self.user_url or '',
+      "last_check_in": self.last_check_in.isoformat(),
       "party_id": self.party_id
     })
     connection.sadd('users', self.id)
@@ -504,9 +512,9 @@ class Message(object):
     if track_key:
       track_info = get_rdio_track_data(track_key)
       output.track_title = track_info['name']
-      output.track_artist = track_info['artist']
-      output.track_url = 'http://rdio.com%s' % track_info['url']
-      output.icon_url = track_info['dynamicIcon']
+      output.track_artist = ', '.join([artist['name'] for artist in track_info['artists']])
+      output.track_url = track_info['external_urls']['spotify']
+      output.icon_url = track_info['dynamicIcon']  # TODO: fix me
     return output
 
   @staticmethod

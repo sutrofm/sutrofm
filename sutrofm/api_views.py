@@ -1,5 +1,4 @@
 import datetime
-import httplib
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -23,7 +22,7 @@ def get_party_by_id(request, party_id):
 def parties(request):
   redis = StrictRedis(connection_pool=redis_connection_pool)
   all_parties = Party.getall(redis)
-  data = [party.to_dict() for party in all_parties]
+  data = [party.to_dict() for party in all_parties if party]
   return JsonResponse({'results': data})
 
 
@@ -233,4 +232,4 @@ def post_message(request, party_id):
 
   party.broadcast_message_added(redis, m)
 
-  return HttpResponse(status=httplib.CREATED)
+  return HttpResponse(status=201)
