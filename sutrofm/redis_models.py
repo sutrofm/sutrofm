@@ -5,6 +5,7 @@ import requests
 import uuid
 import random
 
+import spotipy
 from django.conf import settings
 
 import simplejson as json
@@ -22,13 +23,20 @@ def get_rdio_user_data(rdio_user_key):
   return json.loads(response.text)['result'][rdio_user_key]
 
 
-def get_rdio_track_data(rdio_track_key):
-  response = requests.post('https://services.rdio.com/api/1/get', {
-    'keys': rdio_track_key,
-    'method': 'get',
-    'access_token': settings.RDIO_ACCESS_TOKEN
-  })
-  return json.loads(response.text)['result'][rdio_track_key]
+def get_rdio_track_data(track_key):
+  client_credentials_manager = spotipy.SpotifyClientCredentials(client_id=settings.SOCIAL_AUTH_SPOTIFY_KEY,
+                                                                client_secret=settings.SOCIAL_AUTH_SPOTIFY_SECRET)
+  sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+  track = sp.track(track_key)
+  return track
+
+  # response = requests.post('https://services.rdio.com/api/1/get', {
+  #   'keys': rdio_track_key,
+  #   'method': 'get',
+  #   'access_token': settings.RDIO_ACCESS_TOKEN
+  # })
+  # return json.loads(response.text)['result'][rdio_track_key]
 
 
 class Party(object):
@@ -504,9 +512,9 @@ class Message(object):
     if track_key:
       track_info = get_rdio_track_data(track_key)
       output.track_title = track_info['name']
-      output.track_artist = track_info['artist']
-      output.track_url = 'http://rdio.com%s' % track_info['url']
-      output.icon_url = track_info['dynamicIcon']
+      output.track_artist = ', '.join([artist['name'] for artist in track_info['artists']])
+      output.track_url = track_info['external_urls']['spotify']
+      output.icon_url = track_info['dynamicIcon']  # TODO: fix me
     return output
 
   @staticmethod
