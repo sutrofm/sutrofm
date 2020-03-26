@@ -34,7 +34,7 @@ def logout_view(request):
   return redirect('/')
 
 def make_room_daemon(room_name):
-  child_processes = psutil.Process(os.getpid()).get_children()
+  child_processes = psutil.Process(os.getpid()).children()
   for process in child_processes:
     try:
       if process.cmdline() and len(process.cmdline()) > 0 and process.cmdline()[-1] == room_name:
@@ -55,6 +55,7 @@ def party(request, room_name):
     party = Party()
     party.id = room_name
     party.name = room_name
+    party.playing_track_user_key = request.user.social_auth.get(provider='spotify').uid
     party.save(connection)
 
   user = User.from_request(connection, request)

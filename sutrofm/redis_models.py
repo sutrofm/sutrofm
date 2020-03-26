@@ -200,7 +200,7 @@ class Party(object):
       "name": self.name,
       "playing_track_key": self.playing_track_key or '',
       "playing_track_start_time": self.playing_track_start_time.isoformat(),
-      "playing_track_user_key": self.playing_track_user_key,
+      "playing_track_user_key": self.playing_track_user_key or '',
       "skippers": ",".join(self.skippers),
       "theme": self.theme,
     })
@@ -293,7 +293,7 @@ class Party(object):
 
   def users_to_dict(self):
     return [
-      user.to_dict() for user in self._users.values()
+      user.to_dict() for user in self._users.values() if user
     ]
 
   def messages_to_dict(self):
@@ -384,7 +384,7 @@ class User(object):
     self.display_name = None
     self.icon_url = None
     self.user_url = None
-    self.last_check_in = None
+    self.last_check_in = datetime.datetime(1970, 1, 1)
     self.party_id = None
 
   @property
@@ -415,7 +415,7 @@ class User(object):
 
   @staticmethod
   def from_request(connection, request):
-    uuid = request.session.get('uuid')
+    uuid = request.user.social_auth.get(provider='spotify').uid
     user = User.get(connection, uuid)
     if not user:
       user = User()
@@ -430,7 +430,7 @@ class User(object):
         '/static/img/icons/rhino.jpeg',
       ]
       user.icon_url = random.choice(icons)
-      user.display_name = request.session.get('display_name')
+      user.display_name = request.user.username
 
       user.save(connection)
     return user
@@ -451,8 +451,8 @@ class User(object):
     connection.hmset("users:%s" % self.id, {
       "display_name": self.display_name,
       "icon": self.icon_url,
-      "user_url": self.user_url,
-      "last_check_in": self.last_check_in,
+      "user_url": self.user_url or '',
+      "last_check_in": self.last_check_in.isoformat(),
       "party_id": self.party_id
     })
     connection.sadd('users', self.id)
