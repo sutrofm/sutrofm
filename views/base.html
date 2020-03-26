@@ -66,12 +66,12 @@
                     <li class="divider"></li>
                     <li class="nav-header">Social Auth</li>
                     <li>
-                      <a href="{% url 'social:begin' 'spotify' %}">Add "Rdio 2.0" A.K.A Spotify</a>
+                      <a href="{% url 'social:begin' 'spotify' %}?next={{ request.path }}">Add "Rdio 2.0" A.K.A Spotify</a>
                     </li>
                   </ul>
                   </li>
                 {% endif %}
-                <li><a href="{% url 'social:begin' 'spotify' %}">Sign In</a></li>
+                <li><a href="{% url 'social:begin' 'spotify' %}?next={{ request.path }}">Sign In</a></li>
           </div>
         </div>
       </div>

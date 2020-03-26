@@ -79,6 +79,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -152,3 +154,4 @@ WS4REDIS_CONNECTION = {
 
 SOCIAL_AUTH_SPOTIFY_KEY = os.environ.get('SPOTIFY_API_KEY', '')
 SOCIAL_AUTH_SPOTIFY_SECRET = os.environ.get('SPOTIFY_API_SECRET', '')
+SOCIAL_AUTH_CLEAN_USERNAME_FUNCTION = 'unidecode.unidecode'

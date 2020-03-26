@@ -5,6 +5,7 @@ import psutil
 import os
 
 from django.conf import settings
+from django.contrib.auth import logout
 from redis import ConnectionPool, StrictRedis
 from django.shortcuts import redirect, render
 
@@ -28,6 +29,9 @@ def login(request):
   request.session['uuid'] = str(uuid.uuid4())
   return redirect('parties')
 
+def logout_view(request):
+  logout(request)
+  return redirect('/')
 
 def make_room_daemon(room_name):
   child_processes = psutil.Process(os.getpid()).get_children()
