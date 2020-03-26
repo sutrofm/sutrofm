@@ -1,16 +1,17 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}sutro.fm - {{room_name}}{% endblock %}
 
 {% block content %}
 <style>
     .was_favorited {
-        background-image: url("{{STATIC_URL}}img/was_favorited.png");
+        background-image: {% static 'img/was_favorited.png' %};
         background-size: 25px 25px;
     }
 
     .not_favorited {
-        background-image: url("{{STATIC_URL}}img/favorite.png");
+        background-image: {% static 'img/favorite.png' %};
         background-size: 25px 25px;
     }
 </style>
@@ -31,7 +32,7 @@
       <table class="text-input">
         <tr>
           <td>
-            <img src="{{STATIC_URL}}img/search.png" class="input-icon">
+            <img src="{% static 'img/search.png' %}" class="input-icon">
           </td>
           <td class="input-cell">
             <input type="text" id="track-key-input" placeholder="Find a song to add to the party">
@@ -59,7 +60,7 @@
     <table class="text-input">
       <tr>
         <td>
-          <img src="{{STATIC_URL}}img/chat-bubble.png" class="input-icon">
+          <img src="{% static 'img/chat-bubble.png' %}" class="input-icon">
         </td>
         <td class="input-cell">
           <input class="chat-entry-text" type="text" placeholder="Type a message..."></input>
@@ -80,10 +81,10 @@
   {{ block.super }}
 
   <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/json2.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/backbone-min.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/jquery.ba-outside-events.min.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/autolinker.min.js"></script>
+  <script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/backbone-min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/jquery.ba-outside-events.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/autolinker.min.js' %}"></script>
 
   <script type="text/template" id="track-template">
     <table>
@@ -162,12 +163,12 @@
     </div>
 
     <div class="now-playing-buttons">
-      <img src="{{STATIC_URL}}img/favorite.png" id="favorite-button" width=25>
-      <img src="{{STATIC_URL}}img/download.png" id="download-button" width=25>
-      <img src="{{STATIC_URL}}img/upvote.png" id="upvote-button" width=50>
-      <img src="{{STATIC_URL}}img/downvote.png" id="skip-button" width=50>
-      <img src="{{STATIC_URL}}img/share.png" id="share-button" width=25>
-      <img src="{{STATIC_URL}}img/more.png" id="more-button" width=25>
+      <img src="{% static 'img/favorite.png' %}" id="favorite-button" width=25>
+      <img src="{% static 'img/download.png' %}" id="download-button" width=25>
+      <img src="{% static 'img/upvote.png' %}" id="upvote-button" width=50>
+      <img src="{% static 'img/downvote.png' %}" id="skip-button" width=50>
+      <img src="{% static 'img/share.png' %}" id="share-button" width=25>
+      <img src="{% static 'img/more.png' %}" id="more-button" width=25>
 
     </div>
 
@@ -223,7 +224,7 @@
   <script type="text/template" id="playlist-template">
     <div>
     <% if (!snapped) { %>
-      <span class="playlist-room-history"><img align="right" src="{{STATIC_URL}}img/capture-white.png" class="input-icon" width=25></span>
+      <span class="playlist-room-history"><img align="right" src="{% static 'img/capture-white.png' %}" class="input-icon width=25></span>
     <% } else { %>
       Created: <span class="playlist-clicked"><%= playlist %></span>
     <% } %>
@@ -262,17 +263,17 @@
   var websocket_uri = '{{ WEBSOCKET_URI }}';
   var heartbeat_msg = {{ WS4REDIS_HEARTBEAT }};
   </script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/chat.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/sutrofm.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/search-view.js"></script>
-  <script type="text/javascript" src="{{STATIC_URL}}js/ws4redis.js"></script>
+  <script type="text/javascript" src="{% static 'js/chat.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/sutrofm.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/search-view.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/ws4redis.js' %}"></script>
   <script type="text/javascript">
     var current_user = {{ current_user|safe}}
-    var initial_player_state = {{ initial_player_state_json|safe }}['data']
-    var initial_queue_state = {{ initial_queue_state_json|safe }}['data']
-    var initial_user_list_state = {{ initial_user_list_state_json|safe }}['data']
-    var initial_messages_state = {{ initial_messages_state_json|safe }}['data']
-    var initial_theme_state = {{ initial_theme_state_json|safe }}['data']
+    var initial_player_state = {{ initial_player_state_json|safe }}['data'];
+    var initial_queue_state = {{ initial_queue_state_json|safe }}['data'];
+    var initial_user_list_state = {{ initial_user_list_state_json|safe }}['data'];
+    var initial_messages_state = {{ initial_messages_state_json|safe }}['data'];
+    var initial_theme_state = {{ initial_theme_state_json|safe }}['data'];
   </script>
 
 {% endblock%}

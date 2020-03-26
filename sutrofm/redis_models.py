@@ -50,7 +50,7 @@ class Party(object):
     self.messages.append(message)
 
   def active_users(self):
-    return [user for user in self._users.values() if user.is_active(self.id)]
+    return [user for user in self._users.values() if user and user.is_active(self.id)]
 
   def get_player_state_payload(self):
     return {
