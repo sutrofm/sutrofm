@@ -3,8 +3,6 @@ import time
 import traceback
 from datetime import datetime, timedelta
 
-import requests
-import simplejson as json
 import spotipy
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -55,6 +53,8 @@ class Command(BaseCommand):
         print(traceback.format_exc())
         logger.exception("!!! ALERT !!! Master... More like Crashster.")
       time.sleep(1)
+    else:
+      logger.debug('Nobody in room %s, killing' % self.party_id)
 
   def get_duration(self, track_key):
     client_credentials_manager = spotipy.SpotifyClientCredentials(client_id=settings.SOCIAL_AUTH_SPOTIFY_KEY,
@@ -62,14 +62,8 @@ class Command(BaseCommand):
     sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
     track = sp.track(track_key)
-    logger.log(track)
+    logger.info(track)
     return track['duration_ms']
-    # response = requests.post('https://services.rdio.com/api/1/get', {
-    #   'keys': track_key,
-    #   'method': 'get',
-    #   'access_token': settings.RDIO_ACCESS_TOKEN
-    # })
-    # return json.loads(response.text)['result'][track_key]['duration']
 
   def play_track(self, track_key):
     self.current_track_duration = None

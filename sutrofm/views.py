@@ -1,15 +1,17 @@
 import json
-import subprocess
+import logging
+import threading
 import uuid
-import psutil
-import os
 
 from django.conf import settings
 from django.contrib.auth import logout
+from django.core.management import call_command
 from redis import ConnectionPool, StrictRedis
 from django.shortcuts import redirect, render
 
 from sutrofm.redis_models import Party, User
+
+logger = logging.getLogger(__name__)
 
 redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
 
@@ -29,20 +31,16 @@ def login(request):
   request.session['uuid'] = str(uuid.uuid4())
   return redirect('parties')
 
+
 def logout_view(request):
   logout(request)
   return redirect('/')
 
+
 def make_room_daemon(room_name):
-  child_processes = psutil.Process(os.getpid()).children()
-  for process in child_processes:
-    try:
-      if process.cmdline() and len(process.cmdline()) > 0 and process.cmdline()[-1] == room_name:
-        return
-    except psutil.AccessDenied:
-      pass
-  directory = os.path.dirname(os.path.realpath(__file__))
-  subprocess.Popen(["python", "%s/../manage.py" % directory, "master", room_name])
+  logger.debug('Spawning room daemon %s' % room_name)
+  room_thread = threading.Thread(target=call_command, args=('master', room_name))
+  room_thread.start()
 
 
 def party(request, room_name):
@@ -73,6 +71,8 @@ def party(request, room_name):
     'initial_messages_state_json': json.dumps(party.get_messages_state_payload(connection)),
     'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
     'current_user': json.dumps(user.to_dict()),
+    'websocket_url': settings.WEBSOCKET_URL,
+    'ws4redis_heartbeat': settings.WS4REDIS_HEARTBEAT
   }
   make_room_daemon(room_name)
   return render(request, 'party.html', context)
