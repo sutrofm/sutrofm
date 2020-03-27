@@ -89,6 +89,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sutrofm.wsgi.application'
 
+LOGGING = {
+  'version': 1,
+  'disable_existing_loggers': False,
+  'handlers': {
+    'console': {
+      'class': 'logging.StreamHandler',
+    },
+  },
+  'root': {
+    'handlers': ['console'],
+    'level': 'DEBUG',
+  },
+  'loggers': {
+    'django': {
+      'handlers': ['console'],
+      'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+      'propagate': False,
+    },
+  },
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -145,6 +166,8 @@ WS4REDIS_EXPIRE = 3600
 WS4REDIS_HEARTBEAT = '--heartbeat--'
 
 WS4REDIS_PREFIX = 'sutrofm'
+
+WEBSOCKET_URL = '/ws/'
 
 WS4REDIS_CONNECTION = {
   'host': 'localhost',

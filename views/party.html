@@ -80,7 +80,8 @@
 {% block javascript %}
   {{ block.super }}
 
-  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>
+{#    FIXME#}
+{#  <script type='text/javascript' src="//rdio.com/api/api.js?helper={% url 'player-helper' %}&amp;client_id={{rdio.client_id}}"></script>#}
   <script type="text/javascript" src="{% static 'js/json2.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/backbone-min.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/jquery.ba-outside-events.min.js' %}"></script>
@@ -106,6 +107,7 @@
             <%= formattedDuration %>
           </div>
         </td>
+{#          FIXME#}
         <% if (window.rdioUserKey == user.key) {%>
         <td>
           <div class="remove-track"></div>
@@ -113,11 +115,11 @@
         <% } %>
         <td class="buttons">
     <div class="button-group">
-            <div class="up-vote" style="background-image: url({{STATIC_URL}}img/vote-up.png)"></div>
+            <div class="up-vote" style="background-image: url({% static 'img/vote-up.png' %})"></div>
             <span class="votes"><%= upVotes %></span>
     </div>
     <div class="button-group">
-            <div class="down-vote" style="background-image: url({{STATIC_URL}}img/vote-down.png)"></div>
+            <div class="down-vote" style="background-image: url({% static 'img/vote-down.png' %})"></div>
       <span class="votes"><%= downVotes %></span>
     </div>
         </td>
@@ -257,18 +259,19 @@
   </script>
 
   <script type="text/javascript">
-  var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
-  var rdioUserKey = '{{ rdio.id }}';
+  // FIXME
+  {#var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';#}
+  {#var rdioUserKey = '{{ rdio.id }}';#}
   var roomId = "{{ room_id }}";
-  var websocket_uri = '{{ WEBSOCKET_URI }}';
-  var heartbeat_msg = {{ WS4REDIS_HEARTBEAT }};
+  var websocket_uri = '{{ websocket_url }}';
+  var heartbeat_msg = {{ ws4redis_heartbeat }};
   </script>
   <script type="text/javascript" src="{% static 'js/chat.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/sutrofm.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/search-view.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/ws4redis.js' %}"></script>
   <script type="text/javascript">
-    var current_user = {{ current_user|safe}}
+    var current_user = {{ current_user|safe}};
     var initial_player_state = {{ initial_player_state_json|safe }}['data'];
     var initial_queue_state = {{ initial_queue_state_json|safe }}['data'];
     var initial_user_list_state = {{ initial_user_list_state_json|safe }}['data'];
