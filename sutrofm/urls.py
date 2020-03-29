@@ -53,5 +53,5 @@ urlpatterns = [
     # re_path(r'^api/user/((?P<user_id>[A-Za-z0-9]+)/)', api_views.get_user_by_id),
     #
     #
-    re_path(r'^p/((?P<room_name>[A-Za-z0-9\-_]+)/)?$', views.party, name='party'),
+    re_path(r'^p/((?P<party_name>[A-Za-z0-9\-_]+)/)?$', views.party, name='party'),
 ]

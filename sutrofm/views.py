@@ -1,23 +1,15 @@
-import json
 import logging
 import threading
-import uuid
 
 # from django.conf import settings
 from django.contrib.auth import logout
 from django.core.management import call_command
-# from redis import ConnectionPool, StrictRedis
 from django.shortcuts import redirect, render
 #
-# from sutrofm.models import User
-# from sutrofm.redis_models import Party
 from sutrofm.models import Party
 
 logger = logging.getLogger(__name__)
 
-# redis_connection_pool = ConnectionPool(**settings.WS4REDIS_CONNECTION)
-#
-#
 def home(request):
   context = {
     # Something good
@@ -39,14 +31,13 @@ def make_party_manager(party_name):
 
 def party(request, party_name):
   if not party_name:
-    return redirect('party', room_name='rdio')
+    return redirect('party', party_name='rdio')
 
-  party = Party.objects.get_or_create(room_name=party_name)
+  party, created = Party.objects.get_or_create(name=party_name)
   request.user.check_in_to_party(party)
 
   context = {
-    'party_name': party.name,
-    'body_class': 'party',
+    'party': party,
 #     'initial_player_state_json': json.dumps(party.get_player_state_payload()),
 #     'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
 #     'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),

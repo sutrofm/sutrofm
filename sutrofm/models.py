@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Sum, Value, When, Case, Count
 from django.utils.timezone import now
@@ -18,7 +20,9 @@ class User(AbstractUser):
   # votes
 
   def check_in_to_party(self, party):
-    UserPartyPresence.objects.get_or_create(user=self, party=party).update(last_check_in=now())
+    presence, created = UserPartyPresence.objects.get_or_create(user=self, party=party)
+    presence.last_check_in = now()
+    presence.save()
 
 
 class UserPartyPresence(models.Model):
@@ -38,9 +42,20 @@ class Party(TimeStampedModel):
   users = models.ManyToManyField('User', through='UserPartyPresence')
 
   def play_next_queue_item(self):
+    '''
+    Take next item in queue and set as playing item, delete the previously playing obj, and prep queue item for playback
+    :return:
+    '''
     prev_item = self.playing_item
     self.playing_item = QueueItem.get_next(self)
-    prev_item.delete()
+    if prev_item:
+      prev_item.delete()
+    if self.playing_item:
+      self.playing_item.start_playing()
+    self.save()
+
+  def playing_track_is_over(self):
+    return
 
   def user_count(self):
     return self.users.count()
@@ -66,9 +81,28 @@ class QueueItem(TimeStampedModel):
   user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='queued_items')
   party = models.ForeignKey('Party', on_delete=models.CASCADE, related_name='queue')
 
-  def load_duration(self):
-    self.duration_ms = get_track_duration(self.identifier)
+  def start_playing(self):
+    if not self.duration_ms:
+      self.duration_ms = get_track_duration(self.identifier)
+    self.playing_start_time = now()
     self.save()
+
+  def get_track_position(self):
+    """
+    Get tuple with (time_played_ms, total_duration_ms).
+    """
+    if not self.duration_ms:
+      return 0, 0
+
+    if not self.playing_start_time:
+      return 0, self.duration_ms
+
+    position = now() - self.playing_start_time
+    if position > timedelta(microseconds=self.duration_ms*1000):
+      # track ended
+      return self.duration_ms, self.duration_ms
+    else:
+      return position.total_seconds()*1000, self.duration_ms
 
   def vote_score(self):
     return self.votes.aggregate(vote_sum=Sum('value'))['vote_sum'] or 0
