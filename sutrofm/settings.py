@@ -49,12 +49,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'social_django',
+    'rest_framework',
     'ws4redis',
     'sutrofm',
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'social_core.backends.spotify.SpotifyOAuth2'
+    'social_core.backends.spotify.SpotifyOAuth2',
+    'django.contrib.auth.backends.ModelBackend'  # must be after social auth backends
 ]
 
 MIDDLEWARE = [
@@ -104,7 +106,7 @@ LOGGING = {
   'loggers': {
     'django': {
       'handlers': ['console'],
-      'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG'),
+      'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
       'propagate': False,
     },
   },
@@ -176,6 +178,10 @@ WS4REDIS_CONNECTION = {
   'password': None,
 }
 
+AUTH_USER_MODEL = 'sutrofm.User'
+
+SOCIAL_AUTH_USER_MODEL = 'sutrofm.User'
 SOCIAL_AUTH_SPOTIFY_KEY = os.environ.get('SPOTIFY_API_KEY', '')
 SOCIAL_AUTH_SPOTIFY_SECRET = os.environ.get('SPOTIFY_API_SECRET', '')
 SOCIAL_AUTH_CLEAN_USERNAME_FUNCTION = 'unidecode.unidecode'
+SOCIAL_AUTH_POSTGRES_JSONFIELD = True  # needed to store custom spotify specific data

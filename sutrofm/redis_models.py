@@ -386,99 +386,99 @@ class QueueEntry(object):
     return json.dumps(self.to_dict())
 
 
-class User(object):
-  def __init__(self):
-    self.id = None
-    self.display_name = None
-    self.icon_url = None
-    self.user_url = None
-    self.last_check_in = datetime.datetime(1970, 1, 1)
-    self.party_id = None
-
-  @property
-  def active(self):
-    return datetime.datetime.utcnow() - self.last_check_in > datetime.timedelta(minutes=5)
-
-  @staticmethod
-  def get(connection, id):
-    data = connection.hgetall('users:%s' % id)
-    if data:
-      output = User()
-      output.id = id
-      output.display_name = data.get('display_name', '')
-      output.icon_url = data.get('icon', '')
-      output.user_url = data.get('user_url', '')
-      output.last_check_in = parser.parse(data.get('last_check_in', datetime.datetime.utcnow().isoformat()))
-      output.party_id = data.get('party_id', '')
-      return output
-    else:
-      return None
-
-  @staticmethod
-  def getall(connection):
-    ids = connection.smembers('users')
-    return [
-      User.get(connection, i) for i in ids
-    ]
-
-  @staticmethod
-  def from_request(connection, request):
-    uuid = request.user.social_auth.get(provider='spotify').uid
-    user = User.get(connection, uuid)
-    if not user:
-      user = User()
-      user.id = uuid
-      user.last_check_in = datetime.datetime.utcnow()
-
-      icons = [
-        '/static/img/icons/husky.jpeg',
-        '/static/img/icons/raccoon.jpeg',
-        '/static/img/icons/glasses_cat.jpeg',
-        '/static/img/icons/shepherd.jpeg',
-        '/static/img/icons/rhino.jpeg',
-      ]
-      user.icon_url = random.choice(icons)
-      user.display_name = request.user.username
-
-      user.save(connection)
-    return user
-
-  def checked_in_recently(self):
-    return datetime.datetime.utcnow() - self.last_check_in <= datetime.timedelta(seconds=ACTIVITY_EXPIRES)
-
-  def is_active(self, party_id):
-    return self.party_id == party_id and self.checked_in_recently()
-
-  def visit_party(self, party_id):
-    self.party_id = party_id
-    self.last_check_in = datetime.datetime.utcnow()
-
-  def save(self, connection):
-    if not self.id:
-      self.id = connection.scard('users') + 1
-    connection.hmset("users:%s" % self.id, {
-      "display_name": self.display_name,
-      "icon": self.icon_url,
-      "user_url": self.user_url or '',
-      "last_check_in": self.last_check_in.isoformat(),
-      "party_id": self.party_id
-    })
-    connection.sadd('users', self.id)
-
-  def to_dict(self):
-    return {
-      "id": self.id,
-      "display_name": self.display_name,
-      "icon": self.icon_url,
-      "user_url": self.user_url,
-      "last_check_in": self.last_check_in.isoformat(),
-      "is_active": self.is_active(self.party_id),
-      "party_id": self.party_id
-    }
-
-  def to_json(self):
-    return json.dumps(self.to_dict())
-
+# class User(object):
+#   def __init__(self):
+#     self.id = None
+#     self.display_name = None
+#     self.icon_url = None
+#     self.user_url = None
+#     self.last_check_in = datetime.datetime(1970, 1, 1)
+#     self.party_id = None
+#
+#   @property
+#   def active(self):
+#     return datetime.datetime.utcnow() - self.last_check_in > datetime.timedelta(minutes=5)
+#
+#   @staticmethod
+#   def get(connection, id):
+#     data = connection.hgetall('users:%s' % id)
+#     if data:
+#       output = User()
+#       output.id = id
+#       output.display_name = data.get('display_name', '')
+#       output.icon_url = data.get('icon', '')
+#       output.user_url = data.get('user_url', '')
+#       output.last_check_in = parser.parse(data.get('last_check_in', datetime.datetime.utcnow().isoformat()))
+#       output.party_id = data.get('party_id', '')
+#       return output
+#     else:
+#       return None
+#
+#   @staticmethod
+#   def getall(connection):
+#     ids = connection.smembers('users')
+#     return [
+#       User.get(connection, i) for i in ids
+#     ]
+#
+#   @staticmethod
+#   def from_request(connection, request):
+#     uuid = request.user.social_auth.get(provider='spotify').uid
+#     user = User.get(connection, uuid)
+#     if not user:
+#       user = User()
+#       user.id = uuid
+#       user.last_check_in = datetime.datetime.utcnow()
+#
+#       icons = [
+#         '/static/img/icons/husky.jpeg',
+#         '/static/img/icons/raccoon.jpeg',
+#         '/static/img/icons/glasses_cat.jpeg',
+#         '/static/img/icons/shepherd.jpeg',
+#         '/static/img/icons/rhino.jpeg',
+#       ]
+#       user.icon_url = random.choice(icons)
+#       user.display_name = request.user.username
+#
+#       user.save(connection)
+#     return user
+#
+#   def checked_in_recently(self):
+#     return datetime.datetime.utcnow() - self.last_check_in <= datetime.timedelta(seconds=ACTIVITY_EXPIRES)
+#
+#   def is_active(self, party_id):
+#     return self.party_id == party_id and self.checked_in_recently()
+#
+#   def visit_party(self, party_id):
+#     self.party_id = party_id
+#     self.last_check_in = datetime.datetime.utcnow()
+#
+#   def save(self, connection):
+#     if not self.id:
+#       self.id = connection.scard('users') + 1
+#     connection.hmset("users:%s" % self.id, {
+#       "display_name": self.display_name,
+#       "icon": self.icon_url,
+#       "user_url": self.user_url or '',
+#       "last_check_in": self.last_check_in.isoformat(),
+#       "party_id": self.party_id
+#     })
+#     connection.sadd('users', self.id)
+#
+#   def to_dict(self):
+#     return {
+#       "id": self.id,
+#       "display_name": self.display_name,
+#       "icon": self.icon_url,
+#       "user_url": self.user_url,
+#       "last_check_in": self.last_check_in.isoformat(),
+#       "is_active": self.is_active(self.party_id),
+#       "party_id": self.party_id
+#     }
+#
+#   def to_json(self):
+#     return json.dumps(self.to_dict())
+#
 
 class Message(object):
   def __init__(self):
