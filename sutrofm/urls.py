@@ -21,6 +21,9 @@ from sutrofm import views, api_views
 
 api_router = routers.DefaultRouter()
 api_router.register(r'users', api_views.UserViewSet)
+api_router.register(r'parties', api_views.PartyViewSet)
+api_router.register(r'queue_items', api_views.QueueItemViewSet)
+api_router.register(r'votes', api_views.UserVoteViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,7 +33,6 @@ urlpatterns = [
     path('parties', views.parties, name='parties'),
     path('social', include('social_django.urls', namespace='social')),
     path('player/helper', views.player_helper, name='player-helper'),
-    # path('auth/name', views.login),
     path('logout', views.logout_view, name='logout'),
     #
     # path('api/parties', api_views.parties, name='api_parties'),

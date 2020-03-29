@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.db.models import Sum, Value, When, Case, Count
 from django.utils.timezone import now
 
 from django.db import models
@@ -41,14 +42,16 @@ class Party(TimeStampedModel):
     self.playing_item = QueueItem.get_next(self)
     prev_item.delete()
 
-  def should_skip(self):
-    # TODO: number of votes to skip > (active users / 2)
-    return False
+  def user_count(self):
+    return self.users.count()
+
+  def __str__(self):
+    return self.name
 
 
 class ChatMessage(TimeStampedModel):
   user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='messages')
-  party = models.ForeignKey('Party', on_delete=models.CASCADE)
+  party = models.ForeignKey('Party', on_delete=models.CASCADE, related_name='messages')
   message = models.TextField()
 
 
@@ -67,6 +70,14 @@ class QueueItem(TimeStampedModel):
     self.duration_ms = get_track_duration(self.identifier)
     self.save()
 
+  def vote_score(self):
+    return self.votes.aggregate(vote_sum=Sum('value'))['vote_sum'] or 0
+
+  def should_skip(self):
+    user_count = self.party.user_count()
+    skip_count = self.votes.aggregate(skip_count=Count(Case(When(is_skip=True, then=Value(1)))))['skip_count']
+    return skip_count > (user_count / 2)
+
   @staticmethod
   def get_next(party):
     return QueueItem.list_for_party_queryset(party).first()
@@ -75,6 +86,10 @@ class QueueItem(TimeStampedModel):
   def list_for_party_queryset(party):
     # TODO: order by sum of votes -- may want to automatically cache them on the QueueItem
     return QueueItem.objects.filter(party=party, playing_start_time=None).order_by('created')
+
+  def __str__(self):
+    return f'{self.identifier}: {self.artist_name} - {self.title}'
+
 
 class UserVote(TimeStampedModel):
   user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='votes')

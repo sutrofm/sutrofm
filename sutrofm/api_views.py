@@ -1,7 +1,8 @@
 from rest_framework import viewsets, permissions
 
-from sutrofm.models import User
-from sutrofm.serializers import UserSerializer
+from sutrofm.models import User, Party, ChatMessage, QueueItem, UserVote
+from sutrofm.serializers import UserSerializer, PartySerializer, ChatMessageSerializer, QueueItemSerializer, \
+  UserVoteSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -11,10 +12,33 @@ class UserViewSet(viewsets.ModelViewSet):
   queryset = User.objects.all().order_by('-date_joined')
   serializer_class = UserSerializer
   permission_classes = [permissions.IsAuthenticated]
+  lookup_field = 'username'
 
 
+class PartyViewSet(viewsets.ModelViewSet):
+  # TODO: should probably sort by something smarter than created
+  queryset = Party.objects.all().order_by('-created')
+  serializer_class = PartySerializer
+  permission_classes = [permissions.IsAuthenticated]
+  lookup_field = 'name'
 
 
+class ChatMessageViewSet(viewsets.ModelViewSet):
+  queryset = ChatMessage.objects.all().order_by('-created')
+  serializer_class = ChatMessageSerializer
+  permission_classes = [permissions.IsAuthenticated]
+
+
+class QueueItemViewSet(viewsets.ModelViewSet):
+  queryset = QueueItem.objects.all().order_by('-created')
+  serializer_class = QueueItemSerializer
+  permission_classes = [permissions.IsAuthenticated]
+
+
+class UserVoteViewSet(viewsets.ModelViewSet):
+  queryset = UserVote.objects.all().order_by('-created')
+  serializer_class = UserVoteSerializer
+  permission_classes = [permissions.IsAuthenticated]
 
 
 
