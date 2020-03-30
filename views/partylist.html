@@ -48,9 +48,10 @@
   <script type="text/javascript" src="{% static 'js/jquery.ba-outside-events.min.js' %}"></script>
 
   <script type="text/template" id="room-template">
-    <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">
+{#    <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">#}
+    <div class="party-room">
       <div class="party-room-name">
-        <a href="{% url 'party' %}<%= id %>"><%= name %></a>
+        <a href="{% url 'party' '' %}<%= name %>"><%= name %></a>
       </div>
       <div class="party-room-population">
         <%= population %>
@@ -72,6 +73,6 @@
   var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
   var rdioUserKey = '{{ rdio.id }}';
   </script>
-    <script type="text/javascript" src="{% static 'js/partylist.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/partylist.js' %}"></script>
 
 {% endblock%}

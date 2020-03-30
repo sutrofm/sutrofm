@@ -2,7 +2,7 @@
 
 window.app = window.app || {};
 
-app.currentUserKey = rdioUserKey;
+// app.currentUserKey = rdioUserKey;
 
 app.Player = Backbone.Model.extend({
   setState: function(data) {
@@ -131,21 +131,29 @@ formatDuration = function(duration) {
 app.Track = Backbone.Model.extend({
   upVote: function() {
     $.ajax({
-      'url': '/api/party/' + window.roomId + '/queue/upvote',
+      'url': '/api/v2/votes/',
       'method': 'POST',
       'data': {
-        'id': this.get('queueEntryId')
+        // TODO: get these values
+        "user": null,
+        "queue_item": this.get('queueEntryId'),
+        "value": 1,
+        "is_skip": false
       }
     });
   },
 
   downVote: function() {
     $.ajax({
-      'url': '/api/party/' + window.roomId + '/queue/downvote',
+      'url': '/api/v2/votes/',
       'method': 'POST',
-      'data': {
-        'id': this.get('queueEntryId')
-      }
+        'data': {
+            // TODO: get these values
+            "user": null,
+            "queue_item": this.get('queueEntryId'),
+            "value": -1,
+            "is_skip": false
+        }
     });
   },
 
@@ -216,10 +224,17 @@ app.SkipButton = Backbone.View.extend({
 
     _clickSkip: function() {
       chat.sendMessage('voted to skip');
-      $.ajax({
-        'url': '/api/party/'+window.roomId+'/vote_to_skip',
-        'method': 'POST',
-      });
+        $.ajax({
+            'url': '/api/v2/votes/',
+            'method': 'POST',
+            'data': {
+                // TODO: get these values
+                "user": null,
+                "queue_item": this.get('queueEntryId'),
+                "value": -1,
+                "is_skip": true
+            }
+        });
     }
 });
 

@@ -3,6 +3,7 @@ from rest_framework import viewsets, permissions
 from sutrofm.models import User, Party, ChatMessage, QueueItem, UserVote
 from sutrofm.serializers import UserSerializer, PartySerializer, ChatMessageSerializer, QueueItemSerializer, \
   UserVoteSerializer
+from sutrofm.views import make_party_manager
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -22,6 +23,10 @@ class PartyViewSet(viewsets.ModelViewSet):
   permission_classes = [permissions.IsAuthenticated]
   lookup_field = 'name'
 
+  def create(self, request, *args, **kwargs):
+    response = super().create(request, *args, **kwargs)
+    make_party_manager('asdf')
+    return response
 
 class ChatMessageViewSet(viewsets.ModelViewSet):
   queryset = ChatMessage.objects.all().order_by('-created')

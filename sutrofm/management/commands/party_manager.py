@@ -35,7 +35,7 @@ class Command(BaseCommand):
     self.run()
 
   def run(self):
-    logger.info(f'Starting up party manager process for "self.party_name"!')
+    logger.info(f'Starting up party manager for "{self.party_name}"!')
     while self.keep_running:
       try:
         self.tick()
@@ -47,6 +47,7 @@ class Command(BaseCommand):
       time.sleep(TICK_FREQUENCY)
     else:
       logger.debug('Nobody in room %s, killing' % self.party_name)
+      self.party.delete()
 
   def update_track(self):
     queue_size = self.party.queue.count()

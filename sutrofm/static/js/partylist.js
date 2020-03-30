@@ -2,7 +2,7 @@
 
 window.app = window.app || {};
 
-app.currentUserKey = rdioUserKey;
+// app.currentUserKey = "{{user}}";
 
 app.Room = Backbone.Model.extend({
 });
@@ -13,9 +13,10 @@ app.RoomList = Backbone.Collection.extend({
   initialize: function() {
     var self = this;
     $.ajax({
-      url: '/api/parties',
+      url: '/api/v2/parties',
       success: function(response) {
-        self.add(response.results);
+        console.log(response);
+        self.add(response);
       }
     });
   }
@@ -43,19 +44,20 @@ app.RoomView = Backbone.View.extend({
     var self = this;
     var roomName = this.model.get('name');
 
-    var people = this.model.get('people');
-    var population = _.reduce(people, function (memo, obj) {
-      if (obj.is_active === true && obj.party_id === self.model.get('id')) {
-        return memo + 1;
-      }
-      return memo;
-    }, 0);
+    var users = this.model.get('users');
+    // var population = _.reduce(people, function (memo, obj) {
+    //   if (obj.is_active === true && obj.party_id === self.model.get('id')) {
+    //     return memo + 1;
+    //   }
+    //   return memo;
+    // }, 0);
+    var population = users.length;
 
-    if (population === 0) {
-      // don't render empty rooms.
-      self.$el.hide();
-      return;
-    }
+    // if (population === 0) {
+    //   // don't render empty rooms.
+    //   self.$el.hide();
+    //   return;
+    // }
 
     var populationStr = '';
 
@@ -73,45 +75,27 @@ app.RoomView = Backbone.View.extend({
       population: populationStr
     });
 
-    var player = this.model.get('player');
-    if (player) {
-      if (player.playingTrack) {
-        var playingTrackKey = player.playingTrack.trackKey;
-        R.request({
-          method: 'get',
-          content: {
-            keys: playingTrackKey,
-            extras: '-*,name,artist,icon400'
-          },
-          success: function(response) {
-            var track = response.result[playingTrackKey];
-            if (track) {
-              var track_name = track.name;
-              var artist = track.artist;
-              data.nowPlaying = '"' + track_name + '" by ' + artist;
-              data.icon = track.icon400;
-              data.has_icon = 'has_icon';
-            } else {
-              data.nowPlaying = 'Something unknown';
-              data.icon = '';
-              data.has_icon = '';
-            }
-            self.$el.html(self.template(data));
-            self.$el.show();
-          },
-          error: function(response) {
-            console.log("Unable to get now playing info for room " + roomName);
-          }
-        });
+    var playingItem = this.model.get('playing_item');
+    if (playingItem) {
+      var playingTrackKey = playingItem.identifier;
+      // Request track data from spotify here
+      if (true) {  // previously depedent upon a good response
+        var track_name = playingItem.title;
+        var artist = playingItem.artist_name;
+        data.nowPlaying = '"' + track_name + '" by ' + artist;
+        // data.icon = track.icon400;
+        // data.has_icon = 'has_icon';
       } else {
-        data.nowPlaying = "silence";
+        data.nowPlaying = 'Something unknown';
         data.icon = '';
-        data.has_icon = '';
-        this.$el.html(this.template(data));
-        this.$el.show();
       }
+      self.$el.html(self.template(data));
+      self.$el.show();
     } else {
-      this.$el.hide();
+      data.nowPlaying = "silence";
+      data.icon = '';
+      this.$el.html(this.template(data));
+      this.$el.show();
     }
     return this;
   },

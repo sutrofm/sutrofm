@@ -264,19 +264,19 @@
   {#var rdioUserKey = '{{ rdio.id }}';#}
   var roomId = "{{ room_id }}";
   var websocket_uri = '{{ websocket_url }}';
-  var heartbeat_msg = {{ ws4redis_heartbeat }};
+  var heartbeat_msg = '{{ ws4redis_heartbeat }}';
   </script>
   <script type="text/javascript" src="{% static 'js/chat.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/sutrofm.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/search-view.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/ws4redis.js' %}"></script>
   <script type="text/javascript">
-    var current_user = {{ current_user|safe}};
-    var initial_player_state = {{ initial_player_state_json|safe }}['data'];
-    var initial_queue_state = {{ initial_queue_state_json|safe }}['data'];
-    var initial_user_list_state = {{ initial_user_list_state_json|safe }}['data'];
-    var initial_messages_state = {{ initial_messages_state_json|safe }}['data'];
-    var initial_theme_state = {{ initial_theme_state_json|safe }}['data'];
+    var current_user = '{{ current_user|safe}}';
+    var initial_player_state = "{{ initial_player_state_json|safe }}['data']";
+    var initial_queue_state = "{{ initial_queue_state_json|safe }}['data']";
+    var initial_user_list_state = "{{ initial_user_list_state_json|safe }}['data']";
+    var initial_messages_state = "{{ initial_messages_state_json|safe }}['data']";
+    var initial_theme_state = "{{ initial_theme_state_json|safe }}['data']";
   </script>
 
 {% endblock%}

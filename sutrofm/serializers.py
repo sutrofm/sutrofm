@@ -45,7 +45,7 @@ class QueueItemSerializer(serializers.HyperlinkedModelSerializer):
 
   class Meta:
     model = QueueItem
-    fields = ['identifier', 'title', 'artist_name', 'playing_start_time', 'duration_ms', 'user', 'votes', 'should_skip',
+    fields = ['id', 'identifier', 'title', 'artist_name', 'playing_start_time', 'duration_ms', 'user', 'votes', 'should_skip',
               'party', 'vote_score']
 
   def get_should_skip(self, obj):
