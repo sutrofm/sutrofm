@@ -1,5 +1,7 @@
 import logging
 import threading
+import json
+import datetime
 
 # from django.conf import settings
 from django.contrib.auth import logout
@@ -38,10 +40,11 @@ def party(request, party_name):
 
   context = {
     'party': party,
-#     'initial_player_state_json': json.dumps(party.get_player_state_payload()),
-#     'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
-#     'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),
-#     'initial_messages_state_json': json.dumps(party.get_messages_state_payload(connection)),
+    'room_id': party_name,
+    'initial_player_state_json': json.dumps(party.get_player_state_payload()),
+    'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
+    'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),
+    'initial_messages_state_json': json.dumps(party.get_messages_state_payload()),
 #     'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
   }
   make_party_manager(party.name)

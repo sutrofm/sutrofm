@@ -272,10 +272,10 @@
   <script type="text/javascript" src="{% static 'js/ws4redis.js' %}"></script>
   <script type="text/javascript">
     var current_user = '{{ current_user|safe}}';
-    var initial_player_state = "{{ initial_player_state_json|safe }}['data']";
-    var initial_queue_state = "{{ initial_queue_state_json|safe }}['data']";
-    var initial_user_list_state = "{{ initial_user_list_state_json|safe }}['data']";
-    var initial_messages_state = "{{ initial_messages_state_json|safe }}['data']";
+    var initial_player_state = {{ initial_player_state_json|safe }}
+    var initial_queue_state = {{ initial_queue_state_json|safe }}
+    var initial_user_list_state = {{ initial_user_list_state_json|safe }}
+    var initial_messages_state = {{ initial_messages_state_json|safe }}
     var initial_theme_state = "{{ initial_theme_state_json|safe }}['data']";
   </script>
 
