@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Sum, Value, When, Case, Count
@@ -53,6 +53,54 @@ class Party(TimeStampedModel):
     if self.playing_item:
       self.playing_item.start_playing()
     self.save()
+
+  def get_player_state_payload(self):
+    return {
+        'playing_track_position': 123,
+        'playing_track_key': 'foo',
+        'userKey': 'bar'
+    }
+
+  def get_queue_state_payload(self):
+    return [
+      {
+        'track_key': 'foo',
+        'queue_entry_id': 'abc123',
+        'submitter': 'marek',
+        'upvotes': 12,
+        'downvotes': 420,
+        'timestamp': datetime.utcnow().isoformat(),
+        'userKey': "zoobo"
+      } for i in range(10)
+    ]
+
+  def get_messages_state_payload(self):
+    return [
+      # Chat message
+      {
+        'message_type': 'chat',
+        'user_id': '123',
+        'text': 'Hello world'
+      } if i % 2 == 0 else { # New song message
+        'message_type': 'new_track',
+        'text': "Now playing: Zoopadoop",
+        'track_key': 'abc123',
+        'track_url': "http://google.com",
+        'icon_url': "/static/img/icons/husky.jpeg",
+        'track_title': "The Quick Brown Fox Blues"
+      } for i in range(10)
+    ]
+
+  def get_user_list_state_payload(self):
+    return [
+        {
+          'id': '123',
+          'is_active': True,
+          'display_name': "marek",
+          "user_url": "http://yahoo.com",
+          "icon": "/static/img/icons/raccoon.jpeg"
+        } for i in range(10)
+    ]
 
   def playing_track_is_over(self):
     return

@@ -468,7 +468,7 @@ app.TrackView = Backbone.View.extend({
     this.rdioUser = null;
 
     var self = this;
-    R.request({
+    /*R.request({
       method: 'get',
       content: {
         keys: self.model.get('trackKey') + ',' + self.model.get('userKey'),
@@ -483,7 +483,7 @@ app.TrackView = Backbone.View.extend({
       error: function(response) {
         console.log('Unable to get track information for', self.model.get('trackKey'));
       }
-    });
+    });*/
 
   },
 
@@ -661,8 +661,8 @@ app.receiveMessage = function(msg) {
 function ping() {
   var roomId = window.roomId;
   $.ajax({
-    'method': 'POST',
-    'url': '/api/party/' + window.roomId + '/ping/'
+    'method': 'GET',
+    'url': '/api/v2/parties/' + window.roomId + '/ping/'
   })
   .fail(function (response) {
     console.log('Could not ping the server to say that we are still in the party.');

@@ -1,4 +1,6 @@
 from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from sutrofm.models import User, Party, ChatMessage, QueueItem, UserVote
 from sutrofm.serializers import UserSerializer, PartySerializer, ChatMessageSerializer, QueueItemSerializer, \
@@ -27,6 +29,12 @@ class PartyViewSet(viewsets.ModelViewSet):
     response = super().create(request, *args, **kwargs)
     make_party_manager('asdf')
     return response
+
+  @action(detail=True, methods=['GET'])
+  def ping(self, request, *args, **kwargs):
+      party = self.get_object()
+      request.user.check_in_to_party(party)
+      return Response({'hi': 'ok'})
 
 class ChatMessageViewSet(viewsets.ModelViewSet):
   queryset = ChatMessage.objects.all().order_by('-created')
