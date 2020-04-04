@@ -47,7 +47,6 @@ class QueueItemViewSet(viewsets.ModelViewSet):
   serializer_class = QueueItemSerializer
   permission_classes = [permissions.IsAuthenticated]
 
-
 class UserVoteViewSet(viewsets.ModelViewSet):
   queryset = UserVote.objects.all().order_by('-created')
   serializer_class = UserVoteSerializer

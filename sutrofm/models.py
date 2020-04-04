@@ -57,20 +57,20 @@ class Party(TimeStampedModel):
   def get_player_state_payload(self):
     return {
         'playing_track_position': 123,
-        'playing_track_key': 'foo',
-        'userKey': 'bar'
+        'playing_track_key': '1k1Bqnv2R0uJXQN4u6LKYt',
+        'playing_track_user_key': 'borfy'
     }
 
   def get_queue_state_payload(self):
     return [
       {
-        'track_key': 'foo',
-        'queue_entry_id': 'abc123',
+        'track_key': '1k1Bqnv2R0uJXQN4u6LKYt',
+        'queue_entry_id': i,
         'submitter': 'marek',
         'upvotes': 12,
         'downvotes': 420,
         'timestamp': datetime.utcnow().isoformat(),
-        'userKey': "zoobo"
+        'user_key': "zoobo"
       } for i in range(10)
     ]
 

@@ -309,6 +309,7 @@ app.NowPlayingView = Backbone.View.extend({
     this.playState = app.playState;
 
     _.bindAll(this, '_onPositionChange');
+    this.render()
   },
 
   _onPositionChange: function(position) {
@@ -373,8 +374,25 @@ app.NowPlayingView = Backbone.View.extend({
       keys.push(self.playState.get('playingTrack').userKey);
       userKey = self.playState.get('playingTrack').userKey;
     }
+    console.log("hieasdfasdf", this.rdioTrackKey)
     if (this.rdioTrackKey) {
-      R.request({
+      app.S.getTrack(this.rdioTrackKey, {}, (error, track) => {
+        var data = _.extend({
+            track: {
+                bigIcon: track.album.images[0].url,
+                name: track.name,
+                url: track.shortUrl,
+                album: track.album.name,
+                artist: track.artists.map(a => a.name).join(", ")
+            },
+            addedBy: self.playState.get('playingTrack').userKey
+        })
+        self.$el.html(self.template(data))
+        self.$el.show()
+        self.initChildModels(false);
+        //$('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
+      })
+      /*R.request({
         method: 'get',
         content: {
           keys: keys.join(","),
@@ -412,7 +430,7 @@ app.NowPlayingView = Backbone.View.extend({
         error: function(response) {
           console.log('Unable to get track information for', self.rdioTrackKey);
         }
-      });
+      });*/
 
     } else {
       this.$el.hide();
@@ -432,6 +450,9 @@ app.NowPlayingView = Backbone.View.extend({
 
   _onSlaveTrackChange: function(model, value, options) {
     if (value.trackKey) {
+        console.log("hi there", value.trackKey)
+        this.rdioTrackKey = value.trackKey
+        this.render()
     } else {
       this.render();
     }
@@ -468,23 +489,23 @@ app.TrackView = Backbone.View.extend({
     this.rdioUser = null;
 
     var self = this;
-    /*R.request({
-      method: 'get',
-      content: {
-        keys: self.model.get('trackKey') + ',' + self.model.get('userKey'),
-        extras: 'streamRegions,shortUrl,bigIcon,duration'
-      },
-      success: function(response) {
-        self.rdioTrack = response.result[self.model.get('trackKey')];
-        self.rdioUser = response.result[self.model.get('userKey')];
-        self.trackDuration = self.getDuration(self.rdioTrack.duration);
-        self.render();
-      },
-      error: function(response) {
-        console.log('Unable to get track information for', self.model.get('trackKey'));
-      }
-    });*/
-
+    if (!self.rdioTrack) {
+        app.S.getTrack(self.model.get('trackKey'), {}, (error, track) => {
+            self.rdioTrack = {
+                icon: track.album.images[0].url,
+                shortUrl: 'http://twitter.com/marekkapolka',
+                name: track.name,
+                artist: track.artists.map((a)=> a.name).join(", ")
+            }
+            self.rdioUser = {
+                shortUrl: 'http://twitter.com/mkapolka',
+                key: self.model.get('userKey'),
+                name: self.model.get("userKey")
+            }
+            self.trackDuration = track.duration_ms
+            self.render()
+        })
+    }
   },
 
   render: function() {
@@ -676,6 +697,9 @@ $(function() {
     receive_message: app.receiveMessage,
     heartbeat_msg: window.heartbeat_msg
   });
+
+  app.S = new app.SpotifyAPI()
+  app.S.setAccessToken(window.spotify_access_token)
 
   app.playState = new app.Player();
   var queueView = new app.queueView();
