@@ -101,7 +101,7 @@
             <%= track.artist %>
           </div>
           <div class="added">
-            Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.firstName %> <%= user.lastName %></a>
+            Added by <a href="<%= user.shortUrl %>" target="_blank"><%= user.name %></a>
           </div>
           <div class="duration">
             <%= formattedDuration %>
@@ -179,7 +179,7 @@
 
   <script type="text/template" id="search-result-template">
     <li>
-      <a href="#" data-rdio-key="<%= key %>">
+      <a href="#" data-spotify-key="<%= key %>">
         <table>
           <tr>
             <td>
@@ -270,8 +270,10 @@
   <script type="text/javascript" src="{% static 'js/sutrofm.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/search-view.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/ws4redis.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/spotify-web-api.js' %}"></script>
   <script type="text/javascript">
     var current_user = '{{ current_user|safe}}';
+    var spotify_access_token = "{{ spotify_access_token|safe }}"
     var initial_player_state = {{ initial_player_state_json|safe }}
     var initial_queue_state = {{ initial_queue_state_json|safe }}
     var initial_user_list_state = {{ initial_user_list_state_json|safe }}

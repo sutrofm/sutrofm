@@ -45,6 +45,7 @@ def party(request, party_name):
     'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
     'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),
     'initial_messages_state_json': json.dumps(party.get_messages_state_payload()),
+    'spotify_access_token': request.user.social_auth.get(provider='spotify').extra_data['access_token'],
 #     'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
   }
   make_party_manager(party.name)
