@@ -374,7 +374,6 @@ app.NowPlayingView = Backbone.View.extend({
       keys.push(self.playState.get('playingTrack').userKey);
       userKey = self.playState.get('playingTrack').userKey;
     }
-    console.log("hieasdfasdf", this.rdioTrackKey)
     if (this.rdioTrackKey) {
       app.S.getTrack(this.rdioTrackKey, {}, (error, track) => {
         var data = _.extend({
@@ -450,7 +449,6 @@ app.NowPlayingView = Backbone.View.extend({
 
   _onSlaveTrackChange: function(model, value, options) {
     if (value.trackKey) {
-        console.log("hi there", value.trackKey)
         this.rdioTrackKey = value.trackKey
         this.render()
     } else {
@@ -698,6 +696,15 @@ $(function() {
     heartbeat_msg: window.heartbeat_msg
   });
 
+  $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+          if (settings.method === "POST") {
+              xhr.setRequestHeader("X-CSRFToken", $("[name=csrfmiddlewaretoken]").val())
+          }
+      }
+  });
+
+
   app.S = new app.SpotifyAPI()
   app.S.setAccessToken(window.spotify_access_token)
 
@@ -718,4 +725,5 @@ $(function() {
   app.themeModel.setTheme(window.initial_theme_state);
 
   setInterval(ping, 1000);
+
 });

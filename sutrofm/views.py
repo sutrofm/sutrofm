@@ -7,6 +7,8 @@ import datetime
 from django.contrib.auth import logout
 from django.core.management import call_command
 from django.shortcuts import redirect, render
+from social_django.utils import load_strategy
+
 #
 from sutrofm.models import Party
 
@@ -31,21 +33,20 @@ def make_party_manager(party_name):
   party_manager_thread.start()
 
 
-def party(request, party_name):
-  if not party_name:
-    return redirect('party', party_name='rdio')
-
-  party, created = Party.objects.get_or_create(name=party_name)
+def party(request, party_id):
+  party, created = Party.objects.get_or_create(id=party_id)
   request.user.check_in_to_party(party)
+
+  social = request.user.social_auth.get(provider='spotify')
 
   context = {
     'party': party,
-    'room_id': party_name,
+    'room_id': party_id,
     'initial_player_state_json': json.dumps(party.get_player_state_payload()),
     'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
     'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),
     'initial_messages_state_json': json.dumps(party.get_messages_state_payload()),
-    'spotify_access_token': request.user.social_auth.get(provider='spotify').extra_data['access_token'],
+    'spotify_access_token': social.get_access_token(load_strategy())
 #     'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
   }
   make_party_manager(party.name)

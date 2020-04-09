@@ -14,10 +14,11 @@
 
     enqueueTrack: function(trackKey) {
       $.ajax({
-        'url': '/api/party/'+window.roomId+'/queue/add',
+        'url': '/api/v2/queue_items/',
         'method': 'POST',
         'data': {
-          'trackKey': trackKey
+            'identifier': trackKey,
+            'party': window.roomId,
         }
       })
     },
@@ -31,7 +32,7 @@
           var $target = $(event.currentTarget);
           var originalVote = {};
           originalVote[app.currentUserKey] = "like";
-          self.enqueueTrack($target.data('rdio-key'));
+          self.enqueueTrack($target.data('spotify-key'));
 
           self.close();
           self.$input.val('');

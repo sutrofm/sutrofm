@@ -185,3 +185,7 @@ SOCIAL_AUTH_SPOTIFY_KEY = os.environ.get('SPOTIFY_API_KEY', '')
 SOCIAL_AUTH_SPOTIFY_SECRET = os.environ.get('SPOTIFY_API_SECRET', '')
 SOCIAL_AUTH_CLEAN_USERNAME_FUNCTION = 'unidecode.unidecode'
 SOCIAL_AUTH_POSTGRES_JSONFIELD = True  # needed to store custom spotify specific data
+
+SOCIAL_AUTH_SPOTIFY_EXTRA_DATA = [
+    ('expires_in', 'expires'),
+]

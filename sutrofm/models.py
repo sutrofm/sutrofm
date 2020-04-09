@@ -8,7 +8,7 @@ from django.db import models
 from model_utils.fields import AutoCreatedField
 from model_utils.models import TimeStampedModel
 
-from sutrofm.spotify_api_utils import get_track_duration
+from sutrofm.spotify_api_utils import get_track_duration, get_track_details
 
 
 class User(AbstractUser):
@@ -121,8 +121,8 @@ class ChatMessage(TimeStampedModel):
 class QueueItem(TimeStampedModel):
   service = models.CharField(default='Spotify', max_length=32)
   identifier = models.CharField(max_length=128)
-  title = models.TextField()
-  artist_name = models.TextField()
+  title = models.TextField(default='')
+  artist_name = models.TextField(default='')
   playing_start_time = models.DateTimeField(blank=True, null=True)
   duration_ms = models.IntegerField(blank=True, null=True)
 
@@ -134,6 +134,18 @@ class QueueItem(TimeStampedModel):
       self.duration_ms = get_track_duration(self.identifier)
     self.playing_start_time = now()
     self.save()
+
+  def save(self, *args, **kwargs):
+      # Creating a new queue item
+      if not self.id:
+          self.hydrate()
+      super(QueueItem, self).save(*args, **kwargs)
+
+  def hydrate(self):
+      details = get_track_details(self.identifier)
+      self.title = details['name']
+      self.artist_name = ', '.join([artist['name'] for artist in details['artists']])
+      self.duration_ms = details['duration_ms']
 
   def get_track_position(self):
     """
