@@ -17,25 +17,25 @@ TICK_FREQUENCY = 1  # seconds
 
 class Command(BaseCommand):
   def add_arguments(self, parser):
-    parser.add_argument('party_name', type=str)
+    parser.add_argument('party_id', type=str)
 
   def __init__(self, *args, **kwargs):
     super(Command, self).__init__(*args, **kwargs)
     self.redis = None
     self.party = None
-    self.party_name = None
+    self.party_id = None
     self.keep_running = True
 
-  def handle(self, party_name, *args, **kwargs):
-    self.party_name = party_name
-    self.party = Party.objects.get(name=party_name)
+  def handle(self, party_id, *args, **kwargs):
+    self.party_id = party_id
+    self.party = Party.objects.get(id=party_id)
 
     self.update_track()
 
     self.run()
 
   def run(self):
-    logger.info(f'Starting up party manager for "{self.party_name}"!')
+    logger.info(f'Starting up party manager for "{self.party_id}"!')
     while self.keep_running:
       try:
         self.tick()
@@ -46,7 +46,7 @@ class Command(BaseCommand):
         logger.exception("!!! ALERT !!! Room manager... More like room blam-ager.")
       time.sleep(TICK_FREQUENCY)
     else:
-      logger.debug('Nobody in room %s, killing' % self.party_name)
+      logger.debug('Nobody in room %s, killing' % self.party_id)
       self.party.delete()
 
   def update_track(self):

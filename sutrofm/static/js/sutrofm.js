@@ -6,6 +6,7 @@ window.app = window.app || {};
 
 app.Player = Backbone.Model.extend({
   setState: function(data) {
+    this.set("ready", data['ready']);
     this.set('position', data['playing_track_position']);
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
@@ -385,7 +386,9 @@ app.NowPlayingView = Backbone.View.extend({
                 artist: track.artists.map(a => a.name).join(", ")
             },
             addedBy: self.playState.get('playingTrack').userKey
+
         })
+        app.S.play({uris: [track.uri], position_ms: this.playState.get("position") * 1000})
         self.$el.html(self.template(data))
         self.$el.show()
         self.initChildModels(false);
@@ -445,6 +448,13 @@ app.NowPlayingView = Backbone.View.extend({
 
     app.playState.on('change:playingTrack', this._onSlaveTrackChange, this);
     app.playState.on('change:playState', this._onSlavePlayerStateChange, this);
+    app.playState.on('change:ready', this._onReadinessUpdated, this);
+  },
+
+  _onReadinessUpdated: function(model, value, options) {
+    if (value === true) {
+        this.render()
+    }
   },
 
   _onSlaveTrackChange: function(model, value, options) {
@@ -690,12 +700,6 @@ function ping() {
 
 
 $(function() {
-  self.redis = WS4Redis({
-    uri: window.websocket_uri + "parties:" + window.roomId + "?subscribe-broadcast&publish-broadcast&echo",
-    receive_message: app.receiveMessage,
-    heartbeat_msg: window.heartbeat_msg
-  });
-
   $.ajaxSetup({
       beforeSend: function(xhr, settings) {
           if (settings.method === "POST") {
@@ -725,5 +729,4 @@ $(function() {
   app.themeModel.setTheme(window.initial_theme_state);
 
   setInterval(ping, 1000);
-
 });

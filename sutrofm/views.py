@@ -7,6 +7,7 @@ import datetime
 from django.contrib.auth import logout
 from django.core.management import call_command
 from django.shortcuts import redirect, render
+from django.http import HttpResponseNotAllowed
 from social_django.utils import load_strategy
 
 #
@@ -27,10 +28,19 @@ def logout_view(request):
   return redirect('index')
 
 
-def make_party_manager(party_name):
-  logger.debug('Spawning party manager %s' % party_name)
-  party_manager_thread = threading.Thread(target=call_command, args=('party_manager', party_name))
+def make_party_manager(party_id):
+  logger.debug('Spawning party manager %s' % party_id)
+  party_manager_thread = threading.Thread(target=call_command, args=('party_manager', party_id))
   party_manager_thread.start()
+
+
+def create_party(request):
+  if request.method == "POST":
+      party_name = request.POST['room_name']
+      party = Party.objects.create(name=party_name)
+      return redirect('party', party.id)
+  else:
+      return HttpResponseNotAllowed(["POST"])
 
 
 def party(request, party_id):
@@ -49,7 +59,7 @@ def party(request, party_id):
     'spotify_access_token': social.get_access_token(load_strategy())
 #     'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
   }
-  make_party_manager(party.name)
+  make_party_manager(party.id)
   return render(request, 'party.html', context)
 #
 #

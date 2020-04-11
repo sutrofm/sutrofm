@@ -13,7 +13,8 @@
 <div class="row">
   <div class="span6 offset3">
     <h2>Start a Party</h2>
-    <form class="form-inline">
+    <form action="/party/create" method="POST" class="form-inline">
+    {% csrf_token %}
     <fieldset>
       <div class="input-append">
           <input type="text" name="room_name" id="room-name-input" class="input-xlarge" placeholder="Name your party"
@@ -51,7 +52,7 @@
 {#    <div class="party-room <%= has_icon %>" style="background: url(<%= icon %>) no-repeat center center">#}
     <div class="party-room">
       <div class="party-room-name">
-        <a href="{% url 'party' '' %}<%= name %>"><%= name %></a>
+        <a href="{% url 'party' party_id=0123 %}<%= name %>"><%= name %></a>
       </div>
       <div class="party-room-population">
         <%= population %>
@@ -69,10 +70,6 @@
     </div>
   </script>
 
-  <script type="text/javascript">
-  var rdioToken = '{{ social_auth.rdio_oauth2.extra_data.access_token }}';
-  var rdioUserKey = '{{ rdio.id }}';
-  </script>
   <script type="text/javascript" src="{% static 'js/partylist.js' %}"></script>
 
 {% endblock%}

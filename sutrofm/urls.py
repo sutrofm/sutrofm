@@ -34,6 +34,7 @@ urlpatterns = [
     path('social', include('social_django.urls', namespace='social')),
     path('player/helper', views.player_helper, name='player-helper'),
     path('logout', views.logout_view, name='logout'),
+    path("party/create", views.create_party),
     #
     # path('api/parties', api_views.parties, name='api_parties'),
     # re_path(r'^api/party/(?P<party_id>[A-Za-z0-9\-_]+)/?$', api_views.get_party_by_id),

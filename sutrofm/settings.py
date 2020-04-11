@@ -189,3 +189,5 @@ SOCIAL_AUTH_POSTGRES_JSONFIELD = True  # needed to store custom spotify specific
 SOCIAL_AUTH_SPOTIFY_EXTRA_DATA = [
     ('expires_in', 'expires'),
 ]
+
+SOCIAL_AUTH_SPOTIFY_SCOPE = ['streaming', "user-read-email", "user-read-private"]

@@ -34,8 +34,8 @@ class UserPartyPresence(models.Model):
 
 
 class Party(TimeStampedModel):
-  name = models.CharField(max_length=128, unique=True, db_index=True)
-  playing_item = models.ForeignKey('QueueItem', related_name='playing_party', on_delete=models.DO_NOTHING,
+  name = models.CharField(max_length=128, db_index=True)
+  playing_item = models.ForeignKey('QueueItem', related_name='playing_party', on_delete=models.SET_NULL,
                                    blank=True, null=True)
   theme = models.TextField()
 
@@ -55,23 +55,20 @@ class Party(TimeStampedModel):
     self.save()
 
   def get_player_state_payload(self):
-    return {
-        'playing_track_position': 123,
-        'playing_track_key': '1k1Bqnv2R0uJXQN4u6LKYt',
-        'playing_track_user_key': 'borfy'
-    }
+    playing_item = self.playing_item
+    if playing_item:
+        position, duration = playing_item.get_track_position()
+        return {
+            'playing_track_position': position / 1000,
+            'playing_track_key': playing_item.identifier,
+            'playing_track_user_key': playing_item.user.username,
+        }
+    else:
+        return {}
 
   def get_queue_state_payload(self):
     return [
-      {
-        'track_key': '1k1Bqnv2R0uJXQN4u6LKYt',
-        'queue_entry_id': i,
-        'submitter': 'marek',
-        'upvotes': 12,
-        'downvotes': 420,
-        'timestamp': datetime.utcnow().isoformat(),
-        'user_key': "zoobo"
-      } for i in range(10)
+        item.to_object() for item in self.queue.all()
     ]
 
   def get_messages_state_payload(self):
@@ -128,6 +125,16 @@ class QueueItem(TimeStampedModel):
 
   user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='queued_items')
   party = models.ForeignKey('Party', on_delete=models.CASCADE, related_name='queue')
+
+  def to_object(self):
+      return {
+          'track_key': self.identifier,
+          'queue_entry_id': self.id,
+          'submitter': self.user.id,
+          'upvotes': sum(vote.value for vote in self.votes.all() if vote.value > 0),
+          'downvotes': sum(vote.value for vote in self.votes.all() if vote.value < 0),
+          'user_key': self.user.username,
+      }
 
   def start_playing(self):
     if not self.duration_ms:

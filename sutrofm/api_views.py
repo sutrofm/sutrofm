@@ -23,7 +23,6 @@ class PartyViewSet(viewsets.ModelViewSet):
   queryset = Party.objects.all().order_by('-created')
   serializer_class = PartySerializer
   permission_classes = [permissions.IsAuthenticated]
-  lookup_field = 'name'
 
   def create(self, request, *args, **kwargs):
     response = super().create(request, *args, **kwargs)
