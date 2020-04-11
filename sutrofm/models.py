@@ -1,6 +1,9 @@
-from datetime import timedelta, datetime
+import logging
+import threading
+from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser
+from django.core.management import call_command
 from django.db.models import Sum, Value, When, Case, Count
 from django.utils.timezone import now
 
@@ -9,6 +12,9 @@ from model_utils.fields import AutoCreatedField
 from model_utils.models import TimeStampedModel
 
 from sutrofm.spotify_api_utils import get_track_duration, get_track_details
+
+
+logger = logging.getLogger(__name__)
 
 
 class User(AbstractUser):
@@ -34,12 +40,17 @@ class UserPartyPresence(models.Model):
 
 
 class Party(TimeStampedModel):
+  MAX_MANAGER_CHECK_IN_WAIT = timedelta(seconds=10)
+
   name = models.CharField(max_length=128, db_index=True)
   playing_item = models.ForeignKey('QueueItem', related_name='playing_party', on_delete=models.SET_NULL,
                                    blank=True, null=True)
   theme = models.TextField()
 
   users = models.ManyToManyField('User', through='UserPartyPresence')
+
+  last_manager_uuid = models.UUIDField(blank=True, null=True)
+  last_manager_check_in = models.DateTimeField(blank=True, null=True)
 
   def play_next_queue_item(self):
     '''
@@ -104,6 +115,17 @@ class Party(TimeStampedModel):
 
   def user_count(self):
     return self.users.count()
+
+  def needs_new_manager(self):
+    if not self.last_manager_check_in:
+      return True
+    else:
+      return now() - self.last_manager_check_in > self.MAX_MANAGER_CHECK_IN_WAIT
+
+  def spawn_new_manager(self):
+      logger.debug('Spawning party manager for party %s' % self.id)
+      party_manager_thread = threading.Thread(target=call_command, args=('party_manager', self.id))
+      party_manager_thread.start()
 
   def __str__(self):
     return self.name

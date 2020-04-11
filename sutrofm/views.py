@@ -1,16 +1,11 @@
 import logging
-import threading
 import json
-import datetime
 
-# from django.conf import settings
 from django.contrib.auth import logout
-from django.core.management import call_command
 from django.shortcuts import redirect, render
 from django.http import HttpResponseNotAllowed
 from social_django.utils import load_strategy
 
-#
 from sutrofm.models import Party
 
 logger = logging.getLogger(__name__)
@@ -28,26 +23,25 @@ def logout_view(request):
   return redirect('index')
 
 
-def make_party_manager(party_id):
-  logger.debug('Spawning party manager %s' % party_id)
-  party_manager_thread = threading.Thread(target=call_command, args=('party_manager', party_id))
-  party_manager_thread.start()
-
-
 def create_party(request):
+  # TODO: a route to create parties already exists in the DRF native views, fold this into that
   if request.method == "POST":
       party_name = request.POST['room_name']
       party = Party.objects.create(name=party_name)
+      party.spawn_new_manager()
       return redirect('party', party.id)
   else:
       return HttpResponseNotAllowed(["POST"])
 
 
 def party(request, party_id):
-  party, created = Party.objects.get_or_create(id=party_id)
+  party = Party.objects.get(id=party_id)
   request.user.check_in_to_party(party)
 
   social = request.user.social_auth.get(provider='spotify')
+
+  if party.needs_new_manager():
+    party.spawn_new_manager()
 
   context = {
     'party': party,
@@ -59,7 +53,6 @@ def party(request, party_id):
     'spotify_access_token': social.get_access_token(load_strategy())
 #     'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
   }
-  make_party_manager(party.id)
   return render(request, 'party.html', context)
 #
 #

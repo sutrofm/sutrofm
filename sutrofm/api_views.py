@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from sutrofm.models import User, Party, ChatMessage, QueueItem, UserVote
 from sutrofm.serializers import UserSerializer, PartySerializer, ChatMessageSerializer, QueueItemSerializer, \
   UserVoteSerializer
-from sutrofm.views import make_party_manager
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -24,15 +23,12 @@ class PartyViewSet(viewsets.ModelViewSet):
   serializer_class = PartySerializer
   permission_classes = [permissions.IsAuthenticated]
 
-  def create(self, request, *args, **kwargs):
-    response = super().create(request, *args, **kwargs)
-    make_party_manager('asdf')
-    return response
-
   @action(detail=True, methods=['GET'])
   def ping(self, request, *args, **kwargs):
       party = self.get_object()
       request.user.check_in_to_party(party)
+      if party.needs_new_manager():
+        party.spawn_new_manager()
       return Response({'hi': 'ok'})
 
 class ChatMessageViewSet(viewsets.ModelViewSet):
