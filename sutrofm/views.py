@@ -2,6 +2,7 @@ import logging
 import json
 
 from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.http import HttpResponseNotAllowed
 from social_django.utils import load_strategy
@@ -23,6 +24,7 @@ def logout_view(request):
   return redirect('index')
 
 
+@login_required
 def create_party(request):
   # TODO: a route to create parties already exists in the DRF native views, fold this into that
   if request.method == "POST":
@@ -34,6 +36,7 @@ def create_party(request):
       return HttpResponseNotAllowed(["POST"])
 
 
+@login_required
 def party(request, party_id):
   party = Party.objects.get(id=party_id)
   request.user.check_in_to_party(party)
@@ -54,14 +57,16 @@ def party(request, party_id):
 #     'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
   }
   return render(request, 'party.html', context)
-#
-#
+
+
+@login_required
 def parties(request):
   context = {
     'body_class': 'parties'
   }
   return render(request, 'partylist.html', context)
-#
-#
+
+
+@login_required
 def player_helper(request):
   return render(request, 'player-helper.html')

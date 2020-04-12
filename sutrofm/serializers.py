@@ -63,5 +63,5 @@ class PartySerializer(serializers.HyperlinkedModelSerializer):
 
   class Meta:
     model = Party
-    fields = ['name', 'playing_item', 'theme', 'users', 'messages', 'queue']
+    fields = ['id', 'name', 'playing_item', 'theme', 'users', 'messages', 'queue']
 
