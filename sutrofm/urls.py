@@ -24,6 +24,7 @@ api_router.register(r'users', api_views.UserViewSet)
 api_router.register(r'parties', api_views.PartyViewSet)
 api_router.register(r'queue_items', api_views.QueueItemViewSet)
 api_router.register(r'votes', api_views.UserVoteViewSet)
+api_router.register(r'chat_messages', api_views.ChatMessageViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

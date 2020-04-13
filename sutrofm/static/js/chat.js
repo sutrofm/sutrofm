@@ -217,12 +217,13 @@ $(function() {
 
 chat.sendMessage = function(text) {
   $.ajax({
-    'url': '/api/party/'+window.roomId+'/messages/',
+    'url': '/api/v2/chat_messages/',
     'method': 'POST',
     'data': {
       messageType: 'chat',
       user: chat.currentUser["id"],
-      text: text
+      message: text,
+      party: window.roomId
     }
   });
 };

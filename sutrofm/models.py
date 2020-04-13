@@ -11,8 +11,7 @@ from django.db import models
 from model_utils.fields import AutoCreatedField
 from model_utils.models import TimeStampedModel
 
-from sutrofm.spotify_api_utils import get_track_duration, get_track_details
-
+from sutrofm.spotify_api_utils import get_track_duration, get_track_details, get_user_details
 
 logger = logging.getLogger(__name__)
 
@@ -100,15 +99,24 @@ class Party(TimeStampedModel):
     ]
 
   def get_user_list_state_payload(self):
-    return [
+    user_list = []
+    for user in self.users.all():
+      spotify_user = get_user_details(user.username)
+
+      user_image = "/static/img/icons/raccoon.jpeg"
+      if len(spotify_user['images']):
+        user_image = spotify_user['images'][0]['url']
+
+      user_list.append(
         {
-          'id': '123',
+          'id': user.id,
           'is_active': True,
-          'display_name': "marek",
-          "user_url": "http://yahoo.com",
-          "icon": "/static/img/icons/raccoon.jpeg"
-        } for i in range(10)
-    ]
+          'display_name': user.username,
+          "user_url": spotify_user['external_urls'].get('spotify', ''),
+          "icon": user_image
+        }
+      )
+      return user_list
 
   def playing_track_is_over(self):
     return

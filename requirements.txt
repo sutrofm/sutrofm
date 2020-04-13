@@ -13,3 +13,4 @@ spotipy==2.10.0
 djangorestframework==3.11.0
 django-model-utils==4.0.0
 Unidecode==1.1.1
+cachetools==4.1.0

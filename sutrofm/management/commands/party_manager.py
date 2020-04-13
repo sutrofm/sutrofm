@@ -22,7 +22,6 @@ class Command(BaseCommand):
 
   def __init__(self, *args, **kwargs):
     super(Command, self).__init__(*args, **kwargs)
-    self.redis = None
     self.party = None
     self.party_id = None
     self.manager_uuid = None

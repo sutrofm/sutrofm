@@ -21,13 +21,17 @@ class UserVoteSerializer(serializers.HyperlinkedModelSerializer):
 
 class ChatMessageSerializer(serializers.HyperlinkedModelSerializer):
   user = serializers.PrimaryKeyRelatedField(
-    read_only=True,
+    queryset=User.objects.all(),
     default=serializers.CurrentUserDefault()
+  )
+
+  party = serializers.PrimaryKeyRelatedField(
+    queryset=Party.objects.all()  # TODO: Filter to parties that the user is a member of
   )
 
   class Meta:
     model = ChatMessage
-    fields = ['user', 'message', 'created']
+    fields = ['user', 'message', 'created', 'party']
 
 
 class QueueItemSerializer(serializers.HyperlinkedModelSerializer):
