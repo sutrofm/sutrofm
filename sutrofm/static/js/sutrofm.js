@@ -133,10 +133,8 @@ app.Track = Backbone.Model.extend({
   upVote: function() {
     $.ajax({
       'url': '/api/v2/votes/',
-      'method': 'POST',
+      'method': 'PUT',
       'data': {
-        // TODO: get these values
-        "user": null,
         "queue_item": this.get('queueEntryId'),
         "value": 1,
         "is_skip": false
@@ -147,10 +145,8 @@ app.Track = Backbone.Model.extend({
   downVote: function() {
     $.ajax({
       'url': '/api/v2/votes/',
-      'method': 'POST',
+      'method': 'PUT',
         'data': {
-            // TODO: get these values
-            "user": null,
             "queue_item": this.get('queueEntryId'),
             "value": -1,
             "is_skip": false
@@ -227,10 +223,8 @@ app.SkipButton = Backbone.View.extend({
       chat.sendMessage('voted to skip');
         $.ajax({
             'url': '/api/v2/votes/',
-            'method': 'POST',
+            'method': 'PUT',
             'data': {
-                // TODO: get these values
-                "user": null,
                 "queue_item": this.get('queueEntryId'),
                 "value": -1,
                 "is_skip": true
@@ -702,7 +696,8 @@ function ping() {
 $(function() {
   $.ajaxSetup({
       beforeSend: function(xhr, settings) {
-          if (settings.method === "POST") {
+          if (settings.method === "POST" ||
+              settings.method === "PUT") {
               xhr.setRequestHeader("X-CSRFToken", $("[name=csrfmiddlewaretoken]").val())
           }
       }

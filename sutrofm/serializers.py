@@ -14,6 +14,10 @@ class UserVoteSerializer(serializers.HyperlinkedModelSerializer):
     default=serializers.CurrentUserDefault()
   )
 
+  queue_item = serializers.PrimaryKeyRelatedField(
+    queryset=QueueItem.objects.all()  # TODO: filter on parties user is actually part of
+  )
+
   class Meta:
     model = UserVote
     fields = ['user', 'queue_item', 'value', 'is_skip']

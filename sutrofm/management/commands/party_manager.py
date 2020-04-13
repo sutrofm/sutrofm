@@ -7,7 +7,7 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
 
-from sutrofm.models import Party, UserPartyPresence
+from sutrofm.models import Party, UserPartyPresence, QueueItem
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class Command(BaseCommand):
     return self.party.user_count() and not self.other_manager_owns_party()
 
   def update_track(self):
-    queue_size = self.party.queue.count()
+    queue_size = QueueItem.objects.filter(party=self.party).count()  # no need to use ordered queue, faster
 
     if not self.party.playing_item and not queue_size:
       logger.info('No tracks queued, nothing to do')

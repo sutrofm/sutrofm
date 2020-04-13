@@ -51,6 +51,10 @@ class Party(TimeStampedModel):
   last_manager_uuid = models.UUIDField(blank=True, null=True)
   last_manager_check_in = models.DateTimeField(blank=True, null=True)
 
+  @property
+  def queue(self):
+    return QueueItem.voted_objects.filter(party=self)
+
   def play_next_queue_item(self):
     '''
     Take next item in queue and set as playing item, delete the previously playing obj, and prep queue item for playback
@@ -78,7 +82,7 @@ class Party(TimeStampedModel):
 
   def get_queue_state_payload(self):
     return [
-        item.to_object() for item in self.queue.all()
+        item.to_object() for item in QueueItem.voted_objects.filter(party=self)
     ]
 
   def get_messages_state_payload(self):
@@ -145,6 +149,13 @@ class ChatMessage(TimeStampedModel):
   message = models.TextField()
 
 
+class VoteOrderedQueueManager(models.Manager):
+  def get_queryset(self):
+    queryset = super().get_queryset().filter(playing_start_time=None)
+    queryset = queryset.annotate(score=Sum('votes__value'))
+    return queryset.order_by('-score')
+
+
 class QueueItem(TimeStampedModel):
   service = models.CharField(default='Spotify', max_length=32)
   identifier = models.CharField(max_length=128)
@@ -154,7 +165,10 @@ class QueueItem(TimeStampedModel):
   duration_ms = models.IntegerField(blank=True, null=True)
 
   user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='queued_items')
-  party = models.ForeignKey('Party', on_delete=models.CASCADE, related_name='queue')
+  party = models.ForeignKey('Party', on_delete=models.CASCADE)  # TODO, figure out way to use voted_objects manager for relation
+
+  objects = models.Manager()  # The default manager.
+  voted_objects = VoteOrderedQueueManager()  # Queue sorted by votes, excluding playing.
 
   def to_object(self):
       return {
@@ -211,12 +225,8 @@ class QueueItem(TimeStampedModel):
 
   @staticmethod
   def get_next(party):
-    return QueueItem.list_for_party_queryset(party).first()
-
-  @staticmethod
-  def list_for_party_queryset(party):
-    # TODO: order by sum of votes -- may want to automatically cache them on the QueueItem
-    return QueueItem.objects.filter(party=party, playing_start_time=None).order_by('created')
+    # This might be annotating all queue items, then filtering on party - not efficient
+    return QueueItem.voted_objects.filter(party=party).first()
 
   def __str__(self):
     return f'{self.identifier}: {self.artist_name} - {self.title}'
@@ -225,5 +235,10 @@ class QueueItem(TimeStampedModel):
 class UserVote(TimeStampedModel):
   user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='votes')
   queue_item = models.ForeignKey('QueueItem', on_delete=models.CASCADE, related_name='votes')
-  value = models.SmallIntegerField()  # set to 1 or -1 for easy summing
+  value = models.SmallIntegerField(default=0)  # set to 1 or -1 for easy summing
   is_skip = models.BooleanField(default=False)
+
+  class Meta:
+    constraints = [
+      models.UniqueConstraint(fields=['user', 'queue_item'], name='One vote per queue item')
+    ]

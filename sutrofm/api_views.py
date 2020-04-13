@@ -47,11 +47,24 @@ class UserVoteViewSet(viewsets.ModelViewSet):
   serializer_class = UserVoteSerializer
   permission_classes = [permissions.IsAuthenticated]
 
+  def get_object(self):
+    """
+    Modified to do a get_or_create so that we can always use the PUT method and specify the user and queue item rather
+    than having to look up the pk of the user's past vote, if any. DRF thinks it's always updating.
 
+    This is implemented in a pretty hacky way, would be better if we were validating the request data, and so on.
+    """
+    queryset = self.get_queryset()
 
+    obj, _ = queryset.get_or_create(user=self.request.user, queue_item_id=self.request.data.get('queue_item'))
+    self.check_object_permissions(self.request, obj)
+    return obj
 
-
-
+  def put(self, request, *args, **kwargs):
+    """
+    Using put to do an upsert on the user's vote for a queue item
+    """
+    return self.update(request, *args, **kwargs)
 
 
 
