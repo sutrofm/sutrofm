@@ -225,7 +225,7 @@ app.SkipButton = Backbone.View.extend({
             'url': '/api/v2/votes/',
             'method': 'PUT',
             'data': {
-                "queue_item": this.get('queueEntryId'),
+                "queue_item": this.model.get('queueEntryId'),
                 "value": -1,
                 "is_skip": true
             }
@@ -341,7 +341,8 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   initChildModels: function(favoritedTrack) {
-    this.skipButton = new app.SkipButton();
+      console.log(this)
+    this.skipButton = new app.SkipButton(this.model);
     this.favoriteButton = new app.FavoriteButton(favoritedTrack);
   },
 
@@ -648,7 +649,9 @@ app.ThemeView = Backbone.View.extend({
   }
 });
 
-app.receiveMessage = function(msg) {
+app.receiveMessage = function(event) {
+  let msg = event.data
+    console.log(msg)
   if (msg !== window.heartbeat_msg) {
     var payload = JSON.parse(msg);
     var type = payload['type'];
@@ -703,6 +706,8 @@ $(function() {
       }
   });
 
+  window.websocket = new WebSocket("ws://" + window.location.host + "/ws/party/" + window.roomId + "/");
+  websocket.onmessage = app.receiveMessage
 
   app.S = new app.SpotifyAPI()
   app.S.setAccessToken(window.spotify_access_token)

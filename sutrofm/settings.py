@@ -50,8 +50,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'social_django',
     'rest_framework',
-    'ws4redis',
     'sutrofm',
+    'channels',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -90,6 +90,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'sutrofm.wsgi.application'
+ASGI_APPLICATION = "sutrofm.routing.application"
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('localhost', 6379)],
+        }
+    }
+}
 
 LOGGING = {
   'version': 1,

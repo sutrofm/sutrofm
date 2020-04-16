@@ -2,6 +2,9 @@ import logging
 import threading
 from datetime import timedelta
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 from django.contrib.auth.models import AbstractUser
 from django.core.management import call_command
 from django.db.models import Sum, Value, When, Case, Count
@@ -66,6 +69,7 @@ class Party(TimeStampedModel):
       prev_item.delete()
     if self.playing_item:
       self.playing_item.start_playing()
+    self.broadcast_player_state()
     self.save()
 
   def get_player_state_payload(self):
@@ -80,10 +84,31 @@ class Party(TimeStampedModel):
     else:
         return {}
 
+  def broadcast_player_state(self):
+      layer = get_channel_layer()
+      async_to_sync(layer.group_send)("party_%s" % self.id, {
+        "type": "message",
+        "content": {
+            "type": "player",
+            "data": self.get_player_state_payload()
+        }
+      })
+
+
   def get_queue_state_payload(self):
     return [
         item.to_object() for item in QueueItem.voted_objects.filter(party=self)
     ]
+
+  def broadcast_queue_state(self):
+      layer = get_channel_layer()
+      async_to_sync(layer.group_send)("party_%s" % self.id, {
+        "type": "message",
+        "content": {
+            "type": "queue",
+            "data": self.get_queue_state_payload()
+        }
+      })
 
   def get_messages_state_payload(self):
     return [
@@ -191,6 +216,7 @@ class QueueItem(TimeStampedModel):
       if not self.id:
           self.hydrate()
       super(QueueItem, self).save(*args, **kwargs)
+      self.party.broadcast_queue_state()
 
   def hydrate(self):
       details = get_track_details(self.identifier)
@@ -242,3 +268,9 @@ class UserVote(TimeStampedModel):
     constraints = [
       models.UniqueConstraint(fields=['user', 'queue_item'], name='One vote per queue item')
     ]
+
+  def save(self, *args, **kwargs):
+      # Creating a new queue item
+      super(UserVote, self).save(*args, **kwargs)
+      self.queue_item.party.broadcast_queue_state()
+

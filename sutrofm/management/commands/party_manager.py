@@ -78,13 +78,13 @@ class Command(BaseCommand):
       logger.info('No currently playing track, playing next in queue')
       self.party.play_next_queue_item()
 
-    position_ms, duration_ms = self.party.playing_item.get_track_position()
-    # TODO: broadcast track position update
-    logger.info(
-      f'Track position {round(position_ms)}ms of {duration_ms}ms total ({round(position_ms/duration_ms*100)}%)')
+    if self.party.playing_item:
+        position_ms, duration_ms = self.party.playing_item.get_track_position()
+        logger.info(
+          f'Track position {round(position_ms)}ms of {duration_ms}ms total ({round(position_ms/duration_ms*100)}%)')
 
-    if position_ms == duration_ms or self.party.playing_item.should_skip():
-      self.party.play_next_queue_item()
+        if position_ms == duration_ms or self.party.playing_item.should_skip():
+          self.party.play_next_queue_item()
 
   def prune_users(self):
     num_deleted, _ = UserPartyPresence.objects.filter(party=self.party, last_check_in__lt=now() - USER_CHECK_IN_FREQUENCY).delete()
