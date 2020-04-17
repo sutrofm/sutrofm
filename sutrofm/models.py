@@ -112,20 +112,18 @@ class Party(TimeStampedModel):
 
   def get_messages_state_payload(self):
     return [
-      # Chat message
-      {
-        'message_type': 'chat',
-        'user_id': '123',
-        'text': 'Hello world'
-      } if i % 2 == 0 else { # New song message
-        'message_type': 'new_track',
-        'text': "Now playing: Zoopadoop",
-        'track_key': 'abc123',
-        'track_url': "http://google.com",
-        'icon_url': "/static/img/icons/husky.jpeg",
-        'track_title': "The Quick Brown Fox Blues"
-      } for i in range(10)
+      item.to_object() for item in self.messages.order_by('created')
     ]
+
+  def broadcast_message_added(self, message_object):
+    layer = get_channel_layer()
+    async_to_sync(layer.group_send)("party_%s" % self.id, {
+      "type": "message",
+      "content": {
+        "type": "message_added",
+        "data": message_object
+      }
+    })
 
   def get_user_list_state_payload(self):
     user_list = []
@@ -173,6 +171,17 @@ class ChatMessage(TimeStampedModel):
   party = models.ForeignKey('Party', on_delete=models.CASCADE, related_name='messages')
   message = models.TextField()
 
+  def save(self, *args, **kwargs):
+    # Adding new chat message
+    super().save(*args, **kwargs)
+    self.party.broadcast_message_added(message=self.to_object())
+
+  def to_object(self):
+    return {
+      'message_type': 'chat',
+      'user_id': self.user_id,
+      'text': self.message
+    }
 
 class VoteOrderedQueueManager(models.Manager):
   def get_queryset(self):
@@ -210,6 +219,18 @@ class QueueItem(TimeStampedModel):
       self.duration_ms = get_track_duration(self.identifier)
     self.playing_start_time = now()
     self.save()
+    self.party.broadcast_message_added(self.to_play_message_object())
+
+  def to_play_message_object(self):
+    details = get_track_details(self.identifier)
+    return {
+        'message_type': 'new_track',
+        'text': f"Now playing: {self.artist_name}",
+        'track_key': self.identifier,
+        'track_url': details['external_urls']['spotify'],
+        'icon_url': details['album']['images'][0]['url'],
+        'track_title': f'{self.artist_name} - {self.title}'
+      }
 
   def save(self, *args, **kwargs):
       # Creating a new queue item
