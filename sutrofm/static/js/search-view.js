@@ -87,7 +87,7 @@
 
           _.each(result.tracks.items, function(track, i) {
             let durationMS = track.duration_ms
-            let durationMins = Math.floor(durationMS / 60 * 1000)
+            let durationMins = Math.floor(durationMS / (60 * 1000))
             let durationSecs = String(durationMins % 60)
             if (durationSecs.length < 2)
               durationSecs = "0" + durationSecs;

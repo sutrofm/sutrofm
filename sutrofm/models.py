@@ -206,6 +206,7 @@ class QueueItem(TimeStampedModel):
   voted_objects = VoteOrderedQueueManager()  # Queue sorted by votes, excluding playing.
 
   def to_object(self):
+      spotify_user = get_user_details(self.user.username)
       return {
           'track_key': self.identifier,
           'queue_entry_id': self.id,
@@ -213,6 +214,7 @@ class QueueItem(TimeStampedModel):
           'upvotes': sum(vote.value for vote in self.votes.all() if vote.value > 0),
           'downvotes': sum(vote.value for vote in self.votes.all() if vote.value < 0),
           'user_key': self.user.username,
+          'user_url': spotify_user['external_urls'].get('spotify', '')
       }
 
   def start_playing(self):

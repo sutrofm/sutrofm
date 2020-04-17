@@ -182,7 +182,8 @@ app.TrackList = Backbone.Collection.extend({
         'upvotes': value['upvotes'],
         'downvotes': value['downvotes'],
         'timestamp': value['timestamp'],
-        'userKey': value['user_key']
+        'userKey': value['user_key'],
+        'userUrl': value['user_url']
       };
       return new app.Track(transformed_data);
     });
@@ -358,7 +359,7 @@ app.NowPlayingView = Backbone.View.extend({
     }
     if (this.rdioTrackKey) {
       // Set up the background color
-      app.S.getTrack(this.rdioTrackKey, {}, (error, track) => {
+      getTrack(this.rdioTrackKey, (error, track) => {
         window.Vibrant.from(track.album.images[0].url).getPalette(function(err, palette) {
             if (palette) {
                 console.log(palette)
@@ -447,19 +448,19 @@ app.TrackView = Backbone.View.extend({
 
     var self = this;
     if (!self.rdioTrack) {
-        app.S.getTrack(self.model.get('trackKey'), {}, (error, track) => {
+        getTrack(self.model.get('trackKey'), (error, track) => {
             self.rdioTrack = {
                 icon: track.album.images[0].url,
-                shortUrl: 'http://twitter.com/marekkapolka',
+                shortUrl: track.external_urls.spotify,
                 name: track.name,
                 artist: track.artists.map((a)=> a.name).join(", ")
             }
             self.rdioUser = {
-                shortUrl: 'http://twitter.com/mkapolka',
+                shortUrl: self.model.get('userUrl'),
                 key: self.model.get('userKey'),
                 name: self.model.get("userKey")
             }
-            self.trackDuration = track.duration_ms
+            self.trackDuration = formatDuration(Math.floor(track.duration_ms / 1000))
             self.render()
         })
     }
@@ -647,6 +648,18 @@ function ping() {
   .fail(function (response) {
     console.log('Could not ping the server to say that we are still in the party.');
   });
+}
+
+var spotifyCache = {}
+function getTrack(id, callback) {
+    if (id in spotifyCache) {
+        return callback(null, spotifyCache[id])
+    } else {
+        app.S.getTrack(id, {}, (error, track) => {
+            spotifyCache[id] = track
+            callback(null, track)
+        })
+    }
 }
 
 
