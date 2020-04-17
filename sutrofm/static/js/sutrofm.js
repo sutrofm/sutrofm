@@ -2,15 +2,14 @@
 
 window.app = window.app || {};
 
-// app.currentUserKey = rdioUserKey;
-
 app.Player = Backbone.Model.extend({
   setState: function(data) {
     this.set("ready", data['ready']);
     this.set('position', data['playing_track_position']);
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
-      'userKey': data['playing_track_user_key']
+      'userKey': data['playing_track_user_key'],
+      'queueEntryId': data['playing_queue_entry_id']
     });
   }
 });
@@ -220,12 +219,13 @@ app.SkipButton = Backbone.View.extend({
     },
 
     _clickSkip: function() {
+      console.log(this.model)
       chat.sendMessage('voted to skip');
         $.ajax({
             'url': '/api/v2/votes/',
             'method': 'PUT',
             'data': {
-                "queue_item": this.model.get('queueEntryId'),
+                "queue_item": this.model.get('playingTrack').queueEntryId,
                 "value": -1,
                 "is_skip": true
             }
@@ -285,8 +285,6 @@ app.FavoriteButton = Backbone.View.extend({
 });
 
 app.NowPlayingView = Backbone.View.extend({
-  model: app.Track,
-
   el: '#now-playing',
 
   template: _.template($('#now-playing-template').html()),
@@ -341,25 +339,13 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   initChildModels: function(favoritedTrack) {
-      console.log(this)
-    this.skipButton = new app.SkipButton(this.model);
+    this.skipButton = new app.SkipButton({
+        model: this.model
+    });
     this.favoriteButton = new app.FavoriteButton(favoritedTrack);
   },
 
   _clickFavorites: function() {
-  },
-
-  /**
-   * Handles changes to the currently playing track
-   */
-  _onPlayingTrackChange: function(newValue) {
-    if (newValue === null) {
-      this.rdioTrackKey = null;
-    } else {
-      this.rdioTrackKey = newValue.get('key');
-    }
-
-    this.render();
   },
 
   render: function() {
@@ -371,7 +357,14 @@ app.NowPlayingView = Backbone.View.extend({
       userKey = self.playState.get('playingTrack').userKey;
     }
     if (this.rdioTrackKey) {
+      // Set up the background color
       app.S.getTrack(this.rdioTrackKey, {}, (error, track) => {
+        window.Vibrant.from(track.album.images[0].url).getPalette(function(err, palette) {
+            if (palette) {
+                console.log(palette)
+                $('#wrap').css('background', palette.DarkVibrant.getHex())
+            }
+        })
         var data = _.extend({
             track: {
                 bigIcon: track.album.images[0].url,
@@ -387,49 +380,9 @@ app.NowPlayingView = Backbone.View.extend({
         self.$el.html(self.template(data))
         self.$el.show()
         self.initChildModels(false);
-        //$('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
       })
-      /*R.request({
-        method: 'get',
-        content: {
-          keys: keys.join(","),
-          extras: 'streamRegions,shortUrl,bigIcon,duration,dominantColor,playerBackgroundUrl,isInCollection'
-        },
-        success: function(response) {
-          var userObj = (response.result[userKey]) ? response.result[userKey] : {firstName: '', lastName: ''};
-          var addedByName = userObj.firstName + " " + userObj.lastName;
-          var activeUsers = self.activeUsers;
-          var masterUserObj = self.activeUsers.where({id:self.playState.get('masterUserKey')});
-          var userName = null;
-          var favorited = false;
-          if (self.rdioTrackKey && response.result[self.rdioTrackKey]) {
-            favorited = response.result[self.rdioTrackKey].isInCollection;
-          }
-          if (masterUserObj.length > 0 && masterUserObj[0]) {
-            userName = masterUserObj[0].get('display_name');
-          }
-          if (self.rdioTrackKey) {
-            var data = _.extend({
-              'track': response.result[self.rdioTrackKey],
-              'formattedDuration': self.getDuration(response.result[self.rdioTrackKey].duration),
-              'masterUser': userName,
-              'addedBy': addedByName,
-              'favorited': favorited
-            });
-            self.$el.html(self.template(data));
-            self.$el.show();
-            self.initChildModels(favorited);
-            $('#wrap').css('background-image', 'url('+response.result[self.rdioTrackKey].playerBackgroundUrl+')');
-          } else {
-            self.$el.hide();
-          }
-        },
-        error: function(response) {
-          console.log('Unable to get track information for', self.rdioTrackKey);
-        }
-      });*/
-
     } else {
+      app.S.pause();
       this.$el.hide();
     }
     return this;
@@ -438,11 +391,11 @@ app.NowPlayingView = Backbone.View.extend({
   /**
    * Called when the client should listen to a remote player
    **/
-  initSlaveStatus: function() {
+  init: function() {
     console.info('Becoming slave');
 
-    app.playState.on('change:playingTrack', this._onSlaveTrackChange, this);
-    app.playState.on('change:playState', this._onSlavePlayerStateChange, this);
+    app.playState.on('change:playingTrack', this._onPlayerTrackChange, this);
+    app.playState.on('change:playState', this._onPlayerStateChange, this);
     app.playState.on('change:ready', this._onReadinessUpdated, this);
   },
 
@@ -452,16 +405,17 @@ app.NowPlayingView = Backbone.View.extend({
     }
   },
 
-  _onSlaveTrackChange: function(model, value, options) {
+  _onPlayerTrackChange: function(model, value, options) {
     if (value.trackKey) {
         this.rdioTrackKey = value.trackKey
         this.render()
     } else {
+      this.rdioTrackKey = null
       this.render();
     }
   },
 
-  _onSlavePlayerStateChange: function(model, value, options) {
+  _onPlayerStateChange: function(model, value, options) {
     switch (value) {
       case R.player.PLAYSTATE_PAUSED:
       case R.player.PLAYSTATE_STOPPED:
@@ -714,12 +668,14 @@ $(function() {
 
   app.playState = new app.Player();
   var queueView = new app.queueView();
-  app.nowPlayingView = new app.NowPlayingView();
+  app.nowPlayingView = new app.NowPlayingView({
+    model: app.playState
+  });
   var searchView = new app.SearchView();
   var playlistView = new app.PlaylistView();
   app.themeModel = new app.ThemeInfo();
   app.themeView = new app.ThemeView({model: app.themeModel});
-  app.nowPlayingView.initSlaveStatus();
+  app.nowPlayingView.init();
   var skipButton = new app.SkipButton();
 
   app.playState.setState(window.initial_player_state);

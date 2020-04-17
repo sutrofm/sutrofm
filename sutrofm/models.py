@@ -80,6 +80,7 @@ class Party(TimeStampedModel):
             'playing_track_position': position / 1000,
             'playing_track_key': playing_item.identifier,
             'playing_track_user_key': playing_item.user.username,
+            'playing_queue_entry_id': playing_item.id,
         }
     else:
         return {}
@@ -115,13 +116,13 @@ class Party(TimeStampedModel):
       item.to_object() for item in self.messages.order_by('created')
     ]
 
-  def broadcast_message_added(self, message_object):
+  def broadcast_message_added(self, message):
     layer = get_channel_layer()
     async_to_sync(layer.group_send)("party_%s" % self.id, {
       "type": "message",
       "content": {
         "type": "message_added",
-        "data": message_object
+        "data": message
       }
     })
 
