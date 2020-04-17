@@ -220,7 +220,6 @@ app.SkipButton = Backbone.View.extend({
     },
 
     _clickSkip: function() {
-      console.log(this.model)
       chat.sendMessage('voted to skip');
         $.ajax({
             'url': '/api/v2/votes/',
@@ -362,7 +361,6 @@ app.NowPlayingView = Backbone.View.extend({
       getTrack(this.rdioTrackKey, (error, track) => {
         window.Vibrant.from(track.album.images[0].url).getPalette(function(err, palette) {
             if (palette) {
-                console.log(palette)
                 $('#wrap').css('background', palette.DarkVibrant.getHex())
             }
         })
@@ -453,7 +451,7 @@ app.TrackView = Backbone.View.extend({
                 icon: track.album.images[0].url,
                 shortUrl: track.external_urls.spotify,
                 name: track.name,
-                artist: track.artists.map((a)=> a.name).join(", ")
+                artist: track.artists.map((a)=> a.name).join(", "),
             }
             self.rdioUser = {
                 shortUrl: self.model.get('userUrl'),

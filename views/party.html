@@ -116,11 +116,11 @@
         <td class="buttons">
     <div class="button-group">
             <div class="up-vote" style="background-image: url({% static 'img/vote-up.png' %})"></div>
-            <span class="votes"><%= upVotes %></span>
+            <span class="votes"><%= upvotes %></span>
     </div>
     <div class="button-group">
             <div class="down-vote" style="background-image: url({% static 'img/vote-down.png' %})"></div>
-      <span class="votes"><%= downVotes %></span>
+      <span class="votes"><%= Math.abs(downvotes) %></span>
     </div>
         </td>
       </tr>
