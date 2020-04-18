@@ -4,7 +4,7 @@ from functools import lru_cache
 import spotipy
 from cachetools import TTLCache, cached
 
-from sutrofm import settings
+from django.conf import settings
 
 
 logger = logging.getLogger(__name__)
