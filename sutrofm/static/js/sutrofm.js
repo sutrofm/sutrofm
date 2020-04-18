@@ -256,31 +256,23 @@ app.FavoriteButton = Backbone.View.extend({
     },
 
     unfavoriteCurrentlyPlaying: function() {
-      this.isFavorited = false;
-      $('#favorite-button').removeClass("was_favorited").addClass("not_favorited");
-      R.request({
-        method: 'removeFromFavorites',
-        content: {
-          keys: [app.nowPlayingView.rdioTrackKey]
-        },
-        success: function(response) {
-          chat.sendMessage("unfavorited this track");
-        }
-      });
+      app.S.removeFromMySavedTracks([app.nowPlayingView.rdioTrackKey])
+          .then(() => {
+            this.isFavorited = false;
+            $('#favorite-button').removeClass("was_favorited").addClass("not_favorited");
+            chat.sendMessage("unfavorited this track");
+          })
+          .catch((err) => {console.log('Failed to unfavorite ' + app.nowPlayingView.rdioTrackKey, err)})
     },
 
     favoriteCurrentlyPlaying: function() {
-      this.isFavorited = true;
-      $('#favorite-button').removeClass("not_favorited").addClass("was_favorited");
-      R.request({
-        method: 'addToFavorites',
-        content: {
-          keys: [app.nowPlayingView.rdioTrackKey]
-        },
-        success: function(response) {
-          chat.sendMessage("favorited this track");
-        }
-      });
+      app.S.addToMySavedTracks([app.nowPlayingView.rdioTrackKey])
+          .then(() => {
+            this.isFavorited = true;
+            $('#favorite-button').removeClass("not_favorited").addClass("was_favorited");
+            chat.sendMessage("favorited this track");
+          })
+          .catch((err) => {console.log('Failed to favorite ' + app.nowPlayingView.rdioTrackKey, err)})
     },
 });
 
@@ -338,11 +330,21 @@ app.NowPlayingView = Backbone.View.extend({
     }
   },
 
-  initChildModels: function(favoritedTrack) {
+  initChildModels: function() {
     this.skipButton = new app.SkipButton({
         model: this.model
     });
-    this.favoriteButton = new app.FavoriteButton(favoritedTrack);
+
+    app.S.containsMySavedTracks([this.rdioTrackKey])
+        .then((favResults) => {
+          console.log('Track is favorite: ', favResults[0]);
+          this.favoriteButton = new app.FavoriteButton(favResults[0]);
+        })
+        .catch((err) => {
+          console.log('Error checking if track is favorite: ', err);
+          this.favoriteButton = new app.FavoriteButton(false);
+        })
+
   },
 
   _clickFavorites: function() {
@@ -378,7 +380,7 @@ app.NowPlayingView = Backbone.View.extend({
         app.S.play({uris: [track.uri], position_ms: this.playState.get("position") * 1000})
         self.$el.html(self.template(data))
         self.$el.show()
-        self.initChildModels(false);
+        self.initChildModels();
       })
     } else {
       app.S.pause();

@@ -6,12 +6,12 @@
 {% block content %}
 <style>
     .was_favorited {
-        background-image: {% static 'img/was_favorited.png' %};
+        background-image: url("{% static 'img/was_favorited.png' %}");
         background-size: 25px 25px;
     }
 
     .not_favorited {
-        background-image: {% static 'img/favorite.png' %};
+        background-image: url("{% static 'img/favorite.png' %}");
         background-size: 25px 25px;
     }
 </style>
