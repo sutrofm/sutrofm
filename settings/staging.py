@@ -5,13 +5,11 @@ DEBUG = False
 ALLOWED_HOSTS = ['sutro-test.herokuapp.com']
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-REDIS_URL = os.environ.get('REDIS_URL')
-
 CHANNEL_LAYERS = {
   'default': {
     'BACKEND': 'channels_redis.core.RedisChannelLayer',
     'CONFIG': {
-      'hosts': [REDIS_URL],
+      'hosts': [os.environ.get('REDIS_URL')],
     }
   }
 }
