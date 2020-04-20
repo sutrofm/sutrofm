@@ -10,40 +10,29 @@
 
 
         {% if user.is_authenticated %}
-
             <div class="page-header">
                 <h1>Welcome back to the party, {{user.first_name}}!</h1>
             </div>
-            
-            <p class="lead">sutro.fm is a social music discovery tool built to bring Rdio users together. Here, people everywhere can enjoy the wonderful experience of social listening and discovery.</p>
-
-            <p class="lead">We're not affiliated with <a href="https://www.rdio.com">Rdio</a> itself, but we're a group of Rdio fans who want to bring social music discovery to a whole new level.  Plus, we're open source, so you can <a href="https://github.com/sutrofm/sutrofm">contribute</a> to the project too! Don't forget to follow us on Twitter at <a href="https://twitter.com/sutrofm">@sutrofm</a>.</p>
-
-            <p>
-                <a class="btn btn-primary btn-large" href="{% url 'parties' %}">Party Time!</a>
-            </p>
-
         {% else %}
-
             <div class="page-header">
                 <h1>Welcome to the party!</h1>
             </div>
-        
-            <p class="lead">sutro.fm is a social music discovery tool built to bring Rdio users together. Here, people everywhere can enjoy the wonderful experience of social listening and discovery.</p>
-
-            <p class="lead">We're not affiliated with <a href="https://www.rdio.com">Rdio</a> itself, but we're a group of Rdio fans who want to bring social music discovery to a whole new level.  Plus, we're open source, so you can <a href="https://github.com/sutrofm/sutrofm">contribute</a> to the project too! Don't forget to follow us on Twitter at <a href="https://twitter.com/sutrofm">@sutrofm</a>.</p>
-
-            <p class="lead">Welcome to the party. This is going to be awesome.</p>
-            
-            <p>
-                <form action="auth/name" method="post">
-                  {% csrf_token %}
-                  <input type="text" name="name" id="name"/>
-                  <button type="submit">Let's Rock!</button>
-                </form>
-            </p>
-
         {% endif %}
+            
+            <p class="lead">sutro.fm is a social music discovery tool originally built to bring Rdio users together. After 4 years of silence, we've revived the site, having reworked it to use Spotify. Our hearts remain Rdio's, though.</p>
+
+            <p class="lead">We're not affiliated with <a href="https://www.rdio.com">Rdio</a> or their new owners, but we're a group of Rdio fans who want to bring social music discovery to a whole new level.  Plus, we're open source, so you can <a href="https://github.com/sutrofm/sutrofm">contribute</a> to the project too! Don't forget to follow us on Twitter at <a href="https://twitter.com/sutrofm">@sutrofm</a>.</p>
+
+        {% if user.is_authenticated %}
+            <p>
+                <a class="btn btn-primary btn-large" href="{% url 'parties' %}">Party Time!</a>
+            </p>
+        {% else %}
+            <p>
+                <a class="btn btn-primary btn-large" href="{% url 'social:begin' 'spotify' %}?next={% url 'parties' %}">Sign in with Spotify!</a>
+            </p>
+        {% endif %}
+            <p class="lead">This is going to be awesome.</p>
 
     </div>
 </div>
