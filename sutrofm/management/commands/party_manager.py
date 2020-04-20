@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from sutrofm.models import Party, QueueItem
+from sutrofm.party_manager_utils import party_needs_new_manager
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ class Command(BaseCommand):
     self.party_id = party_id
     self.party = Party.objects.get(id=party_id)
 
-    if self.party.needs_new_manager():
+    if party_needs_new_manager(self.party_id):
       logger.info(f'Starting up party manager {self.manager_uuid} for party {self.party_id}!')
       self.update_party_manager_timestamp()  # claim party immediately to avoid race conditions
     else:

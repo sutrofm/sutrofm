@@ -1,27 +1,20 @@
 import logging
-import threading
 from datetime import timedelta
 
-import redis
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.conf import settings
 
 from django.contrib.auth.models import AbstractUser
-from django.core.management import call_command
 from django.db.models import Sum, Value, When, Case, Count
 from django.utils.timezone import now
 
 from django.db import models
-from model_utils.fields import AutoCreatedField
 from model_utils.models import TimeStampedModel
 
-from sutrofm.user_presence import refresh_user_presence, get_active_user_ids_for_party_id
+from sutrofm.user_presence import get_active_user_ids_for_party_id
 from sutrofm.spotify_api_utils import get_track_duration, get_track_details, get_user_details
 
 logger = logging.getLogger(__name__)
-
-r = redis.from_url(settings.REDIS_URL)
 
 
 class User(AbstractUser):
@@ -29,9 +22,7 @@ class User(AbstractUser):
   # messages
   # queued_items
   # votes
-
-  def check_in_to_party(self, party):
-    refresh_user_presence(party.id, self.id)
+  pass
 
 
 class Party(TimeStampedModel):
@@ -143,14 +134,6 @@ class Party(TimeStampedModel):
 
   def user_count(self):
     return self.users.count()
-
-  def needs_new_manager(self):
-    return not bool(r.get(f'p{self.id}:manager'))
-
-  def spawn_new_manager(self):
-      logger.debug('Spawning party manager for party %s' % self.id)
-      party_manager_thread = threading.Thread(target=call_command, args=('party_manager', self.id))
-      party_manager_thread.start()
 
   def __str__(self):
     return self.name

@@ -3,8 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from sutrofm.models import User, Party, ChatMessage, QueueItem, UserVote
+from sutrofm.party_manager_utils import party_needs_new_manager, spawn_new_party_manager
 from sutrofm.serializers import UserSerializer, PartySerializer, ChatMessageSerializer, QueueItemSerializer, \
   UserVoteSerializer
+from sutrofm.user_presence import refresh_user_presence
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -25,10 +27,10 @@ class PartyViewSet(viewsets.ModelViewSet):
 
   @action(detail=True, methods=['GET'])
   def ping(self, request, *args, **kwargs):
-      party = self.get_object()
-      request.user.check_in_to_party(party)
-      if party.needs_new_manager():
-        party.spawn_new_manager()
+      party_id = kwargs['pk']
+      refresh_user_presence(party_id, request.user.id)
+      if party_needs_new_manager(party_id):
+        spawn_new_party_manager(party_id)
       return Response({'hi': 'ok'})
 
 class ChatMessageViewSet(viewsets.ModelViewSet):

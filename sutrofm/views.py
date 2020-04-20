@@ -8,6 +8,8 @@ from django.http import HttpResponseNotAllowed
 from social_django.utils import load_strategy
 
 from sutrofm.models import Party
+from sutrofm.party_manager_utils import party_needs_new_manager, spawn_new_party_manager
+from sutrofm.user_presence import refresh_user_presence
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ def create_party(request):
   if request.method == "POST":
       party_name = request.POST['room_name']
       party = Party.objects.create(name=party_name)
-      party.spawn_new_manager()
+      spawn_new_party_manager(party.id)
       return redirect('party', party.id)
   else:
       return HttpResponseNotAllowed(["POST"])
@@ -39,12 +41,12 @@ def create_party(request):
 @login_required
 def party(request, party_id):
   party = Party.objects.get(id=party_id)
-  request.user.check_in_to_party(party)
+  refresh_user_presence(party_id, request.user.id)
 
   social = request.user.social_auth.get(provider='spotify')
 
-  if party.needs_new_manager():
-    party.spawn_new_manager()
+  if party_needs_new_manager(party_id):
+    spawn_new_party_manager(party_id)
 
   context = {
     'party': party,
