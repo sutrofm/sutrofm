@@ -14,26 +14,26 @@ from django.db import models
 from model_utils.fields import AutoCreatedField
 from model_utils.models import TimeStampedModel
 
+from sutrofm.user_presence import refresh_user_presence, get_active_user_ids_for_party_id
 from sutrofm.spotify_api_utils import get_track_duration, get_track_details, get_user_details
 
 logger = logging.getLogger(__name__)
 
 
 class User(AbstractUser):
-  parties = models.ManyToManyField('Party', through='UserPartyPresence')
-
   # related fields:
   # messages
   # queued_items
   # votes
 
   def check_in_to_party(self, party):
-    presence, created = UserPartyPresence.objects.get_or_create(user=self, party=party)
-    presence.last_check_in = now()
-    presence.save()
+    refresh_user_presence(party.id, self.id)
 
 
 class UserPartyPresence(models.Model):
+  """
+  Replaced with presence in Redis, see user_presence.py. TODO: remove this model
+  """
   user = models.ForeignKey('User', on_delete=models.CASCADE)
   party = models.ForeignKey('Party', on_delete=models.CASCADE)
 
@@ -49,14 +49,16 @@ class Party(TimeStampedModel):
                                    blank=True, null=True)
   theme = models.TextField()
 
-  users = models.ManyToManyField('User', through='UserPartyPresence')
-
   last_manager_uuid = models.UUIDField(blank=True, null=True)
   last_manager_check_in = models.DateTimeField(blank=True, null=True)
 
   @property
   def queue(self):
     return QueueItem.voted_objects.filter(party=self)
+
+  @property
+  def users(self):
+    return User.objects.filter(id__in=get_active_user_ids_for_party_id(self.id))
 
   def play_next_queue_item(self):
     '''

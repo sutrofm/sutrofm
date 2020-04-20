@@ -93,11 +93,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sutrofm.wsgi.application'
 ASGI_APPLICATION = "sutrofm.routing.application"
 
+REDIS_URL = 'redis://localhost'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('localhost', 6379)],
+            'hosts': [REDIS_URL],
         }
     }
 }
@@ -174,6 +176,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 AUTH_USER_MODEL = 'sutrofm.User'
 

@@ -59,7 +59,6 @@ class Command(BaseCommand):
     self.party.refresh_from_db()
 
     self.update_track()
-    self.prune_users()
     self.update_party_manager_timestamp()
 
     self.party.save()
@@ -85,11 +84,6 @@ class Command(BaseCommand):
 
         if position_ms == duration_ms or self.party.playing_item.should_skip():
           self.party.play_next_queue_item()
-
-  def prune_users(self):
-    num_deleted, _ = UserPartyPresence.objects.filter(party=self.party, last_check_in__lt=now() - USER_CHECK_IN_FREQUENCY).delete()
-    if num_deleted:
-      logger.info(f'Pruned {num_deleted} user entries on party {self.party_id}')
 
   def update_party_manager_timestamp(self):
     logger.info(f'Updating party manager timestamp for {self.manager_uuid} on party {self.party_id}')
