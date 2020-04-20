@@ -2,8 +2,10 @@ import logging
 import threading
 from datetime import timedelta
 
+import redis
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.conf import settings
 
 from django.contrib.auth.models import AbstractUser
 from django.core.management import call_command
@@ -19,6 +21,8 @@ from sutrofm.spotify_api_utils import get_track_duration, get_track_details, get
 
 logger = logging.getLogger(__name__)
 
+r = redis.from_url(settings.REDIS_URL)
+
 
 class User(AbstractUser):
   # related fields:
@@ -30,17 +34,6 @@ class User(AbstractUser):
     refresh_user_presence(party.id, self.id)
 
 
-class UserPartyPresence(models.Model):
-  """
-  Replaced with presence in Redis, see user_presence.py. TODO: remove this model
-  """
-  user = models.ForeignKey('User', on_delete=models.CASCADE)
-  party = models.ForeignKey('Party', on_delete=models.CASCADE)
-
-  first_joined = AutoCreatedField()
-  last_check_in = models.DateTimeField(default=now)
-
-
 class Party(TimeStampedModel):
   MAX_MANAGER_CHECK_IN_WAIT = timedelta(seconds=10)
 
@@ -48,9 +41,6 @@ class Party(TimeStampedModel):
   playing_item = models.ForeignKey('QueueItem', related_name='playing_party', on_delete=models.SET_NULL,
                                    blank=True, null=True)
   theme = models.TextField()
-
-  last_manager_uuid = models.UUIDField(blank=True, null=True)
-  last_manager_check_in = models.DateTimeField(blank=True, null=True)
 
   @property
   def queue(self):
@@ -155,10 +145,7 @@ class Party(TimeStampedModel):
     return self.users.count()
 
   def needs_new_manager(self):
-    if not self.last_manager_check_in:
-      return True
-    else:
-      return now() - self.last_manager_check_in > self.MAX_MANAGER_CHECK_IN_WAIT
+    return not bool(r.get(f'p{self.id}:manager'))
 
   def spawn_new_manager(self):
       logger.debug('Spawning party manager for party %s' % self.id)

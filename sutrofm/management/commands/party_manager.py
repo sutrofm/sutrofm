@@ -4,16 +4,21 @@ import traceback
 import uuid
 from datetime import timedelta
 
+import redis
+from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.utils.timezone import now
 
-from sutrofm.models import Party, UserPartyPresence, QueueItem
+from sutrofm.models import Party, QueueItem
 
 logger = logging.getLogger(__name__)
+
+r = redis.from_url(settings.REDIS_URL)
+
 
 USER_CHECK_IN_FREQUENCY = timedelta(minutes=1)
 WAIT_FOR_USERS = timedelta(minutes=5)
 TICK_FREQUENCY = 1  # seconds
+MAX_MANAGER_CHECK_IN_WAIT = 10  # seconds
 
 
 class Command(BaseCommand):
@@ -64,7 +69,9 @@ class Command(BaseCommand):
     self.party.save()
 
   def should_keep_running(self):
-    return self.party.user_count() and not self.other_manager_owns_party()
+    user_count = self.party.user_count()
+    logger.info(f'Party {self.party_id} has {user_count} users')
+    return user_count and not self.other_manager_owns_party()
 
   def update_track(self):
     queue_size = QueueItem.objects.filter(party=self.party).count()  # no need to use ordered queue, faster
@@ -87,8 +94,7 @@ class Command(BaseCommand):
 
   def update_party_manager_timestamp(self):
     logger.info(f'Updating party manager timestamp for {self.manager_uuid} on party {self.party_id}')
-    self.party.last_manager_uuid = self.manager_uuid
-    self.party.last_manager_check_in = now()
+    r.set(f'p{self.party_id}:manager', str(self.manager_uuid), ex=MAX_MANAGER_CHECK_IN_WAIT)
 
   def other_manager_owns_party(self):
-    return self.manager_uuid != self.party.last_manager_uuid
+    return str(self.manager_uuid) != r.get(f'p{self.party_id}:manager').decode()
