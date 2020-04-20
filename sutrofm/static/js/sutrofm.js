@@ -697,5 +697,5 @@ $(function() {
   chat.messageHistory.setMessages(window.initial_messages_state);
   app.themeModel.setTheme(window.initial_theme_state);
 
-  setInterval(ping, 1000);
+  setInterval(ping, 10000);
 });
