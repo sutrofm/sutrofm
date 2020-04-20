@@ -5,11 +5,14 @@ import uuid
 from datetime import timedelta
 
 import redis
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from sutrofm.models import Party, QueueItem
 from sutrofm.party_manager_utils import party_needs_new_manager
+from sutrofm.user_presence import get_active_user_ids_for_party_id
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +35,7 @@ class Command(BaseCommand):
     self.party_id = None
     self.manager_uuid = None
     self.keep_running = True
+    self.last_user_id_list = []
 
   def handle(self, party_id, *args, **kwargs):
     self.manager_uuid = uuid.uuid4()
@@ -66,6 +70,7 @@ class Command(BaseCommand):
 
     self.update_track()
     self.update_party_manager_timestamp()
+    self.check_user_list()
 
     self.party.save()
 
@@ -99,3 +104,18 @@ class Command(BaseCommand):
 
   def other_manager_owns_party(self):
     return str(self.manager_uuid) != r.get(f'p{self.party_id}:manager').decode()
+
+  def check_user_list(self):
+    new_user_list = list(get_active_user_ids_for_party_id(self.party_id))
+    if self.last_user_id_list != new_user_list:
+      logger.info(f'Announcing user list change for party {self.party_id}')
+
+      layer = get_channel_layer()
+      async_to_sync(layer.group_send)("party_%s" % self.party_id, {
+        "type": "message",
+        "content": {
+          "type": "user_list",
+          "data": self.party.get_user_list_state_payload()
+        }
+      })
+      self.last_user_id_list = new_user_list

@@ -3,6 +3,7 @@ chat.User = Backbone.Model.extend({});
 chat.RedisUserList = Backbone.Collection.extend({
     model: chat.User,
     setUserList: function(data) {
+      console.log('Updating user list');
       var self = this;
       user_keys = data.map(function(d) {
         return d['id'];
