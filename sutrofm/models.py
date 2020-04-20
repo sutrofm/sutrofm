@@ -127,7 +127,7 @@ class Party(TimeStampedModel):
           "icon": user_image
         }
       )
-      return user_list
+    return user_list
 
   def playing_track_is_over(self):
     return
