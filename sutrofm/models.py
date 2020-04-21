@@ -110,11 +110,13 @@ class Party(TimeStampedModel):
     })
 
   def get_user_list_state_payload(self):
-    users_in_msg_hist = User.objects.filter(messages__party_id=self.id).distinct()
+    users_in_msg_hist = User.objects.filter(messages__party_id=self.id)
     active_user_ids = get_active_user_ids_for_party_id(self.id)
 
+    all_active_users = users_in_msg_hist | User.objects.filter(id__in=active_user_ids)
+
     user_list = []
-    for user in users_in_msg_hist:
+    for user in all_active_users.distinct():
       spotify_user = get_user_details(user.username)
 
       user_image = "/static/img/icons/raccoon.jpeg"
