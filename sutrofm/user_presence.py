@@ -21,5 +21,5 @@ def _get_active_user_keys_for_party_id(party_id):
 
 
 def get_active_user_ids_for_party_id(party_id):
-  return (int(key.split(b':u')[-1]) for key in _get_active_user_keys_for_party_id(party_id))
+  return list(int(key.split(b':u')[-1]) for key in _get_active_user_keys_for_party_id(party_id))
 
