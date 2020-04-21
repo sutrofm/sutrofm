@@ -125,7 +125,7 @@ class Party(TimeStampedModel):
         {
           'id': user.id,
           'is_active': user.id in active_user_ids,
-          'display_name': user.username,
+          'display_name': user.first_name,
           "user_url": spotify_user['external_urls'].get('spotify', ''),
           "icon": user_image
         }
