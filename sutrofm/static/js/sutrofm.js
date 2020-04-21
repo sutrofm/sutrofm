@@ -673,7 +673,12 @@ $(function() {
       }
   });
 
-  window.websocket = new ReconnectingWebSocket("ws://" + window.location.host + "/ws/party/" + window.roomId + "/");
+  var websocketProtocol = 'wss://';
+  if (location.protocol !== "https:") {
+    websocketProtocol = 'ws://'
+  }
+
+  window.websocket = new ReconnectingWebSocket(websocketProtocol + window.location.host + "/ws/party/" + window.roomId + "/");
   websocket.onmessage = app.receiveMessage
 
   app.S = new app.SpotifyAPI()
