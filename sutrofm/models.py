@@ -5,10 +5,10 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Sum, Value, When, Case, Count
+from django.db.models import Sum, Value, When, Case, Count, F
 from django.utils.timezone import now
 
-from django.db import models
+from django.db import models, transaction
 from model_utils.models import TimeStampedModel
 
 from sutrofm.user_presence import get_active_user_ids_for_party_id
@@ -134,9 +134,6 @@ class Party(TimeStampedModel):
       )
     return user_list
 
-  def playing_track_is_over(self):
-    return
-
   def user_count(self):
     return self.users.count()
 
@@ -165,7 +162,7 @@ class VoteOrderedQueueManager(models.Manager):
   def get_queryset(self):
     queryset = super().get_queryset().filter(playing_start_time=None)
     queryset = queryset.annotate(score=Sum('votes__value'))
-    return queryset.order_by('-score')
+    return queryset.order_by('-score', 'created')
 
 
 class QueueItem(TimeStampedModel):
@@ -188,8 +185,8 @@ class QueueItem(TimeStampedModel):
           'track_key': self.identifier,
           'queue_entry_id': self.id,
           'submitter': self.user.id,
-          'upvotes': sum(vote.value for vote in self.votes.all() if vote.value > 0),
-          'downvotes': sum(vote.value for vote in self.votes.all() if vote.value < 0),
+          'upvotes': self.votes.aggregate(upvotes=Sum(Case(When(value__gt=0, then=F('value')), default=0)))['upvotes'],
+          'downvotes': self.votes.aggregate(downvotes=Sum(Case(When(value__lt=0, then=F('value')), default=0)))['downvotes'],
           'user_key': self.user.username,
           'user_url': spotify_user['external_urls'].get('spotify', '')
       }
@@ -213,10 +210,15 @@ class QueueItem(TimeStampedModel):
       }
 
   def save(self, *args, **kwargs):
-      # Creating a new queue item
-      if not self.id:
+      is_new = False
+
+      if not self.id:  # Creating a new queue item
           self.hydrate()
-      super(QueueItem, self).save(*args, **kwargs)
+          is_new = True
+      with transaction.atomic():
+        super(QueueItem, self).save(*args, **kwargs)
+        if is_new:
+          UserVote.objects.create(queue_item=self, user=self.user, value=1)
       self.party.broadcast_queue_state()
 
   def hydrate(self):
