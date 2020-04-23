@@ -271,6 +271,8 @@
   <script type="text/javascript" src="{% static 'js/search-view.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/spotify-web-api.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/vibrant.js' %}"></script>
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  
   <script type="text/javascript">
     var current_user = '{{ current_user|safe}}';
     var spotify_access_token = "{{ spotify_access_token|safe }}"
@@ -279,6 +281,35 @@
     var initial_user_list_state = {{ initial_user_list_state_json|safe }}
     var initial_messages_state = {{ initial_messages_state_json|safe }}
     var initial_theme_state = "{{ initial_theme_state_json|safe }}['data']";
+    var device_id = undefined
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      // Check to see if we should start a spotify player in this window
+      app.S.getMyDevices((error, response) => {
+        if (error) {
+            console.error(`Received error: ${error}`)
+        } else {
+            if (response.devices.filter((device) => device.is_active).length == 0) {
+                var player = new Spotify.Player({
+                    name: "SutroFM",
+                    getOAuthToken: (callback) => { callback(spotify_access_token) },
+                    volume: 1,
+                })
+
+                player.connect()
+
+                // Ready
+                player.addListener('ready', ({ device_id }) => {
+                    console.log('Updating device id')
+                    app.playState.set("deviceId", device_id)
+                    app.nowPlayingView.play();
+                });
+            }
+        }
+  })
+
+    };
+
   </script>
 
 {% endblock%}

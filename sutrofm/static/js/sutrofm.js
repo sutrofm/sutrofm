@@ -6,6 +6,7 @@ app.Player = Backbone.Model.extend({
   setState: function(data) {
     this.set("ready", data['ready']);
     this.set('position', data['playing_track_position']);
+    this.set('deviceId', undefined),
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
       'userKey': data['playing_track_user_key'],
@@ -325,7 +326,8 @@ app.NowPlayingView = Backbone.View.extend({
       console.log("Jumping player to track '"+app.playState.get('playingTrack')+"' @ "+app.playState.get('position')+"s");
       R.player.play({
         source: app.playState.get('playingTrack').trackKey,
-        initialPosition: app.playState.get('position')
+        initialPosition: app.playState.get('position'),
+        deviceId: window.device_id
       });
     }
   },
@@ -360,6 +362,7 @@ app.NowPlayingView = Backbone.View.extend({
     }
     if (this.rdioTrackKey) {
       // Set up the background color
+        console.log("Track Key: ", this.rdioTrackKey)
       getTrack(this.rdioTrackKey, (error, track) => {
         window.Vibrant.from(track.album.images[0].url).getPalette(function(err, palette) {
             if (palette) {
@@ -377,7 +380,16 @@ app.NowPlayingView = Backbone.View.extend({
             addedBy: self.playState.get('playingTrack').userKey
 
         })
-        app.S.play({uris: [track.uri], position_ms: this.playState.get("position") * 1000})
+        console.log(track.uri)
+        let payload = {
+            uris: [track.uri],
+            position_ms: this.playState.get("position") * 1000,
+        }
+        let deviceId = this.playState.get('deviceId')
+        if (deviceId) {
+            payload.device_id = deviceId
+        }
+        app.S.play(payload)
         self.$el.html(self.template(data))
         self.$el.show()
         self.initChildModels();
@@ -389,6 +401,22 @@ app.NowPlayingView = Backbone.View.extend({
     return this;
   },
 
+  play: function() {
+      if (this.rdioTrackKey) {
+          getTrack(this.rdioTrackKey, (error, track) => {
+            let payload = {
+                uris: [track.uri],
+                position_ms: this.playState.get("position") * 1000,
+            }
+            let deviceId = this.playState.get("deviceId")
+            if (deviceId) {
+                payload.device_id = deviceId;
+            }
+            app.S.play(payload)
+          })
+      }
+  },
+
   /**
    * Called when the client should listen to a remote player
    **/
@@ -397,6 +425,7 @@ app.NowPlayingView = Backbone.View.extend({
 
     app.playState.on('change:playingTrack', this._onPlayerTrackChange, this);
     app.playState.on('change:playState', this._onPlayerStateChange, this);
+    app.playState.on('change:deviceId', this.render, this);
     app.playState.on('change:ready', this._onReadinessUpdated, this);
   },
 

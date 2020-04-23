@@ -191,4 +191,14 @@ SOCIAL_AUTH_SPOTIFY_EXTRA_DATA = [
     ('expires_in', 'expires'),
 ]
 
-SOCIAL_AUTH_SPOTIFY_SCOPE = ['streaming', 'user-read-email', 'user-read-private', 'user-library-read', 'user-library-modify']
+SOCIAL_AUTH_SPOTIFY_SCOPE = [
+  'streaming',
+  'user-read-email',
+  'user-read-private',
+  'user-library-read',
+  'user-library-modify',
+  'user-read-playback-state',
+  'user-modify-playback-state',
+  'app-remote-control',
+  'streaming'
+]
