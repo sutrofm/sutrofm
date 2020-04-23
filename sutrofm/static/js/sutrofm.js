@@ -7,6 +7,7 @@ app.Player = Backbone.Model.extend({
     this.set("ready", data['ready']);
     this.set('position', data['playing_track_position']);
     this.set('deviceId', undefined),
+    this.set('spotifyPlayer', undefined),
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
       'userKey': data['playing_track_user_key'],
@@ -294,17 +295,25 @@ app.NowPlayingView = Backbone.View.extend({
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
 
-    _.bindAll(this, '_onPositionChange');
+    // _.bindAll(this, '_onPositionChange');
+    setInterval(this.updatePlayerState, 1000);
     this.render()
   },
 
-  _onPositionChange: function(position) {
-    prettyPosition = formatDuration(position);
-    if (R.player.playingTrack()) {
-      prettyDuration = formatDuration(R.player.playingTrack().get('duration'));
-      this.$(".timer").text(prettyPosition + "/" + prettyDuration);
-      this.$(".duration-bar > span").animate({ width: ( position / R.player.playingTrack().get('duration') ) * 100+'%' }, 100);
-    }
+   updatePlayerState: function() {
+    var player = app.playState.get('spotifyPlayer');
+    player.getCurrentState().then(state => {
+        if (!state) {
+            console.error('User is not playing music through the Web Playback SDK');
+            return;
+        }
+        prettyPosition = formatDuration(Math.floor(state.position / 1000));
+        // if (R.player.playingTrack()) {
+          prettyDuration = formatDuration(Math.floor(state.duration / 1000));
+          this.$(".timer").text(prettyPosition + "/" + prettyDuration);
+          this.$(".duration-bar > span").animate({ width: ( state.position / state.duration ) * 100+'%' }, 100);
+        // }
+    });
   },
 
   getDuration: function(duration) {
@@ -312,11 +321,15 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   _handleMuteClick: function() {
-    if (R.player.volume() > 0.5) {
-      R.player.volume(0);
-    } else {
-      R.player.volume(1);
-    }
+      console.log('Toggling mute');
+      var player = app.playState.get('spotifyPlayer');
+      player.getVolume().then(volume => {
+        if (volume > 0.5) {
+            player.setVolume(0);
+        } else {
+            player.setVolume(1);
+        }
+      })
   },
 
   _handleSpeakerClick: function() {
