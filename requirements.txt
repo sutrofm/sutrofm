@@ -3,7 +3,7 @@ boto==2.8.0
 dj-database-url==0.2.1
 django-social-auth==0.7.28
 django-storages==1.1.6
-httplib2==0.8
+httplib2==0.18.0
 oauth2==1.5.211
 psycopg2==2.4.6
 python-openid==2.2.5
