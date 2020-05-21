@@ -2,6 +2,9 @@
 
 window.app = window.app || {};
 
+/*
+ * MODELS
+ */
 app.Player = Backbone.Model.extend({
   setState: function(data) {
     this.set("ready", data['ready']);
@@ -15,6 +18,57 @@ app.Player = Backbone.Model.extend({
     });
   }
 });
+
+app.Track = Backbone.Model.extend({
+  upVote: function() {
+    $.ajax({
+      'url': '/api/v2/votes/',
+      'method': 'PUT',
+      'data': {
+        "queue_item": this.get('queueEntryId'),
+        "value": 1,
+        "is_skip": false
+      }
+    });
+  },
+
+  downVote: function() {
+    $.ajax({
+      'url': '/api/v2/votes/',
+      'method': 'PUT',
+        'data': {
+            "queue_item": this.get('queueEntryId'),
+            "value": -1,
+            "is_skip": false
+        }
+    });
+  },
+
+  getVoteCounts: function() {
+    var likeCount = this.get('upvotes').length;
+    var dislikeCount = this.get('downvotes').length;
+
+    return {
+      upVotes: likeCount,
+      downVotes: dislikeCount,
+      totalVotes: likeCount - dislikeCount
+    };
+  },
+
+  getDuration: function(duration) {
+    return formatDuration(duration);
+  }
+});
+
+app.ThemeInfo = Backbone.Model.extend({
+  setTheme: function(data) {
+    this.set({'themeText': data['theme']})
+  },
+}),
+
+/*
+ * VIEWS
+ */
 
 app.PlaylistView = Backbone.View.extend({
   el: '.playlist',
@@ -61,62 +115,11 @@ app.PlaylistView = Backbone.View.extend({
   },
 
   onPlaylistTodayClick: function() {
-    // This method is broken because we don't have timestamp set in attributes of chat.messageHistory entries since the redis rewrite
-    // But the good news is it isn't linked to from anywhere at the moment, yay!
-    var playlistName = 'sutro.fm "' + this.getRoomString() + '" ' + this.getDateString();
-    this.trackIds = chat.messageHistory.map(
-      function(x) {
-        var twelve_hours_in_ms = 43200000;
-        var today = new Date();
-        var timestamp = new Date(x.attributes.timestamp);
-        if (x.attributes.messageType == 'new_track' && Math.abs(today - timestamp) < twelve_hours_in_ms) {
-          return x.attributes.trackKey;
-        }
-      }
-    );
-    R.request({
-      method: 'createPlaylist',
-      content: {
-        name: playlistName,
-        description: 'Lovingly created with http://sutro.fm!',
-        tracks: this.trackIds
-      },
-      success: function(response) {
-        console.log('playlist created');
-      },
-      error: function(response) {
-        console.log('playlist probably not created');
-      }
-    });
-    this.snapped = true;
-    this.playlist = playlistName;
-    this.render();
-    self = this;
-    setTimeout(function () {self.snapped = false; self.render();}, 5000);
+    // TODO: Should create a playlist out of the songs played in the room today
   },
 
   onPlaylistRoomHistoryClick: function() {
-    var playlistName = 'sutro.fm "' + this.getRoomString() + '" ' + this.getDateString();
-    this.trackIds = chat.messageHistory.map(function(x) { if (x.attributes.messageType == 'new_track') { return x.attributes.trackKey; } });
-    R.request({
-      method: 'createPlaylist',
-      content: {
-        name: playlistName,
-        description: 'Lovingly created with http://sutro.fm!',
-        tracks: this.trackIds
-      },
-      success: function(response) {
-        console.log('playlist created');
-      },
-      error: function(response) {
-        console.log('playlist probably not created');
-      }
-    });
-    this.snapped = true;
-    this.playlist = playlistName;
-    this.render();
-    self = this;
-    setTimeout(function () {self.snapped = false; self.render();}, 5000);
+    // TODO: Make a playlist out of all the songs that were played in this room.
   }
 });
 
@@ -127,49 +130,7 @@ formatDuration = function(duration) {
   if (durationSecs.length < 2)
     durationSecs = "0" + durationSecs;
   return durationMins + ":" + durationSecs;
-},
-
-
-app.Track = Backbone.Model.extend({
-  upVote: function() {
-    $.ajax({
-      'url': '/api/v2/votes/',
-      'method': 'PUT',
-      'data': {
-        "queue_item": this.get('queueEntryId'),
-        "value": 1,
-        "is_skip": false
-      }
-    });
-  },
-
-  downVote: function() {
-    $.ajax({
-      'url': '/api/v2/votes/',
-      'method': 'PUT',
-        'data': {
-            "queue_item": this.get('queueEntryId'),
-            "value": -1,
-            "is_skip": false
-        }
-    });
-  },
-
-  getVoteCounts: function() {
-    var likeCount = this.get('upvotes').length;
-    var dislikeCount = this.get('downvotes').length;
-
-    return {
-      upVotes: likeCount,
-      downVotes: dislikeCount,
-      totalVotes: likeCount - dislikeCount
-    };
-  },
-
-  getDuration: function(duration) {
-    return formatDuration(duration);
-  }
-});
+}
 
 
 app.TrackList = Backbone.Collection.extend({
@@ -308,11 +269,9 @@ app.NowPlayingView = Backbone.View.extend({
             return;
         }
         prettyPosition = formatDuration(Math.floor(state.position / 1000));
-        // if (R.player.playingTrack()) {
-          prettyDuration = formatDuration(Math.floor(state.duration / 1000));
-          this.$(".timer").text(prettyPosition + "/" + prettyDuration);
-          this.$(".duration-bar > span").animate({ width: ( state.position / state.duration ) * 100+'%' }, 100);
-        // }
+        prettyDuration = formatDuration(Math.floor(state.duration / 1000));
+        this.$(".timer").text(prettyPosition + "/" + prettyDuration);
+        this.$(".duration-bar > span").animate({ width: ( state.position / state.duration ) * 100+'%' }, 100);
     });
   },
 
@@ -333,15 +292,9 @@ app.NowPlayingView = Backbone.View.extend({
   },
 
   _handleSpeakerClick: function() {
-    R.player.startMasterTakeover();
-    R.player.volume(1);
+    // TODO: Should begin playing spotify via the embedded player
     if (app.playState.get('playingTrack') && app.playState.get('position')) {
       console.log("Jumping player to track '"+app.playState.get('playingTrack')+"' @ "+app.playState.get('position')+"s");
-      R.player.play({
-        source: app.playState.get('playingTrack').trackKey,
-        initialPosition: app.playState.get('position'),
-        deviceId: window.device_id
-      });
     }
   },
 
@@ -457,18 +410,6 @@ app.NowPlayingView = Backbone.View.extend({
       this.render();
     }
   },
-
-  _onPlayerStateChange: function(model, value, options) {
-    switch (value) {
-      case R.player.PLAYSTATE_PAUSED:
-      case R.player.PLAYSTATE_STOPPED:
-        R.player.pause();
-        break;
-      case R.player.PLAYSTATE_PLAYING:
-        R.player.play();
-        break;
-    }
-  }
 });
 
 app.TrackView = Backbone.View.extend({
@@ -589,12 +530,6 @@ app.queueView = Backbone.View.extend({
     app.queue.sort();
   }
 });
-
-app.ThemeInfo = Backbone.Model.extend({
-  setTheme: function(data) {
-    this.set({'themeText': data['theme']})
-  },
-}),
 
 app.ThemeView = Backbone.View.extend({
   el: '#theme',
