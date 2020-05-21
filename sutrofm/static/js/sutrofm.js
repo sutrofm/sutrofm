@@ -1,16 +1,22 @@
-/*globals app, console, R, Backbone, rdioUserKey*/
+/*globals app, console, R, Backbone, spotifyUserKey*/
 
 window.app = window.app || {};
 
 /*
  * MODELS
  */
+// Fields
+// ready: is the player ready to receive songs?
+// position: Position of the currently playing track
+// deviceId: ID of the currently playing device
+// playingTrack: struct of:
+//      playing_track_key: spotify ID of playing track
+//      playing_track_user_key: spotify user id of the user who added this track
+//      playing_queue_entry_id: queue entry id of the currently playing track
 app.Player = Backbone.Model.extend({
   setState: function(data) {
     this.set("ready", data['ready']);
     this.set('position', data['playing_track_position']);
-    this.set('deviceId', undefined),
-    this.set('spotifyPlayer', undefined),
     this.set('playingTrack', {
       'trackKey': data['playing_track_key'],
       'userKey': data['playing_track_user_key'],
@@ -219,26 +225,27 @@ app.FavoriteButton = Backbone.View.extend({
     },
 
     unfavoriteCurrentlyPlaying: function() {
-      app.S.removeFromMySavedTracks([app.nowPlayingView.rdioTrackKey])
+      app.S.removeFromMySavedTracks([app.nowPlayingView.spotifyTrackKey])
           .then(() => {
             this.isFavorited = false;
             $('#favorite-button').removeClass("was_favorited").addClass("not_favorited");
             chat.sendMessage("unfavorited this track");
           })
-          .catch((err) => {console.log('Failed to unfavorite ' + app.nowPlayingView.rdioTrackKey, err)})
+          .catch((err) => {console.log('Failed to unfavorite ' + app.nowPlayingView.spotifyTrackKey, err)})
     },
 
     favoriteCurrentlyPlaying: function() {
-      app.S.addToMySavedTracks([app.nowPlayingView.rdioTrackKey])
+      app.S.addToMySavedTracks([app.nowPlayingView.spotifyTrackKey])
           .then(() => {
             this.isFavorited = true;
             $('#favorite-button').removeClass("not_favorited").addClass("was_favorited");
             chat.sendMessage("favorited this track");
           })
-          .catch((err) => {console.log('Failed to favorite ' + app.nowPlayingView.rdioTrackKey, err)})
+          .catch((err) => {console.log('Failed to favorite ' + app.nowPlayingView.spotifyTrackKey, err)})
     },
 });
 
+// Model = app.playState (Player)
 app.NowPlayingView = Backbone.View.extend({
   el: '#now-playing',
 
@@ -252,7 +259,7 @@ app.NowPlayingView = Backbone.View.extend({
 
   initialize: function() {
     var self = this;
-    this.rdioTrackKey = null;
+    this.spotifyTrackKey = null;
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
 
@@ -263,16 +270,17 @@ app.NowPlayingView = Backbone.View.extend({
 
    updatePlayerState: function() {
     var player = app.playState.get('spotifyPlayer');
-    player.getCurrentState().then(state => {
+    if (player) {
+      player.getCurrentState().then(state => {
         if (!state) {
-            console.error('User is not playing music through the Web Playback SDK');
             return;
         }
         prettyPosition = formatDuration(Math.floor(state.position / 1000));
         prettyDuration = formatDuration(Math.floor(state.duration / 1000));
         this.$(".timer").text(prettyPosition + "/" + prettyDuration);
         this.$(".duration-bar > span").animate({ width: ( state.position / state.duration ) * 100+'%' }, 100);
-    });
+      });
+    }
   },
 
   getDuration: function(duration) {
@@ -303,7 +311,7 @@ app.NowPlayingView = Backbone.View.extend({
         model: this.model
     });
 
-    app.S.containsMySavedTracks([this.rdioTrackKey])
+    app.S.containsMySavedTracks([this.spotifyTrackKey])
         .then((favResults) => {
           console.log('Track is favorite: ', favResults[0]);
           this.favoriteButton = new app.FavoriteButton(favResults[0]);
@@ -320,16 +328,10 @@ app.NowPlayingView = Backbone.View.extend({
 
   render: function() {
     var self = this;
-    var keys = [this.rdioTrackKey];
-    var userKey = null;
-    if (self.playState.get('playingTrack')) {
-      keys.push(self.playState.get('playingTrack').userKey);
-      userKey = self.playState.get('playingTrack').userKey;
-    }
-    if (this.rdioTrackKey) {
+    if (app.playState.get('spotifyPlayer') && this.spotifyTrackKey) {
       // Set up the background color
-        console.log("Track Key: ", this.rdioTrackKey)
-      getTrack(this.rdioTrackKey, (error, track) => {
+        console.log("Track Key: ", this.spotifyTrackKey)
+      getTrack(this.spotifyTrackKey, (error, track) => {
         window.Vibrant.from(track.album.images[0].url).getPalette(function(err, palette) {
             if (palette) {
                 $('#wrap').css('background', palette.DarkVibrant.getHex())
@@ -344,9 +346,7 @@ app.NowPlayingView = Backbone.View.extend({
                 artist: track.artists.map(a => a.name).join(", ")
             },
             addedBy: self.playState.get('playingTrack').userKey
-
         })
-        console.log(track.uri)
         let payload = {
             uris: [track.uri],
             position_ms: this.playState.get("position") * 1000,
@@ -361,15 +361,17 @@ app.NowPlayingView = Backbone.View.extend({
         self.initChildModels();
       })
     } else {
-      app.S.pause();
+      if (app.playState.get('spotifyPlayer') !== undefined) {
+        app.S.pause(console.log)
+      }
       this.$el.hide();
     }
     return this;
   },
 
   play: function() {
-      if (this.rdioTrackKey) {
-          getTrack(this.rdioTrackKey, (error, track) => {
+      if (this.spotifyTrackKey) {
+          getTrack(this.spotifyTrackKey, (error, track) => {
             let payload = {
                 uris: [track.uri],
                 position_ms: this.playState.get("position") * 1000,
@@ -403,10 +405,10 @@ app.NowPlayingView = Backbone.View.extend({
 
   _onPlayerTrackChange: function(model, value, options) {
     if (value.trackKey) {
-        this.rdioTrackKey = value.trackKey
+        this.spotifyTrackKey = value.trackKey
         this.render()
     } else {
-      this.rdioTrackKey = null
+      this.spotifyTrackKey = null
       this.render();
     }
   },
@@ -416,7 +418,6 @@ app.TrackView = Backbone.View.extend({
   tagName: 'li',
 
   template: _.template($('#track-template').html()),
-
   events: {
     'click .up-vote': 'upVote',
     'click .down-vote': 'downVote',
@@ -426,19 +427,19 @@ app.TrackView = Backbone.View.extend({
   initialize: function() {
     this.listenTo(this.model, 'change', this.render);
     this.listenTo(this.model, 'remove', this.remove);
-    this.rdioTrack = null;
-    this.rdioUser = null;
+    this.spotifyTrack = null;
+    this.spotifyUser = null;
 
     var self = this;
-    if (!self.rdioTrack) {
+    if (!self.spotifyTrack) {
         getTrack(self.model.get('trackKey'), (error, track) => {
-            self.rdioTrack = {
+            self.spotifyTrack = {
                 icon: track.album.images[0].url,
                 shortUrl: track.external_urls.spotify,
                 name: track.name,
                 artist: track.artists.map((a)=> a.name).join(", "),
             }
-            self.rdioUser = {
+            self.spotifyUser = {
                 shortUrl: self.model.get('userUrl'),
                 key: self.model.get('userKey'),
                 name: self.model.get("userKey")
@@ -450,10 +451,10 @@ app.TrackView = Backbone.View.extend({
   },
 
   render: function() {
-    if (this.rdioTrack && this.rdioUser) {
+    if (this.spotifyTrack && this.spotifyUser) {
       var data = _.extend({
-        'track': this.rdioTrack,
-        'user': this.rdioUser,
+        'track': this.spotifyTrack,
+        'user': this.spotifyUser,
         'formattedDuration': this.trackDuration,
       }, this.model.toJSON(), this.model.getVoteCounts());
       this.$el.html(this.template(data));
@@ -479,7 +480,7 @@ app.TrackView = Backbone.View.extend({
   },
 
   removeTrack: function() {
-    console.log('Removing track ' + this.rdioTrack.name);
+    console.log('Removing track ' + this.spotifyTrack.name);
     $.ajax({
       'url': '/api/party/' + window.roomId + '/queue/remove',
       'method': 'POST',
@@ -583,7 +584,7 @@ app.ThemeView = Backbone.View.extend({
 
 app.receiveMessage = function(event) {
   let msg = event.data
-    console.log(msg)
+  console.log("Received message: ", msg)
   if (msg !== window.heartbeat_msg) {
     var payload = JSON.parse(msg);
     var type = payload['type'];

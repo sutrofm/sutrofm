@@ -1,4 +1,4 @@
-/*globals app, console, R, Backbone, rdioUserKey */
+/*globals app, console, R, Backbone */
 
 window.app = window.app || {};
 
