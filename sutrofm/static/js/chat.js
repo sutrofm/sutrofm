@@ -1,5 +1,9 @@
 var chat = chat || {};
+
 chat.User = Backbone.Model.extend({});
+
+chat.Message = Backbone.Model.extend({});
+
 chat.RedisUserList = Backbone.Collection.extend({
     model: chat.User,
     setUserList: function(data) {
@@ -16,64 +20,6 @@ chat.RedisUserList = Backbone.Collection.extend({
     }
 });
 
-chat.activeUsers = new chat.RedisUserList();
-chat.UserView = Backbone.View.extend({
-  tagName: 'li',
-  template: _.template($('#user-presence-template').html()),
-  initialize: function() {
-    this.listenTo(this.model, 'change', this.render);
-    this.listenTo(this.model, 'remove', this.remove);
-  },
-  render: function() {
-    var self = this;
-    if (!this.model.get('is_active')) {
-   	  return this;
-    }
-    var data = _.extend({
-      'display_name': self.model.get('display_name'),
-      'user_url': self.model.get('user_url'),
-      'icon': self.model.get('icon')
-    });
-    self.$el.html(self.template(data));
-    self.$el.show();
-    return this;
-  }
-});
-chat.UserListView = Backbone.View.extend({
-  el: '#user-list',
-  initialize: function() {
-  	this._current_users = [];
-    this.presenceStats = $('#presence-stats');
-    // listen to when new users are added
-    this.listenTo(chat.activeUsers, 'add', this.onListChanged);
-    // and to when users change from online to offline
-    this.listenTo(chat.activeUsers, 'change', this.onListChanged);
-    //probably should render the activeUsers  on init so we have a starting point too.
-    this.redraw(chat.activeUsers, {});
-  },
-  drawUser: function(model, collection, options) {
-    if (model.get('is_active')) {
-      var view = new chat.UserView({
-        model: model
-      });
-      this.$el.append(view.render().el);
-    }
-  },
-  redraw: function(collection, options) {
-  	var activeUsers = collection.filter(function(user) {return user.get('is_active');});
-  	activeUsers = activeUsers.map(function(user) {return user.get('id');});
-  	if (_.difference(this._current_users, activeUsers).length || _.difference(activeUsers, this._current_users).length) {
-      this.$el.empty();
-      collection.each(this.drawUser, this);
-      this._current_users = activeUsers;
-    };
-  },
-  onListChanged: function(model, options) {
-    // this is inefficient, but we don't have another hook to the dom element.
-    this.redraw(chat.activeUsers, {});
-  }
-}); /* chat messages! */
-chat.Message = Backbone.Model.extend({});
 chat.RedisMessageHistoryList = Backbone.Collection.extend({
   model: chat.Message,
   createMessage: function(payload) {
@@ -108,6 +54,65 @@ chat.RedisMessageHistoryList = Backbone.Collection.extend({
     this.add(this.createMessage(value));
   }
 });
+
+chat.UserView = Backbone.View.extend({
+  tagName: 'li',
+  template: _.template($('#user-presence-template').html()),
+  initialize: function() {
+    this.listenTo(this.model, 'change', this.render);
+    this.listenTo(this.model, 'remove', this.remove);
+  },
+  render: function() {
+    var self = this;
+    if (!this.model.get('is_active')) {
+   	  return this;
+    }
+    var data = _.extend({
+      'display_name': self.model.get('display_name'),
+      'user_url': self.model.get('user_url'),
+      'icon': self.model.get('icon')
+    });
+    self.$el.html(self.template(data));
+    self.$el.show();
+    return this;
+  }
+});
+
+chat.UserListView = Backbone.View.extend({
+  el: '#user-list',
+  initialize: function() {
+  	this._current_users = [];
+    this.presenceStats = $('#presence-stats');
+    // listen to when new users are added
+    this.listenTo(chat.activeUsers, 'add', this.onListChanged);
+    // and to when users change from online to offline
+    this.listenTo(chat.activeUsers, 'change', this.onListChanged);
+    //probably should render the activeUsers  on init so we have a starting point too.
+    this.redraw(chat.activeUsers, {});
+  },
+  drawUser: function(model, collection, options) {
+    if (model.get('is_active')) {
+      var view = new chat.UserView({
+        model: model
+      });
+      this.$el.append(view.render().el);
+    }
+  },
+  redraw: function(collection, options) {
+  	var activeUsers = collection.filter(function(user) {return user.get('is_active');});
+  	activeUsers = activeUsers.map(function(user) {return user.get('id');});
+  	if (_.difference(this._current_users, activeUsers).length || _.difference(activeUsers, this._current_users).length) {
+      this.$el.empty();
+      collection.each(this.drawUser, this);
+      this._current_users = activeUsers;
+    };
+  },
+  onListChanged: function(model, options) {
+    // this is inefficient, but we don't have another hook to the dom element.
+    this.redraw(chat.activeUsers, {});
+  }
+}); /* chat messages! */
+
 
 chat.UserMessageView = Backbone.View.extend({
   tagName: 'li',
@@ -186,6 +191,8 @@ chat.MessagesView = Backbone.View.extend({
 });
 
 $(function() {
+  chat.activeUsers = new chat.RedisUserList();
+
   chat.currentUser = window.current_user
   var user_key = chat.currentUser["id"]
   // add current user to activeUsers list, if they're not already
@@ -211,6 +218,7 @@ $(function() {
       chatEntryText.val('');
     }
   });
+
   // we set up track change messages in sutrofm.js
   chat.messageHistory = new chat.RedisMessageHistoryList();
   var chatView = new chat.MessagesView();
