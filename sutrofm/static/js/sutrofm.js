@@ -6,7 +6,6 @@ window.app = window.app || {};
  * MODELS
  */
 // Fields
-// ready: is the player ready to receive songs?
 // position: Position of the currently playing track
 // deviceId: ID of the currently playing device
 // playingTrack: struct of:
@@ -15,13 +14,12 @@ window.app = window.app || {};
 //      playing_queue_entry_id: queue entry id of the currently playing track
 app.Player = Backbone.Model.extend({
   setState: function(data) {
-    this.set("ready", data['ready']);
-    this.set('position', data['playing_track_position']);
-    this.set('playingTrack', {
-      'trackKey': data['playing_track_key'],
-      'userKey': data['playing_track_user_key'],
-      'queueEntryId': data['playing_queue_entry_id']
-    });
+    this.set({
+        position: data['playing_track_position'],
+        trackKey: data['playing_track_key'],
+        userKey: data['playing_track_user_key'],
+        queueEntryId: data['playing_queue_entry_id']
+    })
   }
 });
 
@@ -194,7 +192,7 @@ app.SkipButton = Backbone.View.extend({
             'url': '/api/v2/votes/',
             'method': 'PUT',
             'data': {
-                "queue_item": this.model.get('playingTrack').queueEntryId,
+                "queue_item": this.model.get('queueEntryId'),
                 "value": -1,
                 "is_skip": true
             }
@@ -259,7 +257,6 @@ app.NowPlayingView = Backbone.View.extend({
 
   initialize: function() {
     var self = this;
-    this.spotifyTrackKey = null;
     this.activeUsers = chat.activeUsers;
     this.playState = app.playState;
 
@@ -311,7 +308,7 @@ app.NowPlayingView = Backbone.View.extend({
         model: this.model
     });
 
-    app.S.containsMySavedTracks([this.spotifyTrackKey])
+    app.S.containsMySavedTracks([app.playState.get('trackKey')])
         .then((favResults) => {
           console.log('Track is favorite: ', favResults[0]);
           this.favoriteButton = new app.FavoriteButton(favResults[0]);
@@ -326,15 +323,19 @@ app.NowPlayingView = Backbone.View.extend({
   _clickFavorites: function() {
   },
 
+  setColor: function(color) {
+    $('#wrap').css('background', color)
+  },
+
   render: function() {
     var self = this;
-    if (app.playState.get('spotifyPlayer') && this.spotifyTrackKey) {
-      // Set up the background color
-        console.log("Track Key: ", this.spotifyTrackKey)
-      getTrack(this.spotifyTrackKey, (error, track) => {
+    if (app.playState.get('spotifyPlayer') && app.playState.get('trackKey')) {
+      console.log("Track Key: ", app.playState.get('trackKey'))
+      getTrack(app.playState.get('trackKey'), (error, track) => {
+        // Set up the background color
         window.Vibrant.from(track.album.images[0].url).getPalette(function(err, palette) {
             if (palette) {
-                $('#wrap').css('background', palette.DarkVibrant.getHex())
+                self.setColor(palette.DarkVibrant.getHex())
             }
         })
         var data = _.extend({
@@ -345,7 +346,7 @@ app.NowPlayingView = Backbone.View.extend({
                 album: track.album.name,
                 artist: track.artists.map(a => a.name).join(", ")
             },
-            addedBy: self.playState.get('playingTrack').userKey
+            addedBy: self.playState.get('userKey')
         })
         let payload = {
             uris: [track.uri],
@@ -364,14 +365,15 @@ app.NowPlayingView = Backbone.View.extend({
       if (app.playState.get('spotifyPlayer') !== undefined) {
         app.S.pause(console.log)
       }
+      this.setColor("#008fd5")
       this.$el.hide();
     }
     return this;
   },
 
   play: function() {
-      if (this.spotifyTrackKey) {
-          getTrack(this.spotifyTrackKey, (error, track) => {
+      if (app.playState.get('trackKey')) {
+          getTrack(app.playState.get('trackKey'), (error, track) => {
             let payload = {
                 uris: [track.uri],
                 position_ms: this.playState.get("position") * 1000,
@@ -391,24 +393,15 @@ app.NowPlayingView = Backbone.View.extend({
   init: function() {
     console.info('Becoming slave');
 
-    app.playState.on('change:playingTrack', this._onPlayerTrackChange, this);
-    app.playState.on('change:playState', this._onPlayerStateChange, this);
+    app.playState.on('change:trackKey', this._onPlayerTrackChange, this);
     app.playState.on('change:deviceId', this.render, this);
-    app.playState.on('change:ready', this._onReadinessUpdated, this);
-  },
-
-  _onReadinessUpdated: function(model, value, options) {
-    if (value === true) {
-        this.render()
-    }
   },
 
   _onPlayerTrackChange: function(model, value, options) {
-    if (value.trackKey) {
-        this.spotifyTrackKey = value.trackKey
+    console.log(model)
+    if (model.get('trackKey')) {
         this.render()
     } else {
-      this.spotifyTrackKey = null
       this.render();
     }
   },
