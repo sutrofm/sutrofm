@@ -17,7 +17,7 @@
      */
     // Fields
     // position: Position of the currently playing track
-    // deviceId: ID of the currently playing device
+    // localDeviceId: ID of the local player device
     // playingTrack: struct of:
     //      playing_track_key: spotify ID of playing track
     //      playing_track_user_key: spotify user id of the user who added this track
@@ -331,14 +331,14 @@
       render: function() {
         var self = this;
         if (this.model.get('spotifyPlayer') && this.model.get('trackKey')) {
-          console.log("Track Key: ", this.model.get('trackKey'))
+          console.log("Track Key: ", this.model.get('trackKey'));
           getTrack(this.model.get('trackKey'), (error, track) => {
             // Set up the background color
             window.Vibrant.from(track.album.images[0].url).getPalette(function(err, palette) {
                 if (palette) {
                     self.setColor(palette.DarkVibrant.getHex())
                 }
-            })
+            });
             var data = _.extend({
                 track: {
                     bigIcon: track.album.images[0].url,
@@ -348,25 +348,17 @@
                     artist: track.artists.map(a => a.name).join(", ")
                 },
                 addedBy: self.model.get('userKey')
-            })
-            let payload = {
-                uris: [track.uri],
-                position_ms: this.model.get("position") * 1000,
-            }
-            let deviceId = this.model.get('deviceId')
-            if (deviceId) {
-                payload.device_id = deviceId
-            }
-            app.S.play(payload)
-            self.$el.html(self.template(data))
-            self.$el.show()
+            });
+            self.play();
+            self.$el.html(self.template(data));
+            self.$el.show();
             self.initChildModels();
           })
         } else {
           if (this.model.get('spotifyPlayer') !== undefined) {
             app.S.pause(console.log)
           }
-          this.setColor("#008fd5")
+          this.setColor("#008fd5");
           this.$el.hide();
         }
         return this;
@@ -375,27 +367,46 @@
       play: function() {
           if (this.model.get('trackKey')) {
               getTrack(this.model.get('trackKey'), (error, track) => {
-                let payload = {
-                    uris: [track.uri],
-                    position_ms: this.model.get("position") * 1000,
-                }
-                let deviceId = this.model.get("deviceId")
-                if (deviceId) {
-                    payload.device_id = deviceId;
-                }
-                app.S.play(payload)
+                  // check the current active device so that we don't steal playback if it has
+                  // changed during the previous song
+                this.getActiveDeviceId((activeDeviceId)=> {
+                    let payload = {
+                        uris: [track.uri],
+                        position_ms: this.model.get("position") * 1000,
+                    };
+
+                    payload.device_id = activeDeviceId || this.model.get('localDeviceId');
+                    console.log('Playing on device id: ', payload.device_id);
+                    app.S.play(payload)
+                })
               })
           }
+      },
+
+      getActiveDeviceId: function(callback) {
+          app.S.getMyDevices((error, response) => {
+              console.log('Getting devices...');
+              if (error) {
+                  console.error(`Received error: ${error}`)
+              } else {
+                  let activeDeviceIds = response.devices
+                      .filter((device) => device.is_active)
+                      .map(device => device.id);
+                  if (activeDeviceIds.length) {
+                    callback(activeDeviceIds[0]);
+                  } else {
+                      callback(undefined);
+                  }
+              }
+          });
       },
 
       /**
        * Called when the client should listen to a remote player
        **/
       init: function() {
-        console.info('Becoming slave');
-
         this.model.on('change:trackKey', this._onPlayerTrackChange, this);
-        this.model.on('change:deviceId', this.render, this);
+        this.model.on('change:localDeviceId', this.render, this);
       },
 
       _onPlayerTrackChange: function(model, value, options) {

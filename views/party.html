@@ -267,32 +267,24 @@
     var device_id = undefined
 
     window.onSpotifyWebPlaybackSDKReady = () => {
-      // Check to see if we should start a spotify player in this window
-      app.S.getMyDevices((error, response) => {
-        if (error) {
-            console.error(`Received error: ${error}`)
-        } else {
-            if (response.devices.filter((device) => device.is_active).length == 0) {
-                var player = new Spotify.Player({
-                    name: "SutroFM",
-                    getOAuthToken: (callback) => { callback(spotify_access_token) },
-                    volume: 1,
-                })
+        // Check to see if we should start a spotify player in this window
+        var player = new Spotify.Player({
+            name: "SutroFM",
+            getOAuthToken: (callback) => { callback(spotify_access_token) },
+            volume: 1,
+        });
 
-                player.connect()
+        player.connect();
+        app.playState.set("spotifyPlayer", player);
 
-                // Ready
-                player.addListener('ready', ({ device_id }) => {
-                    console.log('Updating device id')
-                    app.playState.set("deviceId", device_id)
-                    app.nowPlayingView.play();
-                });
+        // Ready
+        player.addListener('ready', ({ device_id }) => {
+            console.log('Local player ready');
+            app.playState.set("localDeviceId", device_id);
+            console.log('Set localDeviceId: ', device_id);
 
-                app.playState.set("spotifyPlayer", player)
-            }
-        }
-  })
-
+            app.nowPlayingView.play();
+        });
     };
 
   </script>
