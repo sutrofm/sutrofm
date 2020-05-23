@@ -405,17 +405,8 @@
        * Called when the client should listen to a remote player
        **/
       init: function() {
-        this.model.on('change:trackKey', this._onPlayerTrackChange, this);
+        this.model.on('change:trackKey', this.render, this);
         this.model.on('change:localDeviceId', this.render, this);
-      },
-
-      _onPlayerTrackChange: function(model, value, options) {
-        console.log(model)
-        if (model.get('trackKey')) {
-            this.render()
-        } else {
-          this.render();
-        }
       },
     });
 
