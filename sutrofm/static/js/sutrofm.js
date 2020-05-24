@@ -210,8 +210,8 @@
             'click': '_clickFavorite'
         },
 
-        initialize: function(isFavorited) {
-            this.isFavorited = isFavorited;
+        initialize: function(options) {
+            this.isFavorited = options.isFavorited;
             if (this.isFavorited) {
               $('#favorite-button').removeClass("not_favorited").addClass("was_favorited");
             }

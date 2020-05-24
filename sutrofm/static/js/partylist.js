@@ -107,7 +107,7 @@ app.PartyRoomListView = Backbone.View.extend({
   initialize: function() {
     // listen for changes
     this.listenTo(app.partyRooms, 'add', this.onListChanged);
-    //this.listenTo(app.partyRooms, 'change', this.onListChanged);
+    this.listenTo(app.partyRooms, 'change', this.onListChanged);
 
     // and draw the initial rooms
     if (app.partyRooms.length === 0) {

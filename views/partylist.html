@@ -17,11 +17,9 @@
     {% csrf_token %}
     <fieldset>
       <div class="input-append">
-          <input type="text" name="room_name" id="room-name-input" class="input-xlarge" placeholder="Name your party"
-                 pattern="[A-Za-z0-9_-]+">
+          <input type="text" name="room_name" id="room-name-input" class="input-xlarge" placeholder="Name your party">
           <button type="submit" class="btn btn-primary" id="create-room-button">Start the Party</button>
       </div>
-        <span class="help-block">Make sure your Party name only uses letters, numbers, underscores, and dashes.</span>
     </fieldset>
     </form>
   </div>
