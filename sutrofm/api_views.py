@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from django.utils.timezone import now
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -20,8 +23,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class PartyViewSet(viewsets.ModelViewSet):
-  # TODO: Filtering on no playing song isn't great, but it's easy
-  queryset = Party.objects.filter(playing_item__isnull=False).order_by('-created')
+  # Party modified should get regularly updated as long as it's active
+  queryset = Party.objects.filter(modified__gte=now() - timedelta(minutes=120)).order_by('-modified')
   serializer_class = PartySerializer
   permission_classes = [permissions.IsAuthenticated]
 
