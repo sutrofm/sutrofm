@@ -78,7 +78,7 @@
       setTheme: function(data) {
         this.set({'themeText': data['theme']})
       }
-    })
+    });
 
     /*
      * Collections
@@ -547,20 +547,24 @@
         };
         this.$el.html(this.template(values));
         if (!this.editing) {
-          this.$el.find('.theme_name').text(this.model.get('themeText'));
+          let themeText = this.model.get('themeText');
+          if (themeText === "") {
+              themeText = "Click to set a theme"
+          }
+          this.$el.find('.theme_name').text(themeText);
         }
         $(".theme_text").focus();
         return this;
       },
 
       onThemeTextSubmit: function(e) {
-        if (e.keyCode == 13 && $(".theme_text").val()) {
+        if (e.keyCode == 13) {
           this.model.set('themeText', $(".theme_text").val());
           this.editing = false;
           this.render();
           $.ajax({
-            'url': '/api/party/' + window.roomId + '/theme/set',
-            'method': 'POST',
+            'url': '/api/v2/parties/' + window.roomId + '/',
+            'method': 'PUT',
             'data': {
               'theme': this.model.get('themeText')
             }

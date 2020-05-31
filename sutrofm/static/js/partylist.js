@@ -72,7 +72,8 @@ app.RoomView = Backbone.View.extend({
     var data = _.extend({
       name: roomName,
       id: this.model.get('id'),
-      population: populationStr
+      population: populationStr,
+      theme: this.model.get('theme')
     });
 
     var playingItem = this.model.get('playing_item');

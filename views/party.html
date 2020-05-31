@@ -236,7 +236,10 @@
   <script type="text/template" id="theme-template">
     <p class='theme_name' style='cursor:pointer; color: #FFFFFF; display: inline'>
     <% if (editing) { %>
-      <input type="text" class="theme_text"/>
+      <input type="text" class="theme_text"
+             placeholder="Enter a party theme"
+             maxlength="64"
+      />
     <% } %>
     </p>
   </script>
@@ -258,13 +261,13 @@
   
   <script type="text/javascript">
     var current_user = '{{ current_user|safe}}';
-    var spotify_access_token = "{{ spotify_access_token|safe }}"
+    var spotify_access_token = "{{ spotify_access_token|safe }}";
     var initial_player_state = {{ initial_player_state_json|safe }}
     var initial_queue_state = {{ initial_queue_state_json|safe }}
     var initial_user_list_state = {{ initial_user_list_state_json|safe }}
     var initial_messages_state = {{ initial_messages_state_json|safe }}
-    var initial_theme_state = "{{ initial_theme_state_json|safe }}['data']";
-    var device_id = undefined
+    var initial_theme_state = {{ initial_theme_state_json|safe }}['data'];
+    var device_id = undefined;
 
     window.onSpotifyWebPlaybackSDKReady = () => {
         // Check to see if we should start a spotify player in this window

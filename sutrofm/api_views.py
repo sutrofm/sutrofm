@@ -28,6 +28,22 @@ class PartyViewSet(viewsets.ModelViewSet):
   serializer_class = PartySerializer
   permission_classes = [permissions.IsAuthenticated]
 
+  def perform_update(self, serializer):
+    # NOTE: serializer.instance gets updated after calling save
+    # if you want to use the old_obj after saving the serializer you should
+    # use self.get_object() to get the old instance.
+    # other wise serializer.instance would do fine
+    old_obj = self.get_object()
+    new_data_dict = serializer.validated_data
+    theme_changed = False
+    # pre save logic
+    if old_obj.theme != new_data_dict['theme']:
+      theme_changed = True
+    new_obj = serializer.save()
+    # post save logic
+    if theme_changed:
+      new_obj.broadcast_theme_changed()
+
   @action(detail=True, methods=['GET'])
   def ping(self, request, *args, **kwargs):
       party_id = kwargs['pk']

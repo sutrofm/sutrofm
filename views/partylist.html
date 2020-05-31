@@ -56,6 +56,11 @@
       <div class="party-room-population">
         <%= population %>
       </div>
+        <% if (theme) { %>
+      <div class="party-room-theme">
+        Theme: <%= theme %>
+      </div>
+        <% } %>
       <div class="party-room-now-playing">
         Now playing: <%= nowPlaying %>
       </div>

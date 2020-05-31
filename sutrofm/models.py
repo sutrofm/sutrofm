@@ -31,7 +31,7 @@ class Party(TimeStampedModel):
   name = models.CharField(max_length=128, db_index=True)
   playing_item = models.ForeignKey('QueueItem', related_name='playing_party', on_delete=models.SET_NULL,
                                    blank=True, null=True)
-  theme = models.TextField()
+  theme = models.CharField(max_length=64, blank=True)
 
   @property
   def queue(self):
@@ -133,6 +133,21 @@ class Party(TimeStampedModel):
         }
       )
     return user_list
+
+  def get_theme_state_payload(self):
+    return {
+      'type': 'theme',
+      'data': {
+        'theme': self.theme
+      }
+    }
+
+  def broadcast_theme_changed(self):
+    layer = get_channel_layer()
+    async_to_sync(layer.group_send)("party_%s" % self.id, {
+      "type": "message",
+      "content": self.get_theme_state_payload()
+    })
 
   def user_count(self):
     return self.users.count()

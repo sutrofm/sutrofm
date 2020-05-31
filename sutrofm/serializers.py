@@ -64,6 +64,7 @@ class QueueItemSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PartySerializer(serializers.HyperlinkedModelSerializer):
+  name = serializers.CharField(read_only=True)
   users = UserSerializer(many=True, read_only=True)
   messages = ChatMessageSerializer(many=True, read_only=True)
   queue = QueueItemSerializer(many=True, read_only=True)

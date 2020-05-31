@@ -55,8 +55,8 @@ def party(request, party_id):
     'initial_queue_state_json': json.dumps(party.get_queue_state_payload()),
     'initial_user_list_state_json': json.dumps(party.get_user_list_state_payload()),
     'initial_messages_state_json': json.dumps(party.get_messages_state_payload()),
-    'spotify_access_token': social.get_access_token(load_strategy())
-#     'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
+    'spotify_access_token': social.get_access_token(load_strategy()),
+    'initial_theme_state_json': json.dumps(party.get_theme_state_payload()),
   }
   return render(request, 'party.html', context)
 
